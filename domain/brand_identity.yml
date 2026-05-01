@@ -40,6 +40,5 @@ actions:
   - action_brand_show_process
   - action_brand_show_industries
   - action_brand_get_quote
-  # TODO: implement these actions
-  # - action_brand_consultation_form
-  # - action_submit_brand_request
+  - action_brand_consultation_form
+  - action_submit_brand_request

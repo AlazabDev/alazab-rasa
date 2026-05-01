@@ -1,0 +1,41 @@
+[Unit]
+Description=AzaBot — Rasa Actions Server
+Documentation=https://rasa.com/docs/rasa-pro/
+After=network.target redis.target
+Wants=network.target
+
+[Service]
+Type=simple
+User=azab
+Group=azab
+WorkingDirectory=/opt/azabot
+EnvironmentFile=/opt/azabot/.env
+Environment=PYTHONUTF8=1
+Environment=PYTHONUNBUFFERED=1
+Environment=RASA_TELEMETRY_ENABLED=false
+
+ExecStart=/opt/azabot/.venv/bin/python -m rasa_sdk.endpoint \
+    --actions actions \
+    --port 5055
+
+ExecStop=/bin/kill -SIGTERM $MAINPID
+KillMode=mixed
+KillSignal=SIGTERM
+TimeoutStopSec=30
+Restart=on-failure
+RestartSec=10
+StartLimitIntervalSec=120
+StartLimitBurst=3
+
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=azabot-actions
+
+# Security hardening
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ReadWritePaths=/opt/azabot/logs /opt/azabot/.runtime
+
+[Install]
+WantedBy=multi-user.target

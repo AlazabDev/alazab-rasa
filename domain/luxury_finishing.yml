@@ -42,6 +42,5 @@ responses:
 actions:
   - action_luxury_show_materials
   - action_luxury_get_quote
-  # TODO: implement these actions
-  # - action_finishing_inspection_form
-  # - action_submit_inspection_request
+  - action_finishing_inspection_form
+  - action_submit_inspection_request

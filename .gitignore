@@ -1,75 +1,57 @@
-﻿# Python
+# Python
 __pycache__/
-*.py[cod]
-*.class
-*.so
+*.pyc
+*.pyo
+*.pyd
 .Python
+*.egg-info/
+dist/
+build/
+.eggs/
+*.egg
 .venv/
 venv/
-ENV/
 env/
-.eggs/
-*.egg-info/
-*.egg
 
 # Rasa
 models/
-logs/
-rasa.db
+results/
 .rasa/
 
-# IDE
-.vscode/
-.idea/
-*.swp
-*.swo
-*~
+# Environment & secrets — NEVER commit these
+.env
+.env.*
+!.env.example
+!.env.nodocker.example
+*.pem
+*.key
+gcp-f
+gcp-*.json
+
+# Runtime
+.runtime/
+logs/
+*.log
+*.pid
+
+# Frontend
+azabot/node_modules/
+azabot/dist/
+azabot/.pnpm-store/
+azabot/tsconfig.*.tsbuildinfo
+
+# Uploads
+webhook/static/uploads/
+
+# Piper voice models (large binary files)
+piper/voice/models/*.onnx
+piper/voice/samples/
 
 # OS
 .DS_Store
 Thumbs.db
-desktop.ini
+*.swp
 
-# Environment
-.env
-.env.local
-.env.*.local
-azabot/.env
-
-# Secrets
-*.pem
-*.key
-*.crt
-secrets.yml
-
-# Project specific
-gcp-f
-ssl/
-!ssl/.gitkeep
-
-# Logs
-*.log
-logs/
-
-# Temporary files
-*.tmp
-*.temp
-temp/
-
-# Database
-*.db
-*.sqlite
-*.sqlite3
-
-# Uploads
-webhook/static/uploads/
-!webhook/static/uploads/.gitkeep
-
-# Large/generated local files
-piper/voice/models/
-models/*.tar.gz
-*.pt
-*.pth
-*.bin
-*.flac
-*.onnx.json
+# SSL (never commit real certs)
+ssl/fullchain.pem
+ssl/privkey.pem

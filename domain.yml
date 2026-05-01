@@ -112,33 +112,32 @@ responses:
         - title: "❌ لا"
           payload: "/SetSlots(confirm_human_handoff=No)"
 
-  utter_transfer_to_manager:
-    - text: |
-        ✅ تم تحويلك لفريق خدمة العملاء.
-        📋 ملخص المحادثة: {summary}
-        سيتواصل معك أحد موظفينا في أقرب وقت. شكراً لصبرك!
-
-  utter_lead_submitted:
-    - text: |
-        ✅ شكراً لك! تم تسجيل بياناتك بنجاح.
-        سيتواصل معك فريقنا في أقرب وقت ممكن. 🤝
-
-  utter_ask_help:
-    - text: |
-        💡 يمكنني مساعدتك في:
-        🏗️ **Alazab Construction** — المقاولات والإنشاء
-        ✨ **Luxury Finishing** — التشطيبات الراقية
-        🎨 **Brand Identity** — الهوية التجارية
-        🔧 **UberFix** — الصيانة والتشغيل
-        🧱 **Laban Alasfour** — التوريدات والخامات
-
-        تفضل، اكتب سؤالك أو اختر الخدمة!
-      metadata:
-        rephrase: true
-
 # ══════════════════════════════════════════════════════════════
 #  Session Config
 # ══════════════════════════════════════════════════════════════
 session_config:
   session_expiration_time: 60
   carry_over_slots_to_new_session: true
+
+actions:
+  # ── General Actions (action_general.py) ──────────────────
+  - action_save_lead_to_crm
+  - action_notify_sales_team
+  - action_receive_handoff_reason
+  - action_check_human_availability
+  - action_check_queue_position
+  - action_initiate_human_handoff
+  - action_wait_for_agent
+  - action_transfer_to_agent
+  - action_notify_team_via_whatsapp
+  - action_collect_escalation_details
+  - action_create_escalation_ticket
+  - action_notify_manager
+  - action_receive_feedback_service
+  - action_receive_rating
+  - action_receive_feedback_text
+  - action_receive_suggestion
+  - action_save_feedback
+  - action_save_suggestion
+  - action_collect_follow_up_contact
+  - action_search_faq_by_keyword

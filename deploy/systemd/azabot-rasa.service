@@ -1,0 +1,45 @@
+[Unit]
+Description=AzaBot — Rasa Pro Server (CALM)
+Documentation=https://rasa.com/docs/rasa-pro/
+After=network.target azabot-actions.service
+Requires=azabot-actions.service
+
+[Service]
+Type=simple
+User=azab
+Group=azab
+WorkingDirectory=/opt/azabot
+EnvironmentFile=/opt/azabot/.env
+Environment=PYTHONUTF8=1
+Environment=PYTHONUNBUFFERED=1
+Environment=RASA_TELEMETRY_ENABLED=false
+Environment=ACTION_SERVER_URL=http://127.0.0.1:5055/webhook
+
+ExecStart=/opt/azabot/.venv/bin/rasa run \
+    --enable-api \
+    --host 127.0.0.1 \
+    --port 5005 \
+    --credentials credentials.yml \
+    --endpoints endpoints.yml \
+    --cors "${ALLOWED_ORIGINS}"
+
+ExecStop=/bin/kill -SIGTERM $MAINPID
+KillMode=mixed
+KillSignal=SIGTERM
+TimeoutStopSec=60
+Restart=on-failure
+RestartSec=15
+StartLimitIntervalSec=180
+StartLimitBurst=3
+
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=azabot-rasa
+
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ReadWritePaths=/opt/azabot/logs /opt/azabot/.runtime /opt/azabot/models
+
+[Install]
+WantedBy=multi-user.target

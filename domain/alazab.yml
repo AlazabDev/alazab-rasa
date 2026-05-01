@@ -43,6 +43,5 @@ responses:
 actions:
   - action_alazab_show_projects
   - action_alazab_get_quote
-  # TODO: implement these actions
-  # - action_construction_quote_form
-  # - action_submit_construction_quote
+  - action_construction_quote_form
+  - action_submit_construction_quote

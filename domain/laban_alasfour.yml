@@ -39,6 +39,5 @@ actions:
   - action_laban_show_catalog
   - action_laban_check_delivery
   - action_laban_bulk_quote
-  # TODO: implement these actions
-  # - action_laban_order_form
-  # - action_submit_laban_order
+  - action_laban_order_form
+  - action_submit_laban_order

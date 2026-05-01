@@ -1,0 +1,46 @@
+[Unit]
+Description=AzaBot — FastAPI Webhook Server
+Documentation=https://fastapi.tiangolo.com/
+After=network.target azabot-rasa.service
+Wants=azabot-rasa.service
+
+[Service]
+Type=simple
+User=azab
+Group=azab
+WorkingDirectory=/opt/azabot
+EnvironmentFile=/opt/azabot/.env
+Environment=PYTHONUTF8=1
+Environment=PYTHONUNBUFFERED=1
+Environment=RASA_URL=http://127.0.0.1:5005
+Environment=ACTION_SERVER_URL=http://127.0.0.1:5055/webhook
+
+ExecStart=/opt/azabot/.venv/bin/uvicorn webhook.server:app \
+    --host 127.0.0.1 \
+    --port 8000 \
+    --workers 2 \
+    --loop uvloop \
+    --access-log \
+    --log-level info \
+    --no-use-colors
+
+ExecStop=/bin/kill -SIGTERM $MAINPID
+KillMode=mixed
+KillSignal=SIGTERM
+TimeoutStopSec=30
+Restart=on-failure
+RestartSec=5
+StartLimitIntervalSec=60
+StartLimitBurst=5
+
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=azabot-webhook
+
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ReadWritePaths=/opt/azabot/logs /opt/azabot/.runtime /opt/azabot/webhook/static/uploads
+
+[Install]
+WantedBy=multi-user.target

@@ -1,22 +1,28 @@
 """
-webhook/server.py — Central Webhook Server v3.1 (Modularized)
-================================================================
+webhook/server.py — Central Webhook Server v3.0
+=================================================
 مجموعة العزب | Alazab Group Chatbot
 
-ويب هوك مركزي يوحّد جميع قنوات التواصل في نقطة دخول واحدة.
+ويب هوك مركزي يوحّد جميع قنوات التواصل في نقطة دخول واحدة:
 
-** الوحدات المستخلصة: **
-  config.py       → الإعدادات والثوابت
-  models.py       → Pydantic models
-  utils.py        → دوال مساعدة مشتركة
-  middleware.py   → Security headers
-  services/
-    rasa_client.py     → اتصال Rasa
-    channels.py        → مرسلات القنوات
-    admin_data.py      → إدارة بيانات الإدارة
-    notifications.py   → إشعارات العملاء والتكاملات
-    uploads.py         → رفع الملفات
-    audio.py           → النسخ الصوتي والتحويل النصي
+  ┌──────────────────────────────────────────────┐
+  │           INCOMING CHANNELS                  │
+  │  Website · WhatsApp · Messenger · Telegram   │
+  └─────────────────┬────────────────────────────┘
+                    │
+             ┌──────▼──────┐
+             │   CENTRAL   │
+             │   WEBHOOK   │
+             └──────┬──────┘
+                    │
+       ┌────────────▼────────────┐
+       │       RASA PRO          │
+       └────────────┬────────────┘
+                    │
+       ┌────────────▼────────────┐
+       │    OUTGOING CHANNELS    │
+       │  نفس قناة المستخدم     │
+       └─────────────────────────┘
 
 Endpoints:
   GET  /health              ← صحة جميع الخدمات + القنوات المفعلة
@@ -71,74 +77,6 @@ from pydantic import BaseModel, Field, field_validator
 from starlette.concurrency import run_in_threadpool
 
 # ══════════════════════════════════════════════════════════════
-#  Modular Imports — Backward-compatible aliases
-# ══════════════════════════════════════════════════════════════
-from .config import (  # noqa: F401
-    ADMIN_DATA_FILE, ADMIN_EMAIL, ADMIN_API_KEY, ADMIN_PASSWORD,
-    ADMIN_SESSION_SECRET, ADMIN_SESSION_TTL_SECONDS,
-    ALLOWED_FILE_EXTENSIONS, ALLOWED_ORIGINS, AUDIO_FILE_EXTENSIONS,
-    AUDIO_TRANSCRIPTION_MODEL, AUDIO_TTS_MODEL, AUDIO_TTS_VOICE,
-    BASE_DIR, BRAND_ALIAS_MAP, BRAND_PATH_MAP, BRAND_PROFILES,
-    DB_HOST, DB_NAME, DB_PASSWORD, DB_PORT, DB_USER,
-    DEFAULT_ADMIN_DATA, FRONTEND_ASSETS_DIR, FRONTEND_DIST_DIR,
-    FRONTEND_EMBED_DIR, MAX_UPLOAD_BYTES, META_SECRET, META_TOKEN,
-    META_VERIFY, NOTIFY_PHONE, NOTIFY_TG_CHAT, PIPER_PRONUNCIATION_LEXICON_FILE,
-    PUBLIC_BASE_URL, RASA_REQUEST_TIMEOUT, RASA_URL, ROOT_DIR,
-    SITE_BRAND_MAP, STATIC_DIR, TG_API_BASE, TG_TOKEN, TG_WEBHOOK_SECRET,
-    UBERFIX_API_KEY, UBERFIX_SERVICE_TYPES, UBERFIX_TRACK_BASE_URL,
-    UPLOADS_DIR, UPLOADS_PUBLIC_ENABLED, UPLOADS_ROOT,
-    WA_TOKEN, WA_URL, WEBHOOK_NOTIFY,
-)
-from .models import (  # noqa: F401
-    AdminLoginRequest, BotGatewayRequest, ChatRequest,
-    ChatResponse, LeadData, TTSRequest,
-)
-from .utils import (  # noqa: F401
-    jsonable as _jsonable,
-    is_relative_to as _is_relative_to,
-    phone_digits as _phone_digits,
-    sanitize_filename as _sanitize_filename,
-    extract_hostname as _extract_hostname,
-    extract_path as _extract_path,
-    extract_request_site_host as _extract_request_site_host,
-    extract_request_site_path as _extract_request_site_path,
-    is_internal_lead_notify_url as _is_internal_lead_notify_url,
-    resolve_brand as _resolve_brand,
-    serialize_attachment as _serialize_attachment,
-    serialize_conversation_messages as _serialize_conversation_messages,
-    build_file_prompt as _build_file_prompt,
-    build_audio_prompt as _build_audio_prompt,
-)
-from .middleware import SecurityHeadersMiddleware  # noqa: F401
-from .services.rasa_client import rasa_send as _rasa_send  # noqa: F401
-from .services.channels import (  # noqa: F401
-    send_whatsapp as _send_whatsapp,
-    send_messenger as _send_messenger,
-    send_telegram as _send_telegram,
-)
-from .services.admin_data import (  # noqa: F401
-    count as _count,
-    load_admin_data as _load_admin_data,
-    save_admin_data as _save_admin_data,
-    record_conversation as _record_conversation_impl,
-    admin_stats_payload as _admin_stats_payload,
-    integration_conversation_payload as _integration_conversation_payload,
-    get_start_time,
-)
-from .services.notifications import (  # noqa: F401
-    notify_all_channels as _notify_all_channels,
-    dispatch_integrations as _dispatch_integrations,
-    test_integration as _test_integration,
-    format_integration_message as _format_integration_message,
-    deliver_integration_event as _deliver_integration_event,
-)
-from .services.uploads import save_upload as _save_upload  # noqa: F401
-from .services.audio import (  # noqa: F401
-    transcribe_audio as _transcribe_audio,
-    text_to_speech as _text_to_speech,
-)
-
-# ══════════════════════════════════════════════════════════════
 #  Logging
 # ══════════════════════════════════════════════════════════════
 logging.basicConfig(
@@ -153,31 +91,10 @@ logger = logging.getLogger("alazab.webhook")
 app = FastAPI(
     title="Alazab Group — Central Webhook",
     description="ويب هوك مركزي: WhatsApp · Messenger · Telegram · Website",
-    version="3.1.0",
+    version="3.0.0",
     docs_url="/docs",
     redoc_url="/redoc",
 )
-
-# Re-export start time for compatibility
-_start_time = get_start_time()
-
-
-# Backward-compatible wrapper for _record_conversation
-async def _record_conversation(
-    sender_id: str,
-    user_text: str,
-    responses: list[dict[str, Any]],
-    *,
-    channel: str,
-    brand: Optional[str],
-    attachment: Optional[dict[str, Any]] = None,
-) -> None:
-    await _record_conversation_impl(
-        sender_id, user_text, responses,
-        channel=channel, brand=brand, attachment=attachment,
-        dispatch_integrations_fn=_dispatch_integrations,
-    )
-
 
 BASE_DIR = Path(__file__).resolve().parent
 ROOT_DIR = BASE_DIR.parent
@@ -414,6 +331,11 @@ WEBHOOK_NOTIFY = os.getenv("WEBHOOK_NOTIFY_URL",   "")
 # ══════════════════════════════════════════════════════════════
 _stats: dict[str, int] = defaultdict(int)
 _start_time = time.time()
+
+# ── Admin Login Rate Limiter (in-memory, per-IP) ───────────
+_admin_login_attempts: dict[str, list[float]] = defaultdict(list)
+_ADMIN_LOGIN_MAX_ATTEMPTS = 5
+_ADMIN_LOGIN_WINDOW_SECONDS = 300  # 5 minutes
 
 DEFAULT_ADMIN_DATA: dict[str, Any] = {
     "settings": {
@@ -875,7 +797,6 @@ def _uberfix_db_connect():
         except Exception as exc:
             if attempt < max_retries - 1:
                 logger.warning("UberFix PostgreSQL connection attempt %d failed: %s. Retrying in %ds...", attempt + 1, exc, retry_delay)
-                # NOTE: this runs inside run_in_threadpool, so blocking sleep is OK here
                 time.sleep(retry_delay)
             else:
                 logger.error("UberFix PostgreSQL connection failed after %d attempts: %s", max_retries, exc)
@@ -1899,18 +1820,29 @@ async def admin_stats(_: None = Depends(_require_admin)):
 
 
 @app.post("/admin/login", tags=["System"])
-async def admin_login(payload: AdminLoginRequest):
+async def admin_login(payload: AdminLoginRequest, request: Request):
     """تسجيل دخول لوحة الإدارة محلياً بدون Supabase."""
     if not (ADMIN_PASSWORD and ADMIN_SESSION_SECRET):
         raise HTTPException(
             status_code=503,
             detail="Admin login is not configured. Set ADMIN_PASSWORD and ADMIN_SESSION_SECRET.",
         )
+    # ── Rate limiting per IP ──────────────────────────────
+    client_ip = (request.client.host if request.client else "unknown")
+    now = time.time()
+    attempts = _admin_login_attempts[client_ip]
+    _admin_login_attempts[client_ip] = [t for t in attempts if now - t < _ADMIN_LOGIN_WINDOW_SECONDS]
+    if len(_admin_login_attempts[client_ip]) >= _ADMIN_LOGIN_MAX_ATTEMPTS:
+        raise HTTPException(status_code=429, detail="محاولات تسجيل دخول كثيرة — حاول بعد 5 دقائق")
+    _admin_login_attempts[client_ip].append(now)
+
     email_ok = hmac.compare_digest(payload.email, ADMIN_EMAIL)
     password_ok = hmac.compare_digest(payload.password, ADMIN_PASSWORD)
     if not (email_ok and password_ok):
         raise HTTPException(status_code=401, detail="بيانات الدخول غير صحيحة")
 
+    # Clear attempts on successful login
+    _admin_login_attempts.pop(client_ip, None)
     return {
         "token": _issue_admin_session_token(ADMIN_EMAIL),
         "email": ADMIN_EMAIL,
@@ -2866,9 +2798,6 @@ def _extract_request_site_path(request: Request) -> Optional[str]:
             return path
     return None
 
-
-# NOTE: _is_relative_to is defined once above (line ~1732) — using resolve() for security.
-# The duplicate definition was removed here during production audit.
 
 
 def _resolve_brand(
