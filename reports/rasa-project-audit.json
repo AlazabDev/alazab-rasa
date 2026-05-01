@@ -1,0 +1,296 @@
+{
+  "project": "D:\\A\\chatbot\\alazab-rasa",
+  "total_issues": 36,
+  "errors": 17,
+  "warnings": 19,
+  "issues": [
+    {
+      "severity": "ERROR",
+      "code": "MISSING_RESPONSE",
+      "file": "data/general/human_handoff.yml",
+      "flow": "human_handoff",
+      "step": "ask_reason",
+      "message": "الـ response غير معرّف: utter_ask_reason_for_handoff"
+    },
+    {
+      "severity": "ERROR",
+      "code": "MISSING_RESPONSE",
+      "file": "data/general/human_handoff.yml",
+      "flow": "human_handoff",
+      "step": "offer_handoff",
+      "message": "الـ response غير معرّف: utter_offer_human_handoff"
+    },
+    {
+      "severity": "ERROR",
+      "code": "MISSING_RESPONSE",
+      "file": "data/general/human_handoff.yml",
+      "flow": "human_handoff",
+      "step": "immediate_handoff",
+      "message": "الـ response غير معرّف: utter_human_handoff_immediate"
+    },
+    {
+      "severity": "ERROR",
+      "code": "MISSING_RESPONSE",
+      "file": "data/general/human_handoff.yml",
+      "flow": "human_handoff",
+      "step": "queue_handoff",
+      "message": "الـ response غير معرّف: utter_human_handoff_queue"
+    },
+    {
+      "severity": "ERROR",
+      "code": "MISSING_RESPONSE",
+      "file": "data/general/human_handoff.yml",
+      "flow": "human_handoff",
+      "step": "agent_connected",
+      "message": "الـ response غير معرّف: utter_agent_connected"
+    },
+    {
+      "severity": "ERROR",
+      "code": "MISSING_RESPONSE",
+      "file": "data/general/human_handoff.yml",
+      "flow": "human_handoff",
+      "step": "offline_handoff",
+      "message": "الـ response غير معرّف: utter_human_handoff_offline"
+    },
+    {
+      "severity": "ERROR",
+      "code": "MISSING_RESPONSE",
+      "file": "data/general/human_handoff.yml",
+      "flow": "human_handoff",
+      "step": "offer_alternative",
+      "message": "الـ response غير معرّف: utter_offer_alternative_contact"
+    },
+    {
+      "severity": "ERROR",
+      "code": "MISSING_RESPONSE",
+      "file": "data/general/human_handoff.yml",
+      "flow": "human_handoff",
+      "step": "provide_whatsapp",
+      "message": "الـ response غير معرّف: utter_provide_whatsapp"
+    },
+    {
+      "severity": "ERROR",
+      "code": "MISSING_RESPONSE",
+      "file": "data/general/human_handoff.yml",
+      "flow": "human_handoff",
+      "step": "cancel_handoff",
+      "message": "الـ response غير معرّف: utter_handoff_cancelled"
+    },
+    {
+      "severity": "ERROR",
+      "code": "MISSING_RESPONSE",
+      "file": "data/general/human_handoff.yml",
+      "flow": "escalate_to_manager",
+      "step": "receive_escalation",
+      "message": "الـ response غير معرّف: utter_receive_escalation"
+    },
+    {
+      "severity": "ERROR",
+      "code": "MISSING_RESPONSE",
+      "file": "data/general/human_handoff.yml",
+      "flow": "escalate_to_manager",
+      "step": "send_escalation_confirmation",
+      "message": "الـ response غير معرّف: utter_escalate_to_manager"
+    },
+    {
+      "severity": "ERROR",
+      "code": "MISSING_STEP_REFERENCE",
+      "file": "data/general/show_faqs.yml",
+      "flow": "search_faq_by_keyword",
+      "step": "show_search_results",
+      "message": "الخطوة تشير إلى 'ask_if_more_faqs' لكنها غير موجودة داخل نفس الـ flow. لا تستخدم خطوة من Flow آخر."
+    },
+    {
+      "severity": "ERROR",
+      "code": "MISSING_STEP_REFERENCE",
+      "file": "data/general/show_faqs.yml",
+      "flow": "search_faq_by_keyword",
+      "step": "no_results_found",
+      "message": "الخطوة تشير إلى 'ask_user_selection' لكنها غير موجودة داخل نفس الـ flow. لا تستخدم خطوة من Flow آخر."
+    },
+    {
+      "severity": "ERROR",
+      "code": "MISSING_RESPONSE",
+      "file": "data/system/patterns/patterns.yml",
+      "flow": "pattern_cancel_flow",
+      "step": "index:1",
+      "message": "الـ response غير معرّف: utter_confirm_cancel"
+    },
+    {
+      "severity": "ERROR",
+      "code": "MISSING_STEP_REFERENCE",
+      "file": "data/system/patterns/patterns.yml",
+      "flow": "pattern_cancel_flow",
+      "step": "index:1.branch[2]",
+      "message": "الخطوة تشير إلى 'RESUME' لكنها غير موجودة داخل نفس الـ flow. لا تستخدم خطوة من Flow آخر."
+    },
+    {
+      "severity": "ERROR",
+      "code": "COMMAND_FAILED",
+      "file": "reports/azabot-pnpm-build-check.log",
+      "flow": null,
+      "step": null,
+      "message": "الأمر فشل: cd \".\\azabot\" && pnpm run build | exit=1"
+    },
+    {
+      "severity": "ERROR",
+      "code": "COMMAND_FAILED",
+      "file": "reports/rasa-data-validate.log",
+      "flow": null,
+      "step": null,
+      "message": "الأمر فشل: rasa data validate --domain \".\\domain.yml\" --data \".\\data\" | exit=1"
+    },
+    {
+      "severity": "WARNING",
+      "code": "DUPLICATE_RESPONSE",
+      "file": "data/brands/uberfix/nlu.yml",
+      "flow": null,
+      "step": "utter_greet",
+      "message": "Response مكرر في: data/brands/uberfix/nlu.yml, domain.yml"
+    },
+    {
+      "severity": "WARNING",
+      "code": "DUPLICATE_RESPONSE",
+      "file": "data/brands/uberfix/nlu.yml",
+      "flow": null,
+      "step": "utter_goodbye",
+      "message": "Response مكرر في: data/brands/uberfix/nlu.yml, domain.yml"
+    },
+    {
+      "severity": "WARNING",
+      "code": "DUPLICATE_RESPONSE",
+      "file": "data/brands/uberfix/nlu.yml",
+      "flow": null,
+      "step": "utter_thanks",
+      "message": "Response مكرر في: data/brands/uberfix/nlu.yml, domain.yml"
+    },
+    {
+      "severity": "WARNING",
+      "code": "DUPLICATE_RESPONSE",
+      "file": "data/brands/uberfix/nlu.yml",
+      "flow": null,
+      "step": "utter_uberfix_services",
+      "message": "Response مكرر في: data/brands/uberfix/nlu.yml, domain/uberfix.yml"
+    },
+    {
+      "severity": "WARNING",
+      "code": "DUPLICATE_RESPONSE",
+      "file": "data/brands/uberfix/nlu.yml",
+      "flow": null,
+      "step": "utter_uberfix_emergency",
+      "message": "Response مكرر في: data/brands/uberfix/nlu.yml, domain/uberfix.yml"
+    },
+    {
+      "severity": "WARNING",
+      "code": "DUPLICATE_RESPONSE",
+      "file": "data/brands/uberfix/nlu.yml",
+      "flow": null,
+      "step": "utter_out_of_scope",
+      "message": "Response مكرر في: data/brands/uberfix/nlu.yml, domain.yml"
+    },
+    {
+      "severity": "WARNING",
+      "code": "CUSTOM_ACTION_NOT_DECLARED",
+      "file": "data/general/collect_lead.yml",
+      "flow": "collect_lead",
+      "step": "save",
+      "message": "الأكشن مستخدم لكنه غير موجود في actions: action_save_lead_to_crm"
+    },
+    {
+      "severity": "WARNING",
+      "code": "CUSTOM_ACTION_NOT_DECLARED",
+      "file": "data/general/collect_lead.yml",
+      "flow": "collect_lead",
+      "step": "notify",
+      "message": "الأكشن مستخدم لكنه غير موجود في actions: action_notify_sales_team"
+    },
+    {
+      "severity": "WARNING",
+      "code": "CUSTOM_ACTION_NOT_DECLARED",
+      "file": "data/general/human_handoff.yml",
+      "flow": "human_handoff",
+      "step": "receive_reason",
+      "message": "الأكشن مستخدم لكنه غير موجود في actions: action_receive_handoff_reason"
+    },
+    {
+      "severity": "WARNING",
+      "code": "CUSTOM_ACTION_NOT_DECLARED",
+      "file": "data/general/human_handoff.yml",
+      "flow": "human_handoff",
+      "step": "check_availability",
+      "message": "الأكشن مستخدم لكنه غير موجود في actions: action_check_human_availability"
+    },
+    {
+      "severity": "WARNING",
+      "code": "CUSTOM_ACTION_NOT_DECLARED",
+      "file": "data/general/human_handoff.yml",
+      "flow": "human_handoff",
+      "step": "initiate_handoff",
+      "message": "الأكشن مستخدم لكنه غير موجود في actions: action_initiate_human_handoff"
+    },
+    {
+      "severity": "WARNING",
+      "code": "CUSTOM_ACTION_NOT_DECLARED",
+      "file": "data/general/human_handoff.yml",
+      "flow": "human_handoff",
+      "step": "check_queue",
+      "message": "الأكشن مستخدم لكنه غير موجود في actions: action_check_queue_position"
+    },
+    {
+      "severity": "WARNING",
+      "code": "CUSTOM_ACTION_NOT_DECLARED",
+      "file": "data/general/human_handoff.yml",
+      "flow": "human_handoff",
+      "step": "wait_for_agent",
+      "message": "الأكشن مستخدم لكنه غير موجود في actions: action_wait_for_agent"
+    },
+    {
+      "severity": "WARNING",
+      "code": "CUSTOM_ACTION_NOT_DECLARED",
+      "file": "data/general/human_handoff.yml",
+      "flow": "human_handoff",
+      "step": "transfer_to_agent",
+      "message": "الأكشن مستخدم لكنه غير موجود في actions: action_transfer_to_agent"
+    },
+    {
+      "severity": "WARNING",
+      "code": "CUSTOM_ACTION_NOT_DECLARED",
+      "file": "data/general/human_handoff.yml",
+      "flow": "human_handoff",
+      "step": "notify_team",
+      "message": "الأكشن مستخدم لكنه غير موجود في actions: action_notify_team_via_whatsapp"
+    },
+    {
+      "severity": "WARNING",
+      "code": "CUSTOM_ACTION_NOT_DECLARED",
+      "file": "data/general/human_handoff.yml",
+      "flow": "escalate_to_manager",
+      "step": "collect_escalation_details",
+      "message": "الأكشن مستخدم لكنه غير موجود في actions: action_collect_escalation_details"
+    },
+    {
+      "severity": "WARNING",
+      "code": "CUSTOM_ACTION_NOT_DECLARED",
+      "file": "data/general/human_handoff.yml",
+      "flow": "escalate_to_manager",
+      "step": "create_ticket",
+      "message": "الأكشن مستخدم لكنه غير موجود في actions: action_create_escalation_ticket"
+    },
+    {
+      "severity": "WARNING",
+      "code": "CUSTOM_ACTION_NOT_DECLARED",
+      "file": "data/general/human_handoff.yml",
+      "flow": "escalate_to_manager",
+      "step": "notify_manager",
+      "message": "الأكشن مستخدم لكنه غير موجود في actions: action_notify_manager"
+    },
+    {
+      "severity": "WARNING",
+      "code": "CUSTOM_ACTION_NOT_DECLARED",
+      "file": "data/system/patterns/patterns.yml",
+      "flow": "pattern_correction",
+      "step": "index:1",
+      "message": "الأكشن مستخدم لكنه غير موجود في actions: action_correct_flow_slot"
+    }
+  ]
+}

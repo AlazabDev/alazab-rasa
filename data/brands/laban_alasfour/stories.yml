@@ -1,0 +1,25 @@
+version: "3.1"
+
+stories:
+  - story: سؤال عن منتجات Laban Alasfour
+    steps:
+      - intent: greet
+      - action: utter_greet
+      - intent: ask_laban_products
+      - action: utter_laban_products
+      - intent: ask_laban_catalog
+      - action: utter_laban_catalog
+
+  - story: طلب خامات بالجملة من Laban Alasfour
+    steps:
+      - intent: ask_laban_bulk_order
+      - action: utter_laban_bulk_order
+      - intent: ask_laban_delivery
+      - action: utter_laban_delivery
+
+  - story: تواصل مع Laban Alasfour
+    steps:
+      - intent: ask_laban_contact
+      - action: utter_laban_contact
+      - intent: thanks
+      - action: utter_thanks

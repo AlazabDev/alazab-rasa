@@ -1,0 +1,939 @@
+version: "3.1"
+
+nlu:
+  - intent: ask_uberfix_services
+    examples: |
+      - ايه خدمات UberFix
+      - بتعملوا صيانة
+      - خدمات الصيانة
+      - صيانة كهرباء
+      - صيانة سباكة
+      - صيانة تكييف
+      - تشغيل المنشآت
+      - صيانة المحلات
+      - صيانة المنازل
+      - ازاي أطلب صيانة
+
+  - intent: ask_uberfix_request
+    examples: |
+      - عايز أطلب صيانة
+      - محتاج فني كهرباء
+      - محتاج سباك
+      - في عطل عندي
+      - ابعتلي فني
+      - طلب صيانة
+      - سجل طلبي
+      - احتاج صيانة دلوقتي
+      - ممكن تبعت حد
+      - أريد تسجيل طلب صيانة
+      - عندي مشكلة كهرباء وأريد طلب صيانة
+      - أحتاج صيانة عاجلة في المنزل
+      - محتاج أفتح طلب صيانة الآن
+
+  - intent: ask_uberfix_tracking
+    examples: |
+      - عايز أتابع طلب الصيانة
+      - وصل الطلب بتاعي
+      - فين الفني بتاعي
+      - إمتى هيجي الفني
+      - حالة الطلب
+      - رقم الطلب بتاعي
+      - تتبع الطلب
+      - متابعة طلب الصيانة
+      - أريد رابط التتبع
+      - أتابع طلب UberFix
+
+  - intent: ask_uberfix_subscription
+    examples: |
+      - عندكم اشتراكات صيانة
+      - باقات الصيانة السنوية
+      - اشتراك صيانة دورية
+      - عقد صيانة سنوي
+      - عايز أعمل عقد صيانة
+      - كام سعر الاشتراك
+      - صيانة دورية للمحل
+      - خطة الصيانة
+
+  - intent: ask_uberfix_emergency
+    examples: |
+      - في طوارئ عندي
+      - في مشكلة كبيرة
+      - في حريق لا سمح الله
+      - في تسريب مياه كبير
+      - انقطع الكهرباء
+      - طوارئ صيانة
+      - محتاج حد فوراً
+      - حالة طارئة
+      - مستعجل جداً
+      
+  # ==================== GREETING & FAREWELL ====================
+  - intent: greet
+    examples: |
+      - سلام
+      - اهلا
+      - مرحبا
+      - صباح الخير
+      - مساء الخير
+      - هلا
+      - أهلاً وسهلاً
+      - يا هلا
+      - hi
+      - hello
+      - hey
+
+  - intent: goodbye
+    examples: |
+      - مع السلامة
+      - باي
+      - سلام
+      - شكرا خلاص
+      - يلا مع السلامة
+      - bye
+      - good bye
+      - thank you bye
+
+  - intent: thanks
+    examples: |
+      - شكرا
+      - جزاك الله خير
+      - الله يبارك فيك
+      - تسلم
+      - يعطيك العافية
+      - شكراً جداً
+      - thanks
+      - thank you
+
+  # ==================== UBERFIX - MAIN ====================
+  - intent: ask_uberfix_about
+    examples: |
+      - ايه هو UberFix
+      - عرفني UberFix
+      - بتعملوا ايه في UberFix
+      - منصة الصيانة الذكية دي ايه
+      - ايه هي UberFix
+      - إيه نظام UberFix
+      - ايه خدمات UberFix
+
+  - intent: ask_uberfix_services
+    examples: |
+      - ايه خدمات UberFix
+      - بتعملوا صيانة ايه
+      - خدمات الصيانة عندكم
+      - صيانة كهرباء
+      - صيانة سباكة
+      - صيانة تكييف
+      - صيانة دورية
+      - عندكم صيانة منازل
+      - صيانة المحلات
+      - صيانة المنازل
+      - صيانة المنشآت
+      - عقود تشغيل
+
+  - intent: ask_uberfix_features
+    examples: |
+      - ايه مميزات UberFix
+      - ليه أختار UberFix
+      - إيه اللي يختلف في أوبرفيكس
+      - مميزاتكم ايه
+      - إيه اللي يميزكم عن غيركم
+      - ليه انتوا أحسن
+      - عندكم ضمان
+      - الفنيين عندكم معتمدين
+
+  # ==================== UBERFIX - REQUEST ====================
+  - intent: ask_uberfix_new_request
+    examples: |
+      - عايز أطلب صيانة
+      - محتاج فني
+      - ابعتلي فني بسرعة
+      - عندي عطل في البيت
+      - محتاج صيانة دلوقتي
+      - أريد فني كهرباء
+      - محتاج سباك
+      - عايز فني تكييف
+      - سجل طلب صيانة
+      - فتح طلب جديد
+      - عايز حد يصليح عندي
+
+  - intent: ask_uberfix_request_electric
+    examples: |
+      - فيه مشكلة كهرباء
+      - النور طفى عندي
+      - الكهرباء قطعت
+      - في تماس كهربائي
+      - محتاج كهربائي
+      - في عطل كهرباء
+      - المفاتيح مش شغالة
+      - محتاج فني كهرباء
+
+  - intent: ask_uberfix_request_plumbing
+    examples: |
+      - في تسريب مياه
+      - الحنفية بتقطر
+      - السيفون مسدود
+      - البيبان شغال
+      - في سباكة مش تمام
+      - محتاج سباك
+      - الحمام بيقع مية
+      - المطبخ فيه تسريب
+
+  - intent: ask_uberfix_request_ac
+    examples: |
+      - التكييف مش شغال
+      - المكيف بيسخن
+      - التكييف بيعطل كتير
+      - محتاج فني تكييف
+      - عايز أشحن فريون
+      - المكيف مش بيكيف
+      - التكييف صوت عالي
+
+  # ==================== UBERFIX - TRACKING ====================
+  - intent: ask_uberfix_track
+    examples: |
+      - عايز أتابع طلبي
+      - فين الفني بتاعي
+      - الطلب وصل فين
+      - إمتى هيجي الفني
+      - حالة طلب الصيانة
+      - وصل الطلب رقم [101](order_id)
+      - أتابع طلب رقم [205](order_id)
+      - عايز اعرف الفني وصل ولا لسه
+      - تتبع طلبي
+
+  - intent: ask_uberfix_order_status
+    examples: |
+      - طلبي ايه حالته
+      - وصول الطلب
+      - حالة الطلب ايه
+      - الفني جه ولا لسه
+      - الطلب تم ولا لسه
+      - خلصوا الشغالة ولا لسه
+
+  - intent: ask_uberfix_order_number
+    examples: |
+      - رقم طلبي ايه
+      - عايز أعرف رقم الطلب
+      - نسيت رقم طلبي
+      - ابعتلي رقم الطلب
+
+  # ==================== UBERFIX - SUBSCRIPTION ====================
+  - intent: ask_uberfix_subscription_plans
+    examples: |
+      - عندكم اشتراكات
+      - ايه باقات الاشتراك
+      - عايز اعرف الباقات
+      - كام سعر الاشتراك السنوي
+      - باقات الصيانة الدورية
+      - عايز اشتراك صيانة
+
+  - intent: ask_uberfix_subscription_basic
+    examples: |
+      - عايز الباقة الأساسية
+      - ايه هي الباقة الأساسية
+      - كام سعر الباقة الأساسية
+      - الأساسية بتشمل ايه
+      - 4 زيارات دي بكام
+
+  - intent: ask_uberfix_subscription_advanced
+    examples: |
+      - عايز الباقة المتقدمة
+      - الباقة المتقدمة بكام
+      - المتقدمة بتشمل ايه
+      - مميزات الباقة المتقدمة
+
+  - intent: ask_uberfix_subscription_premium
+    examples: |
+      - عايز البريميوم
+      - الباقة البريميوم
+      - كام سعر البريميوم
+      - البريميوم بتشمل ايه
+      - أعلى باقة عندكم
+
+  - intent: ask_uberfix_subscribe
+    examples: |
+      - عايز أشتري اشتراك
+      - محتاج أعمل عقد صيانة
+      - أريد الاشتراك السنوي
+      - اشتراك صيانة لمحلي
+      - عقد تشغيل للمنشأة
+      - عامل حساب جديد للاشتراك
+
+  # ==================== UBERFIX - EMERGENCY ====================
+  - intent: ask_uberfix_emergency
+    examples: |
+      - في طوارئ
+      - حالة طارئة
+      - عندي مشكلة كبيرة
+      - في تسريب مياه كبير
+      - في حريق لا سمح الله
+      - الكهرباء قطعت بالكامل
+      - في تماس كبير
+      - محتاج حد فوراً
+      - مستعجل جداً
+      - طوارئ صيانة
+      - عايز حد النهاردة حالاً
+
+  - intent: ask_uberfix_emergency_contact
+    examples: |
+      - رقم الطوارئ
+      - واتساب الطوارئ
+      - كام رقم حالات الطوارئ
+      - رقم للضرورة
+      - فين رقم الطوارئ
+
+  # ==================== UBERFIX - PRICE ====================
+  - intent: ask_uberfix_price
+    examples: |
+      - كام سعر الصيانة
+      - فتح طلب بكام
+      - كام تكلفة الفني
+      - الأسعار عاملة ازاي
+      - سعر الكشفية
+      - رسوم الصيانة كام
+
+  - intent: ask_uberfix_price_warranty
+    examples: |
+      - عندكم ضمان
+      - الضمان بكام
+      - ضمان على ايه
+      - مدة الضمان قد ايه
+
+  # ==================== UBERFIX - SCHEDULE ====================
+  - intent: ask_uberfix_schedule
+    examples: |
+      - الفني هيجي امتى
+      - بكام هيوصل الفني
+      - المواعيد المتاحة
+      - أقرب موعد
+      - عايز أحدد ميعاد
+      - حجز موعد صيانة
+
+  - intent: ask_uberfix_reschedule
+    examples: |
+      - محتاج أغير الميعاد
+      - تأجيل الطلب
+      - إرجاء الزيارة
+      - الميعاد مش مناسب
+
+  # ==================== UBERFIX - REPORT ====================
+  - intent: ask_uberfix_report_problem
+    examples: |
+      - في مشكلة من الفني
+      - الشغل مش تمام
+      - عايز أشتكي
+      - الفني متأخر
+      - عندي شكوى على الخدمة
+      - البلاغات بتاعتي
+
+  - intent: ask_uberfix_feedback
+    examples: |
+      - عايز أقييم الخدمة
+      - أدي رأيي
+      - feedback
+      - تقييم الفني
+
+  # ==================== CONTACT & INFO ====================
+  - intent: ask_uberfix_contact
+    examples: |
+      - رقم UberFix
+      - واتساب UberFix
+      - إيميل UberFix
+      - موقع UberFix
+      - ازاي أتواصل معاكم
+      - فين موقعكم
+
+  - intent: ask_uberfix_working_hours
+    examples: |
+      - خدمة العملاء بتتواصل معاهم امتى
+      - أوقات العمل
+      - الدعم الفني شغال امتى
+      - ساعت كام بتشتغلوا
+
+  # ==================== OUT OF SCOPE ====================
+  - intent: out_of_scope
+    examples: |
+      - الطقس النهاردة ايه
+      - مين كسب ماتش امبارح
+      - الطيران
+      - بورصة الذهب النهاردة
+      - السيسي
+      - رمضان امتى
+      - عيد ميلادي النهاردة
+
+# ==================== RESPONSES ====================
+responses:
+  utter_greet:
+    - text: |
+        🔧 مرحباً بك في **UberFix** - منصة الصيانة الذكية!
+        
+        أنا مساعدك الخاص، أقدر أساعدك في:
+        • 📞 طلب فني (كهرباء - سباكة - تكييف)
+        • 📦 الاشتراكات والباقات السنوية
+        • 🚨 طوارئ الصيانة 24/7
+        • 📍 تتبع طلب صيانة موجود
+        
+        إيه اللي تحتاجه النهاردة؟
+
+  utter_goodbye:
+    - text: |
+        🙏 شكراً لتواصلك مع **UberFix**!
+        
+        في أي وقت تحتاج صيانة، احنا موجودين على طول.
+        
+        🔧 خدمة الطوارئ 24/7: +201004006620 (واتساب)
+
+  utter_thanks:
+    - text: |
+        🤝 الشكر لله.. دايماً في خدمتك.
+        لو احتاجت حاجة تانية، أنا موجود.
+
+  # ==================== UBERFIX MAIN ====================
+  utter_uberfix_about:
+    - text: |
+        🔧 **ما هي UberFix؟**
+        
+        UberFix منصة ذكية لخدمات الصيانة والتشغيل للمنازل والمحلات والمنشآت.
+        
+        **المميزات:**
+        • ✅ فنيون معتمدون ومدربون
+        • 📍 تتبع الطلبات في الوقت الحقيقي
+        • 🔒 ضمان على الأعمال المنفذة
+        • 💰 أسعار شفافة بدون رسوم مخفية
+        • 🚨 خدمة طوارئ 24/7
+        
+        عايز تعرف أكتر عن خدمة معينة؟
+
+  utter_uberfix_services:
+    - text: |
+        🔧 **خدمات UberFix:**
+        
+        1️⃣ **الصيانة الكهربائية**
+        - تمديدات كهربائية، لوحات توزيع، إصلاح الأعطال
+        
+        2️⃣ **صيانة السباكة**
+        - إصلاح التسريبات، تركيب المواسير، فحص البلوعات
+        
+        3️⃣ **صيانة التكييف**
+        - تنظيف وحدات، شحن فريون، إصلاح الأعطال
+        
+        4️⃣ **الصيانة الدورية المجدولة**
+        - للمنازل والمحلات والمنشآت
+        
+        5️⃣ **عقود تشغيل سنوية**
+        - للمنشآت الكبيرة والمصانع
+        
+        أي خدمة مهتم بها تحديداً؟
+
+  utter_uberfix_features:
+    - text: |
+        ✨ **مميزات UberFix:**
+        
+        • 🎯 **فنيون معتمدون** - مدربون على أعلى مستوى
+        • 📍 **تتبع لحظي** - تعرف مكان الفني في أي وقت
+        • 🔒 **ضمان مكتوب** - على كل الأعمال المنفذة
+        • 💰 **أسعار شفافة** - بدون أي رسوم خفية
+        • 🚨 **طوارئ 24/7** - خدمة متاحة طول اليوم
+        • 📱 **تطبيق سهل** - كل شيء من جوالك
+        
+        حابب تطلب الخدمة دلوقتي؟
+
+  # ==================== REQUEST ====================
+  utter_uberfix_new_request:
+    - text: |
+        📞 **طلب صيانة جديد - UberFix**
+        
+        تمام، هساعدك تسجل طلب صيانة. محتاج منك شوية معلومات:
+        
+        1️⃣ **نوع العطل**: (كهرباء / سباكة / تكييف)
+        2️⃣ **نوع المكان**: (منزل / محل / منشأة)
+        3️⃣ **المنطقة**: (فين المكان)
+        4️⃣ **تفاصيل المشكلة**: (شرح بسيط)
+        
+        اكتب التفاصيل وهتتسجل فوراً 📝
+
+  utter_uberfix_request_confirm:
+    - text: |
+        ✅ **تم استلام طلب الصيانة بنجاح!**
+        
+        رقم طلبك: **{order_id}**
+        
+        • 📞 الفني هيوصلك خلال 24 ساعة (للطلبات العادية)
+        • 🚨 للطلبات المستعجلة، اتصل على واتساب الطوارئ
+        
+        تقدر تتابع طلبك في أي وقت عن طريق رقم الطلب ده.
+        
+        عندك أي استفسار تاني؟
+
+  utter_uberfix_request_no_address:
+    - text: |
+        📍 **ممكن تعطيني العنوان بالتفصيل؟**
+        
+        (الشارع، المنطقة، المدينة، رقم الوحدة إن وجد)
+        
+        العنوان ده عشان الفني يوصل بسهولة ✅
+
+  utter_uberfix_request_no_problem_detail:
+    - text: |
+        🔧 **ممكن تشرحلي المشكلة بالتفصيل؟**
+        
+        (أيه الحاصل بالضبط؟ العطل ظهر إمتى؟)
+        
+        كل ما تشرح أكتر، الفني هيجهز نفسه أحسن 👨‍🔧
+
+  # ==================== TRACKING ====================
+  utter_uberfix_track:
+    - text: |
+        📍 **تتبع طلب الصيانة**
+        
+        👤 **رقم الطلب:** {order_id}
+        📊 **الحالة:** {status}
+        
+        {status_details}
+        
+        🔔 هنبعتلك إشعار لما الفني يبدأ يتحرك ناحيتك.
+        محتاج حاجة تانية؟
+
+  utter_uberfix_track_no_number:
+    - text: |
+        🔍 **تمام، هتتبع طلبك**
+        
+        ممكن تديني رقم الطلب عشان أشوف حالته؟
+        
+        لو نسيت الرقم، ممكن تديني رقم التليفون المسجل بيه الطلب.
+
+  utter_uberfix_order_status_pending:
+    - text: |
+        ⏳ **حالة الطلب: قيد المراجعة**
+        
+        فريقنا بيشوف التفاصيل وبيدور على الفني المناسب.
+        هنرجع لك خلال 30 دقيقة بالتأكيد.
+
+  utter_uberfix_order_status_assigned:
+    - text: |
+        👨‍🔧 **حالة الطلب: تم تخصيص فني**
+        
+        الفني {technician_name} هيوصل خلال {eta} تقريباً.
+        
+        رقم الفني: {technician_phone}
+        
+        تقدر تتواصل معاه مباشرة لو في أي استفسار.
+
+  utter_uberfix_order_status_on_way:
+    - text: |
+        🚗 **حالة الطلب: الفني في الطريق**
+        
+        الفني {technician_name} متجه لعنوانك حالياً.
+        
+        📍 تقدر تشوف موقعه على الخريطة من خلال اللينك اللي اتبعتلك.
+        
+        متنساش تبلغنا لما يخلص الشغل ✅
+
+  utter_uberfix_order_status_completed:
+    - text: |
+        ✅ **حالة الطلب: تم الإنجاز**
+        
+        شكراً لاستخدامك UberFix!
+        
+        ⭐ عايز تقيم الخدمة وتدعم الفني؟
+        
+        ولو محتاج حاجة تانية، احنا موجودين 🔧
+
+  utter_uberfix_order_status_cancelled:
+    - text: |
+        ❌ **حالة الطلب: ملغي**
+        
+        تم إلغاء الطلب رقم {order_id}
+        
+        لو عايز ترجع تطلبه تاني، قولي "طلب صيانة جديدة" ♻️
+
+  # ==================== SUBSCRIPTION ====================
+  utter_uberfix_subscription_plans:
+    - text: |
+        📦 **باقات UberFix السنوية**
+        
+        اشتراك صيانة دورية للمنازل والمحلات والمنشآت:
+        
+        🔹 **الباقة الأساسية**
+        • 4 زيارات دورية في السنة
+        • للمنازل والوحدات الصغيرة
+        
+        🔸 **الباقة المتقدمة**
+        • 8 زيارات دورية + أولوية الحجز
+        • للمحلات والمكاتب
+        
+        🔹 **الباقة البريميوم**
+        • 12 زيارة دورية + أولوية قصوى
+        • للمنشآت الكبيرة والمصانع
+        
+        حابب تعرف تفاصيل باقة معينة؟
+
+  utter_uberfix_subscription_basic:
+    - text: |
+        📦 **الباقة الأساسية - UberFix**
+        
+        ✅ **4 زيارات صيانة دورية** في السنة
+        🏠 مناسبة للمنازل والوحدات الصغيرة
+        🔧 تغطي (كهرباء + سباكة + تكييف)
+        
+        💰 **السعر:** يختلف حسب المنطقة والمساحة
+        
+        عايز تشترك؟ قولي "عايز اشتراك أساسي" 📝
+
+  utter_uberfix_subscription_advanced:
+    - text: |
+        ⭐ **الباقة المتقدمة - UberFix**
+        
+        ✅ **8 زيارات صيانة دورية** في السنة
+        ⚡ **أولوية في الحجز** مقارنة بالطلبات العادية
+        🏢 مناسبة للمحلات والمكاتب والشركات الصغيرة
+        🔧 تغطي جميع أنواع الصيانة
+        
+        💰 **السعر:** يختلف حسب المنطقة والمساحة
+        
+        عايز تشترك؟ قولي "عايز اشتراك متقدم" 📝
+
+  utter_uberfix_subscription_premium:
+    - text: |
+        💎 **الباقة البريميوم - UberFix**
+        
+        ✅ **12 زيارة صيانة دورية** في السنة
+        🚀 **أولوية قصوى** - طوارئ تستجاب خلال ساعتين
+        🏭 مناسبة للمنشآت الكبيرة والمصانع والفنادق
+        🔧 جميع الخدمات شاملة + تقارير دورية
+        
+        💰 **السعر:** يتم تحديده حسب احتياجات المنشأة
+        
+        عايز تشترك؟ قولي "عايز اشتراك بريميوم" 📝
+
+  utter_uberfix_subscribe:
+    - text: |
+        📝 **طلب اشتراك جديد - UberFix**
+        
+        هساعدك تطلع اشتراك الصيانة السنوي.
+        
+        محتاج منك:
+        1️⃣ **نوع الباقة**: (أساسية / متقدمة / بريميوم)
+        2️⃣ **نوع المكان**: (منزل / محل / منشأة)
+        3️⃣ **المساحة بالمتر**: 
+        4️⃣ **العنوان الكامل**:
+        
+        اكتب البيانات وهنكلمك خلال 24 ساعة لتأكيد الاشتراك ✅
+
+  utter_uberfix_subscribe_confirm:
+    - text: |
+        🎉 **مبروك! تم تفعيل اشتراكك في UberFix**
+        
+        {subscription_type}
+        
+        📅 تاريخ البدء: {start_date}
+        📅 تاريخ الانتهاء: {end_date}
+        
+        أهلاً بك في عائلة UberFix. فريق الصيانة هيبدأ جدولة زياراتك قريباً.
+        
+        في أي وقت تحتاج تعديل أو استفسار، احنا موجودين 🔧
+
+  # ==================== EMERGENCY ====================
+  utter_uberfix_emergency:
+    - text: |
+        🚨 **طوارئ UberFix - استجابة فورية**
+        
+        برجاء الاتصال فوراً على واتساب الطوارئ:
+        
+        📞 **+201004006620**
+        
+        الفريق هيستجيب لحالتك في أسرع وقت ممكن.
+        
+        ⚠️ للطوارئ فقط (تماسات كهربائية، تسريبات مياه كبرى، أعطال خطيرة)
+
+  utter_uberfix_emergency_contact:
+    - text: |
+        📞 **أرقام الطوارئ - UberFix**
+        
+        للاستجابة الفورية 24 ساعة:
+        
+        📱 واتساب الطوارئ: **+201004006620**
+        
+        ✨ للطلبات الغير مستعجلة، تقدر تطلب صيانة عادية وأكلمك أتوماتيكياً.
+        
+        في حالة طوارئ دلوقتي؟ اتصل علطول 📞
+
+  # ==================== PRICE ====================
+  utter_uberfix_price:
+    - text: |
+        💰 **أسعار UberFix**
+        
+        • **رسوم الكشف والمعاينة:** يتم تحديدها حسب نوع العطل
+        • **تكلفة الإصلاح:** حسب نوع العطل وقطعة الغيار إن وجدت
+        • **عقود الصيانة السنوية:** يرجى طلب عرض سعر حسب احتياجك
+        
+        للحصول على عرض سعر دقيق لمشكلتك:
+        قولي "طلب صيانة جديدة" واكتب التفاصيل 📝
+
+  utter_uberfix_price_warranty:
+    - text: |
+        🔒 **ضمان UberFix**
+        
+        ✅ ضمان لمدة **3 أشهر** على جميع أعمال الصيانة والإصلاحات (من تاريخ الانتهاء)
+        ✅ ضمان على قطع الغيار المستبدلة حسب نوع القطعة
+        ✅ ضمان شامل على عقود الصيانة السنوية
+        
+        لو ظهر أي عطل في نفس المكان خلال فترة الضمان، هنتحمل مسؤوليته بالكامل.
+
+  # ==================== SCHEDULE ====================
+  utter_uberfix_schedule:
+    - text: |
+        📅 **حجز موعد صيانة - UberFix**
+        
+        المواعيد المتاحة للصيانة العادية:
+        
+        🕘 الفترة الصباحية: 9ص - 2م
+        🕓 الفترة المسائية: 4م - 10م
+        
+        اختر الفترة المناسبة لك:
+        قولي "صباحي" أو "مسائي" ✅
+
+  utter_uberfix_reschedule:
+    - text: |
+        📅 **تغيير ميعاد الصيانة**
+        
+        تمام، هغير الموعد.
+        
+        المواعيد المتاحة الجديدة:
+        • 🕘 صباحي (9ص - 2م)
+        • 🕓 مسائي (4م - 10م)
+        
+        اختر الموعد الجديد المناسب لك 🌟
+
+  utter_uberfix_schedule_confirm:
+    - text: |
+        ✅ **تم تأكيد موعد الصيانة**
+        
+        📅 التاريخ: {date}
+        🕘 الفترة: {period}
+        
+        الفني هيوصلك في الوقت المحدد.
+        لو في أي تغيير، هنبعتلك إشعار 🔔
+
+  # ==================== REPORT & FEEDBACK ====================
+  utter_uberfix_report_problem:
+    - text: |
+        📋 **تقديم شكوى أو بلاغ - UberFix**
+        
+        آسف إن فيه مشكلة.
+        
+        ممكن تشرحلي تفاصيل أكتر:
+        • رقم الطلب (إن وجد):
+        • المشكلة بالتفصيل:
+        
+        هنرفع البلاغ للفريق المسؤول وهنرد عليك خلال 24 ساعة.
+        
+        شاكرين لك تواصلك وحرصك على جودة الخدمة 🙏
+
+  utter_uberfix_feedback:
+    - text: |
+        ⭐ **تقييم خدمة UberFix**
+        
+        ممكن تقيم الخدمة من 1 لـ 5 نجوم:
+        
+        • 1 نجم 🤮 - خدمة سيئة جداً
+        • 2 نجم 😟 - خدمة تحت المتوسط
+        • 3 نجم 😐 - خدمة متوسطة
+        • 4 نجم 😊 - خدمة جيدة
+        • 5 نجم 🤩 - خدمة ممتازة
+        
+        إزاي تقيم تجربتك معانا؟
+
+  # ==================== CONTACT & INFO ====================
+  utter_uberfix_contact:
+    - text: |
+        📞 **تواصل مع UberFix**
+        
+        • 📧 البريد الإلكتروني: uf@alazab.com
+        • 🌐 الموقع الرسمي: uberfix.alazab.com
+        • 📱 واتساب (استفسارات عامة): +201004006620
+        • 🚨 واتساب طوارئ: +201004006620 (24/7)
+        • 📧 للاشتراكات: contact@uberfix.com
+        
+        في أي وقت تحتاج حاجة، احنا موجودين 🔧
+
+  utter_uberfix_working_hours:
+    - text: |
+        🕐 **أوقات عمل UberFix**
+        
+        • 📞 خدمة العملاء: السبت للخميس - 9ص إلى 10م
+        • 🔧 الفنيين المتاحين: طول اليوم حسب الجدولة
+        • 🚨 خدمة الطوارئ: **24 ساعة / 7 أيام** في الأسبوع
+        
+        للطوارئ في أي وقت، اتصل على واتساب الطوارئ فوراً 📱
+
+  # ==================== FALLBACK ====================
+  utter_out_of_scope:
+    - text: |
+        🤔 **عذراً، ده خارج نطاق خدمات UberFix للصيانة.**
+        
+        لكني أقدر أساعدك في:
+        • 🔧 طلب صيانة (كهرباء / سباكة / تكييف)
+        • 📦 الاشتراكات والباقات السنوية
+        • 📍 تتبع طلب صيانة
+        • 🚨 طوارئ الصيانة
+        
+        محتاج واحد من دول دلوقتي؟
+
+  utter_default:
+    - text: |
+        🔧 **أنا مساعد UberFix للصيانة الذكية.**
+        
+        تقدر تطلب مني:
+        • "طلب صيانة جديدة"
+        • "عايز أتابع طلبي"
+        • "الباقات السنوية"
+        • "رقم الطوارئ"
+        • "مميزات UberFix"
+        
+        إيه اللي هتحتاجه النهاردة؟
+
+# ==================== ACTIONS & FORMS ====================
+actions:
+  - utter_greet
+  - utter_goodbye
+  - utter_thanks
+  - utter_uberfix_about
+  - utter_uberfix_services
+  - utter_uberfix_features
+  - utter_uberfix_new_request
+  - utter_uberfix_request_confirm
+  - utter_uberfix_request_no_address
+  - utter_uberfix_request_no_problem_detail
+  - utter_uberfix_track
+  - utter_uberfix_track_no_number
+  - utter_uberfix_order_status_pending
+  - utter_uberfix_order_status_assigned
+  - utter_uberfix_order_status_on_way
+  - utter_uberfix_order_status_completed
+  - utter_uberfix_order_status_cancelled
+  - utter_uberfix_subscription_plans
+  - utter_uberfix_subscription_basic
+  - utter_uberfix_subscription_advanced
+  - utter_uberfix_subscription_premium
+  - utter_uberfix_subscribe
+  - utter_uberfix_subscribe_confirm
+  - utter_uberfix_emergency
+  - utter_uberfix_emergency_contact
+  - utter_uberfix_price
+  - utter_uberfix_price_warranty
+  - utter_uberfix_schedule
+  - utter_uberfix_reschedule
+  - utter_uberfix_schedule_confirm
+  - utter_uberfix_report_problem
+  - utter_uberfix_feedback
+  - utter_uberfix_contact
+  - utter_uberfix_working_hours
+  - utter_out_of_scope
+  - utter_default
+
+  - action_uberfix_create_request
+  - action_uberfix_track_order
+  - action_uberfix_subscribe
+  - action_uberfix_schedule_appointment
+
+session_config:
+  session_expiration_time: 60
+  carry_over_slots_to_new_session: true
+
+# ==================== CONFIG ====================
+pipeline:
+  - name: WhitespaceTokenizer
+  - name: RegexFeaturizer
+  - name: LexicalSyntacticFeaturizer
+  - name: CountVectorsFeaturizer
+  - name: CountVectorsFeaturizer
+    analyzer: char_wb
+    min_ngram: 1
+    max_ngram: 4
+  - name: DIETClassifier
+    epochs: 100
+    constrain_similarities: true
+  - name: EntitySynonymMapper
+  - name: ResponseSelector
+    epochs: 100
+  - name: FallbackClassifier
+    threshold: 0.7
+    ambiguity_threshold: 0.1
+
+policies:
+  - name: MemoizationPolicy
+  - name: RulePolicy
+  - name: TEDPolicy
+    epochs: 100
+    max_history: 5
+  - name: FallbackPolicy
+    nlu_threshold: 0.7
+    core_threshold: 0.7
+    fallback_action_name: "action_default_fallback"
+
+# ==================== RULES ====================
+rules:
+  - rule: رد على التحية
+    steps:
+      - intent: greet
+      - action: utter_greet
+
+  - rule: رد على الوداع
+    steps:
+      - intent: goodbye
+      - action: utter_goodbye
+
+  - rule: رد على الشكر
+    steps:
+      - intent: thanks
+      - action: utter_thanks
+
+  - rule: التعريف بـ UberFix
+    steps:
+      - intent: ask_uberfix_about
+      - action: utter_uberfix_about
+
+  - rule: خدمات UberFix
+    steps:
+      - intent: ask_uberfix_services
+      - action: utter_uberfix_services
+
+  - rule: مميزات UberFix
+    steps:
+      - intent: ask_uberfix_features
+      - action: utter_uberfix_features
+
+  - rule: طلب صيانة جديد
+    steps:
+      - intent: ask_uberfix_new_request
+      - action: utter_uberfix_new_request
+
+  - rule: تتبع طلب
+    steps:
+      - intent: ask_uberfix_track
+      - action: utter_uberfix_track_no_number
+
+  - rule: باقات الاشتراك
+    steps:
+      - intent: ask_uberfix_subscription_plans
+      - action: utter_uberfix_subscription_plans
+
+  - rule: طوارئ
+    steps:
+      - intent: ask_uberfix_emergency
+      - action: utter_uberfix_emergency
+
+  - rule: رقم الطوارئ
+    steps:
+      - intent: ask_uberfix_emergency_contact
+      - action: utter_uberfix_emergency_contact
+
+  - rule: التواصل مع UberFix
+    steps:
+      - intent: ask_uberfix_contact
+      - action: utter_uberfix_contact
+
+  - rule: رد افتراضي
+    steps:
+      - intent: nlu_fallback
+      - action: utter_default

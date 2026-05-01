@@ -1,0 +1,4 @@
+-- No-op migration marker.
+-- The remote Supabase database was already up to date when this migration was created.
+-- Keep this file non-empty so production checks and migration reviews can distinguish
+-- an intentional no-op from an accidentally truncated schema file.

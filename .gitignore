@@ -1,0 +1,75 @@
+﻿# Python
+__pycache__/
+*.py[cod]
+*.class
+*.so
+.Python
+.venv/
+venv/
+ENV/
+env/
+.eggs/
+*.egg-info/
+*.egg
+
+# Rasa
+models/
+logs/
+rasa.db
+.rasa/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Environment
+.env
+.env.local
+.env.*.local
+azabot/.env
+
+# Secrets
+*.pem
+*.key
+*.crt
+secrets.yml
+
+# Project specific
+gcp-f
+ssl/
+!ssl/.gitkeep
+
+# Logs
+*.log
+logs/
+
+# Temporary files
+*.tmp
+*.temp
+temp/
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Uploads
+webhook/static/uploads/
+!webhook/static/uploads/.gitkeep
+
+# Large/generated local files
+piper/voice/models/
+models/*.tar.gz
+*.pt
+*.pth
+*.bin
+*.flac
+*.onnx.json

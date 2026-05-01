@@ -1,0 +1,210 @@
+PROJECT: D:\A\chatbot\alazab-rasa
+TOTAL ISSUES: 36
+ERRORS: 17
+WARNINGS: 19
+
+1. [ERROR] MISSING_RESPONSE
+   FILE: data/general/human_handoff.yml
+   FLOW: human_handoff
+   STEP: ask_reason
+   MSG : الـ response غير معرّف: utter_ask_reason_for_handoff
+
+2. [ERROR] MISSING_RESPONSE
+   FILE: data/general/human_handoff.yml
+   FLOW: human_handoff
+   STEP: offer_handoff
+   MSG : الـ response غير معرّف: utter_offer_human_handoff
+
+3. [ERROR] MISSING_RESPONSE
+   FILE: data/general/human_handoff.yml
+   FLOW: human_handoff
+   STEP: immediate_handoff
+   MSG : الـ response غير معرّف: utter_human_handoff_immediate
+
+4. [ERROR] MISSING_RESPONSE
+   FILE: data/general/human_handoff.yml
+   FLOW: human_handoff
+   STEP: queue_handoff
+   MSG : الـ response غير معرّف: utter_human_handoff_queue
+
+5. [ERROR] MISSING_RESPONSE
+   FILE: data/general/human_handoff.yml
+   FLOW: human_handoff
+   STEP: agent_connected
+   MSG : الـ response غير معرّف: utter_agent_connected
+
+6. [ERROR] MISSING_RESPONSE
+   FILE: data/general/human_handoff.yml
+   FLOW: human_handoff
+   STEP: offline_handoff
+   MSG : الـ response غير معرّف: utter_human_handoff_offline
+
+7. [ERROR] MISSING_RESPONSE
+   FILE: data/general/human_handoff.yml
+   FLOW: human_handoff
+   STEP: offer_alternative
+   MSG : الـ response غير معرّف: utter_offer_alternative_contact
+
+8. [ERROR] MISSING_RESPONSE
+   FILE: data/general/human_handoff.yml
+   FLOW: human_handoff
+   STEP: provide_whatsapp
+   MSG : الـ response غير معرّف: utter_provide_whatsapp
+
+9. [ERROR] MISSING_RESPONSE
+   FILE: data/general/human_handoff.yml
+   FLOW: human_handoff
+   STEP: cancel_handoff
+   MSG : الـ response غير معرّف: utter_handoff_cancelled
+
+10. [ERROR] MISSING_RESPONSE
+   FILE: data/general/human_handoff.yml
+   FLOW: escalate_to_manager
+   STEP: receive_escalation
+   MSG : الـ response غير معرّف: utter_receive_escalation
+
+11. [ERROR] MISSING_RESPONSE
+   FILE: data/general/human_handoff.yml
+   FLOW: escalate_to_manager
+   STEP: send_escalation_confirmation
+   MSG : الـ response غير معرّف: utter_escalate_to_manager
+
+12. [ERROR] MISSING_STEP_REFERENCE
+   FILE: data/general/show_faqs.yml
+   FLOW: search_faq_by_keyword
+   STEP: show_search_results
+   MSG : الخطوة تشير إلى 'ask_if_more_faqs' لكنها غير موجودة داخل نفس الـ flow. لا تستخدم خطوة من Flow آخر.
+
+13. [ERROR] MISSING_STEP_REFERENCE
+   FILE: data/general/show_faqs.yml
+   FLOW: search_faq_by_keyword
+   STEP: no_results_found
+   MSG : الخطوة تشير إلى 'ask_user_selection' لكنها غير موجودة داخل نفس الـ flow. لا تستخدم خطوة من Flow آخر.
+
+14. [ERROR] MISSING_RESPONSE
+   FILE: data/system/patterns/patterns.yml
+   FLOW: pattern_cancel_flow
+   STEP: index:1
+   MSG : الـ response غير معرّف: utter_confirm_cancel
+
+15. [ERROR] MISSING_STEP_REFERENCE
+   FILE: data/system/patterns/patterns.yml
+   FLOW: pattern_cancel_flow
+   STEP: index:1.branch[2]
+   MSG : الخطوة تشير إلى 'RESUME' لكنها غير موجودة داخل نفس الـ flow. لا تستخدم خطوة من Flow آخر.
+
+16. [ERROR] COMMAND_FAILED
+   FILE: reports/azabot-pnpm-build-check.log
+   MSG : الأمر فشل: cd ".\azabot" && pnpm run build | exit=1
+
+17. [ERROR] COMMAND_FAILED
+   FILE: reports/rasa-data-validate.log
+   MSG : الأمر فشل: rasa data validate --domain ".\domain.yml" --data ".\data" | exit=1
+
+18. [WARNING] DUPLICATE_RESPONSE
+   FILE: data/brands/uberfix/nlu.yml
+   STEP: utter_greet
+   MSG : Response مكرر في: data/brands/uberfix/nlu.yml, domain.yml
+
+19. [WARNING] DUPLICATE_RESPONSE
+   FILE: data/brands/uberfix/nlu.yml
+   STEP: utter_goodbye
+   MSG : Response مكرر في: data/brands/uberfix/nlu.yml, domain.yml
+
+20. [WARNING] DUPLICATE_RESPONSE
+   FILE: data/brands/uberfix/nlu.yml
+   STEP: utter_thanks
+   MSG : Response مكرر في: data/brands/uberfix/nlu.yml, domain.yml
+
+21. [WARNING] DUPLICATE_RESPONSE
+   FILE: data/brands/uberfix/nlu.yml
+   STEP: utter_uberfix_services
+   MSG : Response مكرر في: data/brands/uberfix/nlu.yml, domain/uberfix.yml
+
+22. [WARNING] DUPLICATE_RESPONSE
+   FILE: data/brands/uberfix/nlu.yml
+   STEP: utter_uberfix_emergency
+   MSG : Response مكرر في: data/brands/uberfix/nlu.yml, domain/uberfix.yml
+
+23. [WARNING] DUPLICATE_RESPONSE
+   FILE: data/brands/uberfix/nlu.yml
+   STEP: utter_out_of_scope
+   MSG : Response مكرر في: data/brands/uberfix/nlu.yml, domain.yml
+
+24. [WARNING] CUSTOM_ACTION_NOT_DECLARED
+   FILE: data/general/collect_lead.yml
+   FLOW: collect_lead
+   STEP: save
+   MSG : الأكشن مستخدم لكنه غير موجود في actions: action_save_lead_to_crm
+
+25. [WARNING] CUSTOM_ACTION_NOT_DECLARED
+   FILE: data/general/collect_lead.yml
+   FLOW: collect_lead
+   STEP: notify
+   MSG : الأكشن مستخدم لكنه غير موجود في actions: action_notify_sales_team
+
+26. [WARNING] CUSTOM_ACTION_NOT_DECLARED
+   FILE: data/general/human_handoff.yml
+   FLOW: human_handoff
+   STEP: receive_reason
+   MSG : الأكشن مستخدم لكنه غير موجود في actions: action_receive_handoff_reason
+
+27. [WARNING] CUSTOM_ACTION_NOT_DECLARED
+   FILE: data/general/human_handoff.yml
+   FLOW: human_handoff
+   STEP: check_availability
+   MSG : الأكشن مستخدم لكنه غير موجود في actions: action_check_human_availability
+
+28. [WARNING] CUSTOM_ACTION_NOT_DECLARED
+   FILE: data/general/human_handoff.yml
+   FLOW: human_handoff
+   STEP: initiate_handoff
+   MSG : الأكشن مستخدم لكنه غير موجود في actions: action_initiate_human_handoff
+
+29. [WARNING] CUSTOM_ACTION_NOT_DECLARED
+   FILE: data/general/human_handoff.yml
+   FLOW: human_handoff
+   STEP: check_queue
+   MSG : الأكشن مستخدم لكنه غير موجود في actions: action_check_queue_position
+
+30. [WARNING] CUSTOM_ACTION_NOT_DECLARED
+   FILE: data/general/human_handoff.yml
+   FLOW: human_handoff
+   STEP: wait_for_agent
+   MSG : الأكشن مستخدم لكنه غير موجود في actions: action_wait_for_agent
+
+31. [WARNING] CUSTOM_ACTION_NOT_DECLARED
+   FILE: data/general/human_handoff.yml
+   FLOW: human_handoff
+   STEP: transfer_to_agent
+   MSG : الأكشن مستخدم لكنه غير موجود في actions: action_transfer_to_agent
+
+32. [WARNING] CUSTOM_ACTION_NOT_DECLARED
+   FILE: data/general/human_handoff.yml
+   FLOW: human_handoff
+   STEP: notify_team
+   MSG : الأكشن مستخدم لكنه غير موجود في actions: action_notify_team_via_whatsapp
+
+33. [WARNING] CUSTOM_ACTION_NOT_DECLARED
+   FILE: data/general/human_handoff.yml
+   FLOW: escalate_to_manager
+   STEP: collect_escalation_details
+   MSG : الأكشن مستخدم لكنه غير موجود في actions: action_collect_escalation_details
+
+34. [WARNING] CUSTOM_ACTION_NOT_DECLARED
+   FILE: data/general/human_handoff.yml
+   FLOW: escalate_to_manager
+   STEP: create_ticket
+   MSG : الأكشن مستخدم لكنه غير موجود في actions: action_create_escalation_ticket
+
+35. [WARNING] CUSTOM_ACTION_NOT_DECLARED
+   FILE: data/general/human_handoff.yml
+   FLOW: escalate_to_manager
+   STEP: notify_manager
+   MSG : الأكشن مستخدم لكنه غير موجود في actions: action_notify_manager
+
+36. [WARNING] CUSTOM_ACTION_NOT_DECLARED
+   FILE: data/system/patterns/patterns.yml
+   FLOW: pattern_correction
+   STEP: index:1
+   MSG : الأكشن مستخدم لكنه غير موجود في actions: action_correct_flow_slot

@@ -1,0 +1,144 @@
+version: "3.1"
+
+# ══════════════════════════════════════════════════════════════
+#  domain.yml — الملف المركزي لإدارة مجموعة العزب
+# ══════════════════════════════════════════════════════════════
+
+includes:
+  - domain/alazab.yml
+  - domain/luxury_finishing.yml
+  - domain/brand_identity.yml
+  - domain/laban_alasfour.yml
+  - domain/uberfix.yml
+
+# ══════════════════════════════════════════════════════════════
+#  Global Intents — الـ Intents المشتركة لكل البراندات
+# ══════════════════════════════════════════════════════════════
+intents:
+  - greet
+  - goodbye
+  - thanks
+  - affirm
+  - deny
+  - bot_challenge
+  - out_of_scope
+  - session_start
+
+# ══════════════════════════════════════════════════════════════
+#  Global Slots — الـ Slots الموحدة للذكاء الاصطناعي (CALM)
+# ══════════════════════════════════════════════════════════════
+slots:
+  brand:
+    type: text
+    mappings:
+      - type: from_llm
+
+  service_type:
+    type: text
+    mappings:
+      - type: from_llm
+
+  user_name:
+    type: text
+    mappings:
+      - type: from_llm
+
+  user_phone:
+    type: text
+    mappings:
+      - type: from_llm
+
+  location:
+    type: text
+    mappings:
+      - type: from_llm
+
+  area_size:
+    type: text
+    mappings:
+      - type: from_llm
+
+  order_id:
+    type: text
+    mappings:
+      - type: from_llm
+
+  problem_type:
+    type: text
+    mappings:
+      - type: from_llm
+
+  subscription_type:
+    type: text
+    mappings:
+      - type: from_llm
+
+  confirm_human_handoff:
+    type: categorical
+    values:
+      - "Yes"
+      - "No"
+    mappings:
+      - type: from_llm
+
+# ══════════════════════════════════════════════════════════════
+#  Global Responses — الـ الردود العامة المشتركة
+# ══════════════════════════════════════════════════════════════
+responses:
+  utter_greet:
+    - text: "أهلاً بك في مجموعة العزب. كيف أقدر أساعدك اليوم؟"
+      metadata:
+        rephrase: true
+
+  utter_goodbye:
+    - text: "شكرًا لتواصلك مع مجموعة العزب. نتطلع لخدمتك دائمًا! 🤝"
+
+  utter_thanks:
+    - text: "العفو، تحت أمرك في أي وقت."
+      metadata:
+        rephrase: true
+
+  utter_bot_challenge:
+    - text: "أنا مساعد مجموعة العزب الذكي، أساعدك في الاستفسارات وطلبات التواصل."
+
+  utter_out_of_scope:
+    - text: "عذراً، هذا السؤال خارج نطاق خدماتنا حالياً. يمكنني مساعدتك في المقاولات، التشطيبات، الهوية التجارية، الصيانة أو التوريدات."
+
+  utter_ask_confirm_human_handoff:
+    - text: "هل تريد التحدث مع أحد موظفينا مباشرة؟"
+      buttons:
+        - title: "✅ نعم"
+          payload: "/SetSlots(confirm_human_handoff=Yes)"
+        - title: "❌ لا"
+          payload: "/SetSlots(confirm_human_handoff=No)"
+
+  utter_transfer_to_manager:
+    - text: |
+        ✅ تم تحويلك لفريق خدمة العملاء.
+        📋 ملخص المحادثة: {summary}
+        سيتواصل معك أحد موظفينا في أقرب وقت. شكراً لصبرك!
+
+  utter_lead_submitted:
+    - text: |
+        ✅ شكراً لك! تم تسجيل بياناتك بنجاح.
+        سيتواصل معك فريقنا في أقرب وقت ممكن. 🤝
+
+  utter_ask_help:
+    - text: |
+        💡 يمكنني مساعدتك في:
+        🏗️ **Alazab Construction** — المقاولات والإنشاء
+        ✨ **Luxury Finishing** — التشطيبات الراقية
+        🎨 **Brand Identity** — الهوية التجارية
+        🔧 **UberFix** — الصيانة والتشغيل
+        🧱 **Laban Alasfour** — التوريدات والخامات
+
+        تفضل، اكتب سؤالك أو اختر الخدمة!
+      metadata:
+        rephrase: true
+
+# ══════════════════════════════════════════════════════════════
+#  Session Config
+# ══════════════════════════════════════════════════════════════
+session_config:
+  session_expiration_time: 60
+  carry_over_slots_to_new_session: true
