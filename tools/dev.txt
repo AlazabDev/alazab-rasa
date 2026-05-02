@@ -1,0 +1,1188 @@
+The user wants a single command/script to run both the frontend (azabot React app) and the backend (Rasa + Actions + FastAPI webhook) together. Let me look at the existing scripts and structure to understand what's there and then create a unified startup solution.Read all existing startup scriptsbashcd /home/claude/project/alazab-rasa-prod
+
+# فحص كل سكريبتات التشغيل الموجودة
+echo "=== run.sh ===" && cat run.sh
+echo ""
+echo "=== scripts/botctl.sh ===" && cat scripts/botctl.sh
+echo ""
+echo "=== Makefile ===" && cat MakefileOutput=== run.sh ===
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "$ROOT_DIR"
+
+if [[ ! -f "scripts/start-backend-nodocker.sh" ]]; then
+  echo "Missing script: scripts/start-backend-nodocker.sh" >&2
+  exit 1
+fi
+
+if [[ -z "${ALLOWED_ORIGINS:-}" ]]; then
+  export ALLOWED_ORIGINS="http://localhost:5173,http://127.0.0.1:5173"
+fi
+
+bash scripts/start-backend-nodocker.sh
+
+=== scripts/botctl.sh ===
+#!/usr/bin/env bash
+# Unified operations helper for Alazab Rasa/AzaBot on Ubuntu/WSL.
+# Usage: bash scripts/botctl.sh <command> [options]
+set -Eeuo pipefail
+
+ROOT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "$ROOT_DIR"
+
+ENV_FILE="${ENV_FILE:-.env}"
+ENDPOINTS_FILE="${ENDPOINTS_FILE:-endpoints.nodocker.yml}"
+VENV_DIR="${VENV_DIR:-.venv}"
+RUNTIME_DIR="${RUNTIME_DIR:-.runtime}"
+LOG_DIR="${LOG_DIR:-logs}"
+PID_DIR="$RUNTIME_DIR/pids"
+
+PYTHON_BIN="${PYTHON_BIN:-}"
+WEBHOOK_WORKERS="${WEBHOOK_WORKERS:-1}"
+RASA_PORT="${RASA_PORT:-5005}"
+ACTIONS_PORT="${ACTIONS_PORT:-5055}"
+WEBHOOK_PORT="${WEBHOOK_PORT:-8000}"
+HOST="${HOST:-127.0.0.1}"
+
+BLUE=$'\033[1;34m'
+GREEN=$'\033[1;32m'
+YELLOW=$'\033[1;33m'
+RED=$'\033[1;31m'
+NC=$'\033[0m'
+
+log() { printf '%s[botctl]%s %s\n' "$BLUE" "$NC" "$*"; }
+ok() { printf '%s[ok]%s %s\n' "$GREEN" "$NC" "$*"; }
+warn() { printf '%s[warn]%s %s\n' "$YELLOW" "$NC" "$*"; }
+fail() { printf '%s[fail]%s %s\n' "$RED" "$NC" "$*" >&2; exit 1; }
+
+usage() {
+  cat <<'USAGE'
+Alazab bot operations helper.
+
+Commands:
+  doctor              Check local tools, env file, Python syntax, and optional Docker.
+  setup               Create venv and install Python dependencies.
+  frontend            Install/build AzaBot frontend with pnpm.
+  validate            Run rasa data validate.
+  train               Train the Rasa model.
+  test                Run Rasa E2E tests.
+  preflight           Run doctor + validate + Python syntax check.
+  start               Start actions, rasa, and webhook as background processes.
+  stop                Stop background processes started by this script.
+  restart             Stop then start.
+  status              Show process and HTTP health status.
+  logs [service]      Tail logs. service: actions, rasa, webhook, or all.
+  smoke               Hit health, brands, and chat endpoints.
+  docker-up           Start docker/docker-compose.yaml.
+  docker-down         Stop docker/docker-compose.yaml.
+  prod-preflight      Validate production compose and required env values.
+  prod-readiness      Run static production readiness checks.
+  prod-up             Start docker/docker-compose.prod.yaml.
+  prod-down           Stop docker/docker-compose.prod.yaml.
+
+Options via environment:
+  ENV_FILE=.env
+  VENV_DIR=.venv
+  PYTHON_BIN=python3.10
+  HOST=127.0.0.1
+  RASA_PORT=5005
+  ACTIONS_PORT=5055
+  WEBHOOK_PORT=8000
+  WEBHOOK_WORKERS=1
+
+Examples:
+  bash scripts/botctl.sh setup
+  bash scripts/botctl.sh train
+  bash scripts/botctl.sh start
+  bash scripts/botctl.sh status
+  bash scripts/botctl.sh logs webhook
+USAGE
+}
+
+ensure_dirs() {
+  mkdir -p "$RUNTIME_DIR" "$PID_DIR" "$LOG_DIR" models
+}
+
+choose_python() {
+  if [[ -n "$PYTHON_BIN" ]]; then
+    command -v "$PYTHON_BIN" >/dev/null 2>&1 || fail "Python not found: $PYTHON_BIN"
+    return
+  fi
+  if command -v python3.11 >/dev/null 2>&1; then
+    PYTHON_BIN=python3.11
+  elif command -v python3.10 >/dev/null 2>&1; then
+    PYTHON_BIN=python3.10
+  elif command -v python3 >/dev/null 2>&1; then
+    PYTHON_BIN=python3
+  else
+    fail "Missing python3.11/python3.10/python3"
+  fi
+}
+
+load_env() {
+  [[ -f "$ENV_FILE" ]] || fail "Missing env file: $ENV_FILE"
+
+  # Export simple KEY=VALUE lines without evaluating shell code.
+  while IFS= read -r raw_line || [[ -n "$raw_line" ]]; do
+    raw_line="${raw_line%$'\r'}"
+    [[ -z "${raw_line//[[:space:]]/}" || "$raw_line" =~ ^[[:space:]]*# ]] && continue
+    [[ "$raw_line" == *"="* ]] || continue
+
+    local key="${raw_line%%=*}"
+    local value="${raw_line#*=}"
+    key="$(printf '%s' "$key" | xargs)"
+    [[ "$key" =~ ^[A-Za-z_][A-Za-z0-9_]*$ ]] || continue
+
+    value="${value#"${value%%[![:space:]]*}"}"
+    value="${value%"${value##*[![:space:]]}"}"
+    if [[ "$value" == \"*\" && "$value" == *\" ]]; then
+      value="${value:1:${#value}-2}"
+    elif [[ "$value" == \'*\' && "$value" == *\' ]]; then
+      value="${value:1:${#value}-2}"
+    fi
+    export "$key=$value"
+  done < "$ENV_FILE"
+
+  export PYTHONUTF8=1
+  export PYTHONIOENCODING=utf-8
+  export RASA_TELEMETRY_ENABLED=false
+
+  if [[ "${RASA_URL:-}" == "http://rasa:5005" || -z "${RASA_URL:-}" ]]; then
+    export RASA_URL="http://127.0.0.1:${RASA_PORT}"
+  fi
+  if [[ "${ACTION_SERVER_URL:-}" == "http://rasa-actions:5055/webhook" || -z "${ACTION_SERVER_URL:-}" ]]; then
+    export ACTION_SERVER_URL="http://127.0.0.1:${ACTIONS_PORT}/webhook"
+  fi
+  if [[ "${DB_HOST:-}" == "postgres" ]]; then
+    export DB_HOST=127.0.0.1
+  fi
+  if [[ "${REDIS_HOST:-}" == "redis" ]]; then
+    export REDIS_HOST=127.0.0.1
+  fi
+  # endpoints.yml uses REDIS_HOST directly now — also export for legacy compat
+  export REDIS_URL="${REDIS_HOST:-127.0.0.1}"
+}
+
+require_env() {
+  local missing=()
+  for name in "$@"; do
+    local value="${!name:-}"
+    if [[ -z "$value" || "$value" == *"replace-with"* || "$value" == *"change-this"* ]]; then
+      missing+=("$name")
+    fi
+  done
+  if (( ${#missing[@]} > 0 )); then
+    printf '%s\n' "${missing[@]}" | sed 's/^/  - /'
+    fail "Required environment variables are missing or placeholders."
+  fi
+}
+
+activate_venv() {
+  choose_python
+  [[ -d "$VENV_DIR" ]] || fail "Virtualenv not found: $VENV_DIR. Run: bash scripts/botctl.sh setup"
+  # shellcheck disable=SC1090
+  source "$VENV_DIR/bin/activate"
+}
+
+run_checked() {
+  log "$*"
+  "$@"
+}
+
+port_busy() {
+  local port="$1"
+  if command -v ss >/dev/null 2>&1; then
+    ss -ltn "( sport = :$port )" | grep -q ":$port"
+  elif command -v lsof >/dev/null 2>&1; then
+    lsof -iTCP:"$port" -sTCP:LISTEN >/dev/null 2>&1
+  else
+    return 1
+  fi
+}
+
+wait_http() {
+  local name="$1" url="$2" attempts="${3:-45}"
+  for _ in $(seq 1 "$attempts"); do
+    if curl -fsS "$url" >/dev/null 2>&1; then
+      ok "$name ready: $url"
+      return 0
+    fi
+    sleep 2
+  done
+  fail "$name did not become ready: $url"
+}
+
+write_pid() {
+  local service="$1" pid="$2"
+  printf '%s\n' "$pid" > "$PID_DIR/$service.pid"
+}
+
+read_pid() {
+  local service="$1"
+  [[ -f "$PID_DIR/$service.pid" ]] && cat "$PID_DIR/$service.pid"
+}
+
+is_running() {
+  local pid="$1"
+  [[ -n "$pid" ]] && kill -0 "$pid" >/dev/null 2>&1
+}
+
+cmd_doctor() {
+  ensure_dirs
+  choose_python
+  log "Project: $ROOT_DIR"
+  ok "Python: $("$PYTHON_BIN" --version 2>&1)"
+  command -v curl >/dev/null 2>&1 && ok "curl available" || warn "curl is missing"
+  command -v docker >/dev/null 2>&1 && ok "docker available" || warn "docker is not installed or not in PATH"
+  command -v pnpm >/dev/null 2>&1 && ok "pnpm available" || warn "pnpm is missing; frontend build will need corepack/pnpm"
+  [[ -f "$ENV_FILE" ]] && ok "$ENV_FILE exists" || warn "$ENV_FILE is missing"
+  [[ -f "$ENDPOINTS_FILE" ]] && ok "$ENDPOINTS_FILE exists" || warn "$ENDPOINTS_FILE is missing"
+  "$PYTHON_BIN" -m compileall actions webhook >/dev/null
+  ok "Python syntax check passed"
+}
+
+cmd_setup() {
+  ensure_dirs
+  choose_python
+  [[ -f "$ENV_FILE" ]] || warn "$ENV_FILE is missing. Create it from .env.example before running the bot."
+  if [[ ! -d "$VENV_DIR" ]]; then
+    run_checked "$PYTHON_BIN" -m venv "$VENV_DIR"
+  fi
+  # shellcheck disable=SC1090
+  source "$VENV_DIR/bin/activate"
+  run_checked python -m pip install --upgrade pip setuptools wheel
+  if [[ -f pyproject.toml ]]; then
+    run_checked pip install -e ".[dev]"
+  else
+    run_checked pip install -r requirements.txt
+  fi
+  ok "Python environment is ready: $VENV_DIR"
+}
+
+cmd_frontend() {
+  if ! command -v pnpm >/dev/null 2>&1; then
+    if command -v corepack >/dev/null 2>&1; then
+      run_checked corepack enable
+    else
+      fail "pnpm/corepack is missing. Install Node.js 22+ then rerun."
+    fi
+  fi
+  (cd azabot && run_checked pnpm install --frozen-lockfile)
+  (cd azabot && run_checked pnpm lint)
+  (cd azabot && run_checked pnpm test)
+  (cd azabot && run_checked pnpm build)
+  ok "Frontend build is ready: azabot/dist"
+}
+
+cmd_validate() {
+  load_env
+  activate_venv
+  require_env RASA_PRO_LICENSE OPENAI_API_KEY
+  run_checked rasa data validate
+}
+
+cmd_train() {
+  load_env
+  activate_venv
+  require_env RASA_PRO_LICENSE OPENAI_API_KEY
+  run_checked rasa train --force
+  ok "Rasa model trained."
+}
+
+cmd_test() {
+  load_env
+  activate_venv
+  require_env RASA_PRO_LICENSE OPENAI_API_KEY
+  run_checked rasa test e2e tests/e2e_test_cases/
+}
+
+cmd_preflight() {
+  cmd_doctor
+  load_env
+  require_env RASA_PRO_LICENSE OPENAI_API_KEY DB_NAME DB_USER DB_PASSWORD REDIS_PASSWORD
+  cmd_validate
+}
+
+start_one() {
+  local service="$1"
+  local logfile="$2"
+  shift 2
+  local old_pid
+  old_pid="$(read_pid "$service" || true)"
+  if is_running "$old_pid"; then
+    warn "$service already running: $old_pid"
+    return
+  fi
+  log "Starting $service"
+  nohup "$@" > "$logfile" 2>&1 &
+  write_pid "$service" "$!"
+  ok "$service started: $!"
+}
+
+cmd_start() {
+  ensure_dirs
+  load_env
+  activate_venv
+  require_env RASA_PRO_LICENSE OPENAI_API_KEY
+  [[ -f "$ENDPOINTS_FILE" ]] || fail "Missing endpoints file: $ENDPOINTS_FILE"
+
+  for port in "$ACTIONS_PORT" "$RASA_PORT" "$WEBHOOK_PORT"; do
+    if port_busy "$port"; then
+      fail "Port $port is already in use. Run status/stop or free the port."
+    fi
+  done
+
+  start_one actions "$LOG_DIR/actions.out.log" rasa run actions --port "$ACTIONS_PORT"
+  wait_http "Actions" "http://127.0.0.1:${ACTIONS_PORT}/health" 30
+
+  start_one rasa "$LOG_DIR/rasa.out.log" rasa run \
+    --enable-api \
+    --cors "${ALLOWED_ORIGINS:-http://127.0.0.1:${WEBHOOK_PORT}}" \
+    --port "$RASA_PORT" \
+    --endpoints "$ENDPOINTS_FILE"
+  wait_http "Rasa" "http://127.0.0.1:${RASA_PORT}/" 60
+
+  start_one webhook "$LOG_DIR/webhook.out.log" uvicorn webhook.server:app \
+    --host "$HOST" \
+    --port "$WEBHOOK_PORT" \
+    --workers "$WEBHOOK_WORKERS"
+  wait_http "Webhook" "http://127.0.0.1:${WEBHOOK_PORT}/health" 45
+
+  ok "Bot is running at http://127.0.0.1:${WEBHOOK_PORT}"
+}
+
+cmd_stop() {
+  ensure_dirs
+  local stopped=false
+  for service in webhook rasa actions; do
+    local pid
+    pid="$(read_pid "$service" || true)"
+    if is_running "$pid"; then
+      log "Stopping $service ($pid)"
+      kill "$pid" || true
+      stopped=true
+    fi
+    rm -f "$PID_DIR/$service.pid"
+  done
+  $stopped && ok "Stopped bot services." || warn "No botctl-managed services were running."
+}
+
+cmd_status() {
+  ensure_dirs
+  for service in actions rasa webhook; do
+    local pid
+    pid="$(read_pid "$service" || true)"
+    if is_running "$pid"; then
+      ok "$service running: $pid"
+    else
+      warn "$service stopped"
+    fi
+  done
+  curl -fsS "http://127.0.0.1:${ACTIONS_PORT}/health" >/dev/null 2>&1 && ok "Actions HTTP healthy" || warn "Actions HTTP unavailable"
+  curl -fsS "http://127.0.0.1:${RASA_PORT}/" >/dev/null 2>&1 && ok "Rasa HTTP healthy" || warn "Rasa HTTP unavailable"
+  curl -fsS "http://127.0.0.1:${WEBHOOK_PORT}/health" >/dev/null 2>&1 && ok "Webhook HTTP healthy" || warn "Webhook HTTP unavailable"
+}
+
+cmd_logs() {
+  ensure_dirs
+  local service="${1:-all}"
+  case "$service" in
+    actions|rasa|webhook) tail -n 120 -f "$LOG_DIR/$service.out.log" ;;
+    all) tail -n 80 -f "$LOG_DIR/actions.out.log" "$LOG_DIR/rasa.out.log" "$LOG_DIR/webhook.out.log" ;;
+    *) fail "Unknown log service: $service" ;;
+  esac
+}
+
+cmd_smoke() {
+  local base="http://127.0.0.1:${WEBHOOK_PORT}"
+  wait_http "Webhook" "$base/health" 10
+  curl -fsS "$base/brands" >/dev/null
+  ok "Brands endpoint returned success"
+  curl -fsS \
+    -H "Content-Type: application/json; charset=utf-8" \
+    -d '{"sender_id":"botctl_smoke","message":"مرحبا","channel":"website","site_host":"bot.alazab.com","site_path":"/"}' \
+    "$base/chat" >/dev/null
+  ok "Chat endpoint returned success"
+}
+
+cmd_docker_up() {
+  run_checked docker compose --env-file "$ENV_FILE" -f docker/docker-compose.yaml up -d --build
+}
+
+cmd_docker_down() {
+  run_checked docker compose --env-file "$ENV_FILE" -f docker/docker-compose.yaml down --remove-orphans
+}
+
+cmd_prod_preflight() {
+  load_env
+  require_env RASA_PRO_LICENSE OPENAI_API_KEY ADMIN_EMAIL ADMIN_PASSWORD ADMIN_SESSION_SECRET DB_NAME DB_USER DB_PASSWORD REDIS_PASSWORD PUBLIC_BASE_URL ALLOWED_ORIGINS
+  run_checked docker compose --env-file "$ENV_FILE" -f docker/docker-compose.prod.yaml config
+  ok "Production compose config is valid."
+}
+
+cmd_prod_readiness() {
+  run_checked node scripts/production-readiness.mjs
+}
+
+cmd_prod_up() {
+  cmd_prod_preflight
+  run_checked docker compose --env-file "$ENV_FILE" -f docker/docker-compose.prod.yaml up -d --build
+}
+
+cmd_prod_down() {
+  run_checked docker compose --env-file "$ENV_FILE" -f docker/docker-compose.prod.yaml down --remove-orphans
+}
+
+cmd="${1:-help}"
+shift || true
+
+case "$cmd" in
+  help|-h|--help) usage ;;
+  doctor) cmd_doctor "$@" ;;
+  setup) cmd_setup "$@" ;;
+  frontend) cmd_frontend "$@" ;;
+  validate) cmd_validate "$@" ;;
+  train) cmd_train "$@" ;;
+  test) cmd_test "$@" ;;
+  preflight) cmd_preflight "$@" ;;
+  start) cmd_start "$@" ;;
+  stop) cmd_stop "$@" ;;
+  restart) cmd_stop; cmd_start "$@" ;;
+  status) cmd_status "$@" ;;
+  logs) cmd_logs "$@" ;;
+  smoke) cmd_smoke "$@" ;;
+  docker-up) cmd_docker_up "$@" ;;
+  docker-down) cmd_docker_down "$@" ;;
+  prod-preflight) cmd_prod_preflight "$@" ;;
+  prod-readiness) cmd_prod_readiness "$@" ;;
+  prod-up) cmd_prod_up "$@" ;;
+  prod-down) cmd_prod_down "$@" ;;
+  *) usage; fail "Unknown command: $cmd" ;;
+esac
+
+=== Makefile ===
+# ============================================================
+#  Makefile — Alazab Group Chatbot
+#  يدعم التشغيل المحلي و Docker Compose للإنتاج
+# ============================================================
+.PHONY: help setup install train validate run run-train stop test test-preflight test-smoke test-stack test-stack-down clean ssl-dev ssl-prod register-telegram up down logs logs-webhook status deploy widget nodocker-setup nodocker-up nodocker-down nodocker-check nodocker-logs prod-preflight prod-config prod-up prod-down prod-logs prod-status prod-readiness bot-doctor bot-setup bot-frontend bot-validate bot-train bot-test bot-preflight bot-start bot-stop bot-restart bot-status bot-logs bot-smoke bot-prod-preflight bot-prod-up bot-prod-down
+
+COLOR_GREEN  = \033[32m
+COLOR_YELLOW = \033[33m
+COLOR_BLUE   = \033[34m
+COLOR_RED    = \033[31m
+COLOR_RESET  = \033[0m
+
+help: ## عرض المساعدة
+	@echo ""
+	@echo "$(COLOR_BLUE)🤖 Alazab Group Chatbot — أوامر متاحة:$(COLOR_RESET)"
+	@echo ""
+	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | \
+		awk 'BEGIN {FS = ":.*?## "}; {printf "  $(COLOR_GREEN)%-18s$(COLOR_RESET) %s\n", $$1, $$2}'
+	@echo ""
+
+setup: ## إعداد البيئة الأولية
+	@if [ ! -f .env ]; then \
+		echo "$(COLOR_RED)❌ ملف .env غير موجود — أضفه من مصدر الأسرار الآمن$(COLOR_RESET)"; \
+		exit 1; \
+	fi
+	@python3 -m venv venv 2>/dev/null || true
+	@echo "$(COLOR_GREEN)✅ جاهز — شغّل: source venv/bin/activate$(COLOR_RESET)"
+
+install: ## تثبيت المتطلبات في venv
+	@. venv/bin/activate && python -m pip install --upgrade pip && pip install -e ".[dev]"
+	@echo "$(COLOR_GREEN)✅ تم التثبيت$(COLOR_RESET)"
+
+train: ## تدريب نموذج Rasa
+	@echo "$(COLOR_BLUE)🧠 تدريب النموذج...$(COLOR_RESET)"
+	@. venv/bin/activate && export $$(cat .env | grep -v '^#' | xargs) && rasa train --force
+	@echo "$(COLOR_GREEN)✅ اكتمل التدريب$(COLOR_RESET)"
+
+validate: ## التحقق من صحة ملفات المشروع
+	@. venv/bin/activate && rasa data validate
+
+run: ## تشغيل الخدمات (بدون تدريب)
+	@./run.sh --skip-train
+
+run-train: ## تشغيل الخدمات مع تدريب جديد
+	@./run.sh
+
+up: ## تشغيل Docker Compose
+	@docker compose --env-file .env -f docker/docker-compose.yaml up -d --build
+
+down: ## إيقاف Docker Compose
+	@docker compose --env-file .env -f docker/docker-compose.yaml down --remove-orphans
+
+logs: ## سجلات Rasa
+	@docker compose --env-file .env -f docker/docker-compose.yaml logs -f rasa
+
+logs-webhook: ## سجلات Webhook
+	@docker compose --env-file .env -f docker/docker-compose.yaml logs -f webhook
+
+status: ## حالة الخدمات
+	@docker compose --env-file .env -f docker/docker-compose.yaml ps
+
+deploy: ## نشر إنتاجي كامل
+	@./deploy.sh
+
+stop: ## إيقاف جميع الخدمات
+	@pkill -f "rasa run" 2>/dev/null || true
+	@pkill -f "rasa run actions" 2>/dev/null || true
+	@pkill -f "uvicorn webhook" 2>/dev/null || true
+	@echo "$(COLOR_RED)🛑 تم إيقاف الخدمات$(COLOR_RESET)"
+
+test: ## تشغيل اختبارات E2E
+	@. venv/bin/activate && rasa test e2e tests/e2e_test_cases/
+
+test-preflight: ## فحص جاهزية بيئة الاختبار بدون تشغيل الخدمات
+	@powershell -ExecutionPolicy Bypass -File ./scripts/test-preflight.ps1 -EnvFile .env -ComposeFile docker/docker-compose.yaml
+
+test-stack: ## تشغيل Stack الاختبار عبر Docker Compose
+	@docker compose --env-file .env -f docker/docker-compose.yaml up -d --build
+
+test-smoke: ## اختبار API/Widget بعد تشغيل Stack الاختبار
+	@powershell -ExecutionPolicy Bypass -File ./scripts/test-preflight.ps1 -EnvFile .env -ComposeFile docker/docker-compose.yaml -RunSmoke
+
+test-stack-down: ## إيقاف Stack الاختبار
+	@docker compose --env-file .env -f docker/docker-compose.yaml down --remove-orphans
+
+clean: ## حذف النماذج والملفات المؤقتة
+	@rm -rf models/ results/ .rasa/
+	@find . -name "__pycache__" -exec rm -rf {} + 2>/dev/null; true
+	@echo "$(COLOR_GREEN)✅ تم التنظيف$(COLOR_RESET)"
+
+widget: ## فتح صفحة معاينة الـ Widget
+	@echo "$(COLOR_BLUE)🌐 افتح الملف: webhook/static/widget/demo.html أو azabot/embed/azabot-embed.js$(COLOR_RESET)"
+
+ssl-dev: ## إنشاء شهادة SSL للتطوير
+	@./scripts/setup-ssl.sh --dev
+
+ssl-prod: ## إنشاء شهادة SSL للإنتاج
+	@./scripts/setup-ssl.sh --domain webhook.alazab.com
+
+register-telegram: ## تسجيل Telegram webhook
+	@./scripts/register-telegram.sh
+
+prod-preflight: ## فحص جاهزية الإنتاج قبل النشر
+	@powershell -ExecutionPolicy Bypass -File ./scripts/production-preflight.ps1
+
+prod-config: ## التحقق من docker/docker-compose.prod.yaml
+	@docker compose --env-file .env -f docker/docker-compose.prod.yaml config
+
+prod-up: ## تشغيل الإنتاج عبر docker/docker-compose.prod.yaml
+	@docker compose --env-file .env -f docker/docker-compose.prod.yaml up -d --build
+
+prod-down: ## إيقاف الإنتاج
+	@docker compose --env-file .env -f docker/docker-compose.prod.yaml down --remove-orphans
+
+prod-logs: ## سجلات الإنتاج
+	@docker compose --env-file .env -f docker/docker-compose.prod.yaml logs -f
+
+prod-status: ## حالة خدمات الإنتاج
+	@docker compose --env-file .env -f docker/docker-compose.prod.yaml ps
+
+prod-readiness: ## فحص جاهزية ملفات الإنتاج من الجذر
+	@node scripts/production-readiness.mjs
+
+
+nodocker-setup: ## إنشاء .env.nodocker من القالب
+	@if [ ! -f .env.nodocker ]; then cp .env.nodocker.example .env.nodocker; echo "تم إنشاء .env.nodocker — املأ بيانات قواعد الإنتاج"; else echo ".env.nodocker موجود"; fi
+
+nodocker-up: ## تشغيل المشروع Python-only بدون Docker
+	@powershell -ExecutionPolicy Bypass -File ./scripts/run-nodocker.ps1 -EnvFile .env.nodocker -SkipTrain
+
+nodocker-down: ## إيقاف تشغيل Python-only
+	@powershell -ExecutionPolicy Bypass -File ./scripts/stop-nodocker.ps1
+
+nodocker-check: ## فحص تشغيل Python-only
+	@powershell -ExecutionPolicy Bypass -File ./scripts/check-nodocker.ps1 -EnvFile .env.nodocker
+
+nodocker-logs: ## عرض سجلات تشغيل Python-only
+	@powershell -Command "Get-Content -Wait logs/webhook.out.log"
+
+bot-doctor: ## فحص بيئة Ubuntu/WSL
+	@bash scripts/botctl.sh doctor
+
+bot-setup: ## تجهيز venv وتثبيت المتطلبات على Ubuntu/WSL
+	@bash scripts/botctl.sh setup
+
+bot-frontend: ## فحص وبناء واجهة AzaBot
+	@bash scripts/botctl.sh frontend
+
+bot-validate: ## التحقق من بيانات Rasa
+	@bash scripts/botctl.sh validate
+
+bot-train: ## تدريب نموذج Rasa
+	@bash scripts/botctl.sh train
+
+bot-test: ## تشغيل اختبارات Rasa E2E
+	@bash scripts/botctl.sh test
+
+bot-preflight: ## فحص شامل قبل التشغيل
+	@bash scripts/botctl.sh preflight
+
+bot-start: ## تشغيل البوت كخدمات خلفية على Ubuntu/WSL
+	@bash scripts/botctl.sh start
+
+bot-stop: ## إيقاف خدمات البوت الخلفية
+	@bash scripts/botctl.sh stop
+
+bot-restart: ## إعادة تشغيل خدمات البوت الخلفية
+	@bash scripts/botctl.sh restart
+
+bot-status: ## حالة خدمات البوت
+	@bash scripts/botctl.sh status
+
+bot-logs: ## متابعة سجلات خدمات البوت
+	@bash scripts/botctl.sh logs
+
+bot-smoke: ## اختبار سريع للـ health/brands/chat
+	@bash scripts/botctl.sh smoke
+
+bot-prod-preflight: ## فحص جاهزية إنتاج Docker على Ubuntu
+	@bash scripts/botctl.sh prod-preflight
+
+bot-prod-up: ## تشغيل إنتاج Docker
+	@bash scripts/botctl.sh prod-up
+
+bot-prod-down: ## إيقاف إنتاج Docker
+	@bash scripts/botctl.sh prod-down
+Now I understand the full picture. The user wants a single command to run BOTH the frontend (React/Vite azabot) AND the backend (actions + rasa + webhook) together.
+Currently:
+
+botctl.sh start starts: actions + rasa + webhook (backend only)
+botctl.sh frontend builds the frontend but doesn't serve it in dev mode
+The Makefile has bot-start which is backend only
+
+The user wants ONE command that starts everything together - frontend in dev mode (or served) + all backend services.
+The cleanest solution is to:
+
+Add a dev command to botctl.sh that starts all backend services AND then starts the frontend dev server (pnpm dev in azabot/)
+Create a dev.sh script at the root level that does everything with one command
+
+Let me think about what "frontend" means here:
+
+In development: pnpm dev in azabot/ - runs Vite dev server on port 5173
+In production: the built azabot/dist/ is served by the FastAPI webhook server (or nginx)
+
+For development, the user wants:
+
+Start actions server (port 5055)
+Start rasa server (port 5005)
+Start webhook/FastAPI server (port 8000)
+Start frontend dev server (port 5173) - with proxy to backend
+
+For production with a single command: everything is already running via systemd/botctl, and nginx serves everything.
+The best solution is:
+
+Add a dev command to botctl.sh that starts everything including frontend
+Update azabot/vite.config.ts (or create it) to proxy API calls to the backend during dev
+Add a make dev target to Makefile
+
+Let me also check the azabot structure to understand the frontend setup.Show moreRead frontend config filesbashcd /home/claude/project/alazab-rasa-prod
+
+cat azabot/package.json
+echo ""
+cat azabot/vite.config.ts 2>/dev/null || cat azabot/vite.config.js 2>/dev/null || echo "(no vite config found)"
+echo ""
+cat azabot/.env.example 2>/dev/null || cat azabot/.env 2>/dev/null || echo "(no azabot .env)"Output{
+  "name": "azabot",
+  "private": true,
+  "version": "1.0.0",
+  "description": "AzaBot Chatbot System",
+  "author": "Alazab",
+  "license": "MIT",
+  "type": "module",
+  "engines": {
+    "node": ">=22.13.0",
+    "pnpm": ">=10.33.0"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "build:dev": "vite build --mode development",
+    "lint": "eslint . --max-warnings 0",
+    "lint:fix": "eslint . --fix",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "type-check": "tsc --noEmit",
+    "check:prod": "node scripts/production-check.mjs",
+    "preflight": "pnpm type-check && pnpm test && pnpm build && pnpm check:prod"
+  },
+  "dependencies": {
+    "@elevenlabs/client": "^1.3.0",
+    "@hookform/resolvers": "^3.10.0",
+    "@radix-ui/react-accordion": "^1.2.11",
+    "@radix-ui/react-alert-dialog": "^1.1.14",
+    "@radix-ui/react-aspect-ratio": "^1.1.7",
+    "@radix-ui/react-avatar": "^1.1.10",
+    "@radix-ui/react-checkbox": "^1.3.2",
+    "@radix-ui/react-collapsible": "^1.1.11",
+    "@radix-ui/react-context-menu": "^2.2.15",
+    "@radix-ui/react-dialog": "^1.1.14",
+    "@radix-ui/react-dropdown-menu": "^2.1.15",
+    "@radix-ui/react-hover-card": "^1.1.14",
+    "@radix-ui/react-label": "^2.1.7",
+    "@radix-ui/react-menubar": "^1.1.15",
+    "@radix-ui/react-navigation-menu": "^1.2.13",
+    "@radix-ui/react-popover": "^1.1.14",
+    "@radix-ui/react-progress": "^1.1.7",
+    "@radix-ui/react-radio-group": "^1.3.7",
+    "@radix-ui/react-scroll-area": "^1.2.9",
+    "@radix-ui/react-select": "^2.2.5",
+    "@radix-ui/react-separator": "^1.1.7",
+    "@radix-ui/react-slider": "^1.3.5",
+    "@radix-ui/react-slot": "^1.2.3",
+    "@radix-ui/react-switch": "^1.2.5",
+    "@radix-ui/react-tabs": "^1.1.12",
+    "@radix-ui/react-toast": "^1.2.14",
+    "@radix-ui/react-toggle": "^1.1.9",
+    "@radix-ui/react-toggle-group": "^1.1.10",
+    "@radix-ui/react-tooltip": "^1.2.7",
+    "@tanstack/query-core": "^5.83.0",
+    "@tanstack/react-query": "^5.83.0",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "cmdk": "^1.1.1",
+    "date-fns": "^3.6.0",
+    "embla-carousel-react": "^8.6.0",
+    "input-otp": "^1.4.2",
+    "lucide-react": "^0.462.0",
+    "next-themes": "^0.3.0",
+    "react": "^18.3.1",
+    "react-day-picker": "^8.10.1",
+    "react-dom": "^18.3.1",
+    "react-hook-form": "^7.61.1",
+    "react-markdown": "^10.1.0",
+    "react-resizable-panels": "^2.1.9",
+    "react-router-dom": "^6.30.1",
+    "recharts": "^2.15.4",
+    "sonner": "^1.7.4",
+    "tailwind-merge": "^2.6.0",
+    "tailwindcss-animate": "^1.0.7",
+    "vaul": "^0.9.9",
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.32.0",
+    "@tailwindcss/typography": "^0.5.16",
+    "@testing-library/jest-dom": "^6.6.0",
+    "@testing-library/react": "^16.0.0",
+    "@types/node": "^22.16.5",
+    "@types/react": "^18.3.23",
+    "@types/react-dom": "^18.3.7",
+    "@vitejs/plugin-react-swc": "^3.11.0",
+    "autoprefixer": "^10.4.21",
+    "eslint": "^9.32.0",
+    "eslint-plugin-react-hooks": "^5.2.0",
+    "eslint-plugin-react-refresh": "^0.4.20",
+    "globals": "^15.15.0",
+    "jsdom": "^29.0.2",
+    "postcss": "^8.5.6",
+    "tailwindcss": "^3.4.17",
+    "typescript": "^5.8.3",
+    "typescript-eslint": "^8.38.0",
+    "vite": "^7.2.7",
+    "vitest": "^3.2.4"
+  }
+}
+
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react-swc";
+import path from "path";
+
+export default defineConfig(({ mode }) => ({
+  server: {
+    host: "::",
+    port: 8080,
+    hmr: { overlay: true },
+  },
+
+  plugins: [react()],
+
+  resolve: {
+    alias: { "@": path.resolve(__dirname, "./src") },
+    dedupe: [
+      "react", "react-dom",
+      "react/jsx-runtime", "react/jsx-dev-runtime",
+      "@tanstack/react-query", "@tanstack/query-core",
+    ],
+  },
+
+  build: {
+    target: "es2020",
+    sourcemap: mode === "development",
+    minify: "esbuild",
+    cssMinify: true,
+    rollupOptions: {
+      output: {
+        manualChunks(id: string) {
+          if (id.includes("node_modules/react") || id.includes("node_modules/react-dom") || id.includes("node_modules/react-router-dom")) return "react-vendor";
+          if (id.includes("node_modules/@radix-ui") || id.includes("node_modules/lucide-react")) return "ui-vendor";
+          if (id.includes("node_modules/@tanstack")) return "query-vendor";
+          if (id.includes("node_modules/react-markdown") || id.includes("node_modules/remark") || id.includes("node_modules/rehype")) return "markdown-vendor";
+        },
+        chunkFileNames: "assets/[name]-[hash].js",
+        entryFileNames: "assets/[name]-[hash].js",
+        assetFileNames: "assets/[name]-[hash][extname]",
+      },
+    },
+    chunkSizeWarningLimit: 600,
+  },
+
+  optimizeDeps: {
+    include: ["react", "react-dom", "react-router-dom", "@tanstack/react-query"],
+  },
+}));
+
+# Production frontend defaults
+# اترك VITE_CHAT_API_URL فارغاً في الإنتاج إذا كانت الواجهة تُخدم من نفس دومين FastAPI.
+VITE_CHAT_API_URL=
+VITE_SITE_ID=
+
+# Development example:
+# VITE_CHAT_API_URL=http://127.0.0.1:8000
+# VITE_SITE_ID=alazab_construction
+Now I have a complete picture. The frontend runs on port 8080 (Vite dev server) and the backend runs on port 8000 (FastAPI).
+The user wants a single command to run both. Currently:
+
+bash scripts/botctl.sh start starts the backend (actions + rasa + webhook on 8000)
+pnpm dev in azabot/ starts the frontend (on 8080)
+
+But the frontend needs to proxy API calls to the backend. Looking at vite.config.ts, there's no proxy configured. I need to:
+
+Add a proxy configuration to vite.config.ts so that /chat, /brands, /admin, etc. are proxied to http://127.0.0.1:8000
+Create a dev.sh script that starts the backend AND the frontend together
+Add a make dev target to Makefile
+Add a dev command to botctl.sh
+Create an azabot/.env.development or azabot/.env.local file for dev settings
+
+The key architecture:
+
+Development: Frontend (port 8080) ←proxy→ Backend (port 8000)
+Production: Nginx → Backend (port 8000) which serves built frontend from azabot/dist/
+
+Let me create:
+
+Updated vite.config.ts with proxy
+dev.sh at root - single command launcher
+Updated botctl.sh with dev command
+Updated Makefile with dev target
+Show moreDoneالصورة كاملة. الفرونت على port 8080 والباك على 8000، لكن لا يوجد proxy وبالتالي API calls تفشل في الـ dev mode. سأبني الحل الكامل:Ran 4 commandsRan 4 commandsAdd API proxy to vite configbashP=/home/claude/project/alazab-rasa-prod
+
+# ── 1. تحديث vite.config.ts بإضافة proxy كامل للـ dev mode ──
+cat > "$P/azabot/vite.config.ts" << 'VITE'
+import { defineConfig, loadEnv } from "vite";
+import react from "@vitejs/plugin-react-swc";
+import path from "path";
+
+export default defineConfig(({ mode }) => {
+  const env = loadEnv(mode, process.cwd(), "");
+  const BACKEND = env.VITE_DEV_BACKEND_URL || "http://127.0.0.1:8000";
+
+  return {
+    server: {
+      host: "::",
+      port: 8080,
+      hmr: { overlay: true },
+
+      // ── Proxy: كل طلبات API تُحوَّل للباك أوتوماتيكياً ──────
+      proxy: {
+        "/chat":      { target: BACKEND, changeOrigin: true, secure: false },
+        "/brands":    { target: BACKEND, changeOrigin: true, secure: false },
+        "/admin":     { target: BACKEND, changeOrigin: true, secure: false },
+        "/health":    { target: BACKEND, changeOrigin: true, secure: false },
+        "/uberfix":   { target: BACKEND, changeOrigin: true, secure: false },
+        "/webhook":   { target: BACKEND, changeOrigin: true, secure: false },
+        "/embed":     { target: BACKEND, changeOrigin: true, secure: false },
+        "/piper":     { target: BACKEND, changeOrigin: true, secure: false },
+        "/static":    { target: BACKEND, changeOrigin: true, secure: false },
+        "/ws": {
+          target: BACKEND.replace("http", "ws"),
+          ws: true,
+          changeOrigin: true,
+        },
+      },
+    },
+
+    plugins: [react()],
+
+    resolve: {
+      alias: { "@": path.resolve(__dirname, "./src") },
+      dedupe: [
+        "react", "react-dom",
+        "react/jsx-runtime", "react/jsx-dev-runtime",
+        "@tanstack/react-query", "@tanstack/query-core",
+      ],
+    },
+
+    build: {
+      target: "es2020",
+      sourcemap: mode === "development",
+      minify: "esbuild",
+      cssMinify: true,
+      rollupOptions: {
+        output: {
+          manualChunks(id: string) {
+            if (id.includes("node_modules/react") || id.includes("node_modules/react-dom") || id.includes("node_modules/react-router-dom")) return "react-vendor";
+            if (id.includes("node_modules/@radix-ui") || id.includes("node_modules/lucide-react")) return "ui-vendor";
+            if (id.includes("node_modules/@tanstack")) return "query-vendor";
+            if (id.includes("node_modules/react-markdown") || id.includes("node_modules/remark") || id.includes("node_modules/rehype")) return "markdown-vendor";
+          },
+          chunkFileNames:  "assets/[name]-[hash].js",
+          entryFileNames:  "assets/[name]-[hash].js",
+          assetFileNames:  "assets/[name]-[hash][extname]",
+        },
+      },
+      chunkSizeWarningLimit: 600,
+    },
+
+    optimizeDeps: {
+      include: ["react", "react-dom", "react-router-dom", "@tanstack/react-query"],
+    },
+  };
+});
+VITE
+
+echo "✅ vite.config.ts — proxy مضاف"Output✅ vite.config.ts — proxy مضاف
+Create frontend dev env filebashP=/home/claude/project/alazab-rasa-prod
+
+# ── 2. ملف .env للـ dev mode للفرونت ─────────────────────────
+cat > "$P/azabot/.env.development" << 'ENV'
+# ── AzaBot Frontend — Development Environment ─────────────────
+# يُستخدم تلقائياً عند تشغيل: pnpm dev
+# Proxy مضبوط في vite.config.ts — لا تحتاج VITE_CHAT_API_URL هنا
+
+# الباك اند (يُستخدم من vite.config.ts فقط، ليس للمتصفح)
+VITE_DEV_BACKEND_URL=http://127.0.0.1:8000
+
+# Site ID للتطوير (اختار البراند المطلوب)
+VITE_SITE_ID=alazab_construction
+
+# وضع التطوير
+VITE_APP_ENV=development
+ENV
+
+echo "✅ azabot/.env.development"Output✅ azabot/.env.development
+Add dev command to botctl.shbashP=/home/claude/project/alazab-rasa-prod
+
+# ── 3. إضافة أمر dev لـ botctl.sh ────────────────────────────
+python3 << 'PYEOF'
+path = "/home/claude/project/alazab-rasa-prod/scripts/botctl.sh"
+content = open(path).read()
+
+# إضافة cmd_dev بعد cmd_start
+cmd_dev = '''
+cmd_dev() {
+  # ── 1. تشغيل الباك اند ──────────────────────────────────────
+  cmd_start
+
+  # ── 2. تحقق من pnpm ─────────────────────────────────────────
+  if ! command -v pnpm >/dev/null 2>&1; then
+    warn "pnpm غير موجود — الفرونت لن يُشغَّل"
+    warn "لتثبيته: npm install -g pnpm  ثم أعد التشغيل"
+    ok "الباك اند يعمل على http://127.0.0.1:${WEBHOOK_PORT}"
+    return 0
+  fi
+
+  # ── 3. تثبيت deps الفرونت إن لزم ───────────────────────────
+  if [[ ! -d "azabot/node_modules" ]]; then
+    log "تثبيت packages الفرونت..."
+    (cd azabot && pnpm install --frozen-lockfile)
+  fi
+
+  # ── 4. تشغيل Vite dev server ────────────────────────────────
+  log "تشغيل الفرونت (Vite dev) على port ${FRONTEND_PORT:-8080}..."
+  FRONTEND_LOGFILE="$LOG_DIR/frontend.out.log"
+  local old_pid
+  old_pid="$(read_pid "frontend" || true)"
+  if is_running "$old_pid"; then
+    warn "الفرونت يعمل بالفعل: $old_pid"
+  else
+    nohup bash -c "cd azabot && VITE_DEV_BACKEND_URL=http://127.0.0.1:${WEBHOOK_PORT} pnpm dev" \
+      > "$FRONTEND_LOGFILE" 2>&1 &
+    write_pid "frontend" "$!"
+    ok "الفرونت شغّال: PID $!"
+  fi
+
+  # ── 5. انتظر الفرونت ─────────────────────────────────────────
+  wait_http "Frontend" "http://127.0.0.1:${FRONTEND_PORT:-8080}" 30
+
+  echo ""
+  ok "══════════════════════════════════════════"
+  ok " 🚀 كل الخدمات شغّالة!"
+  ok " Frontend : http://localhost:${FRONTEND_PORT:-8080}"
+  ok " Backend  : http://localhost:${WEBHOOK_PORT}"
+  ok " Rasa     : http://localhost:${RASA_PORT}"
+  ok " Actions  : http://localhost:${ACTIONS_PORT}"
+  ok "══════════════════════════════════════════"
+  ok " لوقف كل شيء: bash scripts/botctl.sh stop"
+  ok " للسجلات:     bash scripts/botctl.sh logs all"
+  ok "══════════════════════════════════════════"
+}
+'''
+
+# أدرج cmd_dev قبل cmd_stop مباشرة
+content = content.replace("cmd_stop() {", cmd_dev + "\ncmd_stop() {", 1)
+
+# أضف stop للفرونت داخل cmd_stop
+old_stop_begin = '''cmd_stop() {
+  ensure_dirs
+  local stopped=false
+  for service in webhook rasa actions; do'''
+
+new_stop_begin = '''cmd_stop() {
+  ensure_dirs
+  local stopped=false
+  for service in frontend webhook rasa actions; do'''
+
+content = content.replace(old_stop_begin, new_stop_begin, 1)
+
+# إضافة logs للفرونت
+old_logs = '''    actions|rasa|webhook) tail -n 120 -f "$LOG_DIR/$service.out.log" ;;
+    all) tail -n 80 -f "$LOG_DIR/actions.out.log" "$LOG_DIR/rasa.out.log" "$LOG_DIR/webhook.out.log" ;;'''
+new_logs = '''    actions|rasa|webhook|frontend) tail -n 120 -f "$LOG_DIR/$service.out.log" ;;
+    all) tail -n 80 -f "$LOG_DIR/actions.out.log" "$LOG_DIR/rasa.out.log" "$LOG_DIR/webhook.out.log" "$LOG_DIR/frontend.out.log" 2>/dev/null ;;'''
+content = content.replace(old_logs, new_logs, 1)
+
+# إضافة cmd_dev إلى الـ case
+old_case = "  start) cmd_start \"$@\" ;;"
+new_case = "  start) cmd_start \"$@\" ;;\n  dev) cmd_dev \"$@\" ;;"
+content = content.replace(old_case, new_case, 1)
+
+# تحديث usage
+old_usage_start = "  start               Start actions, rasa, and webhook as background processes."
+new_usage_start = "  dev                 Start everything: backend + frontend dev server (single command).\n  start               Start actions, rasa, and webhook as background processes."
+content = content.replace(old_usage_start, new_usage_start, 1)
+
+open(path, "w").write(content)
+print("✅ botctl.sh — أمر dev مضاف")
+PYEOFOutput✅ botctl.sh — أمر dev مضاف
+Create root dev.sh launcher scriptbashP=/home/claude/project/alazab-rasa-prod
+
+# ── 4. سكريبت dev.sh في الجذر — بضغطة واحدة ──────────────────
+cat > "$P/dev.sh" << 'DEV'
+#!/usr/bin/env bash
+# ══════════════════════════════════════════════════════════════
+#  dev.sh — AzaBot Full Dev Launcher (بضغطة واحدة)
+#
+#  يشغّل دفعة واحدة:
+#    ① Rasa Actions Server   → port 5055
+#    ② Rasa Pro Server       → port 5005
+#    ③ FastAPI Webhook       → port 8000
+#    ④ Vite Frontend Dev     → port 8080
+#
+#  الاستخدام:
+#    bash dev.sh              # تشغيل كامل
+#    bash dev.sh --backend    # باك فقط
+#    bash dev.sh --frontend   # فرونت فقط (الباك يجب أن يعمل)
+#    bash dev.sh stop         # إيقاف كل شيء
+#    bash dev.sh status       # حالة الخدمات
+#    bash dev.sh logs         # متابعة السجلات
+# ══════════════════════════════════════════════════════════════
+set -Eeuo pipefail
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "$ROOT"
+
+BOTCTL="bash scripts/botctl.sh"
+
+# ── ألوان ─────────────────────────────────────────────────────
+CYAN=$'\033[1;36m'; GREEN=$'\033[1;32m'; YELLOW=$'\033[1;33m'
+RED=$'\033[1;31m'; BOLD=$'\033[1m'; NC=$'\033[0m'
+
+banner() {
+  echo ""
+  echo "${CYAN}${BOLD}╔══════════════════════════════════════════════╗${NC}"
+  echo "${CYAN}${BOLD}║   🤖 AzaBot — Full Dev Stack Launcher        ║${NC}"
+  echo "${CYAN}${BOLD}╚══════════════════════════════════════════════╝${NC}"
+  echo ""
+}
+
+# ── معالجة الأوامر ────────────────────────────────────────────
+ARG="${1:-}"
+
+case "$ARG" in
+  stop)
+    echo "${RED}🛑 إيقاف كل الخدمات...${NC}"
+    $BOTCTL stop
+    exit 0
+    ;;
+  status)
+    $BOTCTL status
+    exit 0
+    ;;
+  logs)
+    SERVICE="${2:-all}"
+    $BOTCTL logs "$SERVICE"
+    exit 0
+    ;;
+  restart)
+    $BOTCTL stop
+    exec bash "$0"
+    ;;
+  --backend)
+    banner
+    echo "${YELLOW}🔧 تشغيل الباك اند فقط...${NC}"
+    $BOTCTL start
+    exit 0
+    ;;
+  --frontend)
+    banner
+    echo "${YELLOW}🎨 تشغيل الفرونت فقط...${NC}"
+    _start_frontend
+    exit 0
+    ;;
+  ""|--all)
+    : # تشغيل كامل — استمر
+    ;;
+  *)
+    echo "الاستخدام: bash dev.sh [stop|status|logs|restart|--backend|--frontend]"
+    exit 1
+    ;;
+esac
+
+# ── التشغيل الكامل ────────────────────────────────────────────
+banner
+
+# فحص .env
+if [[ ! -f ".env" ]]; then
+  echo "${RED}❌ ملف .env غير موجود!${NC}"
+  echo "   انسخه من .env.example وأضف بياناتك:"
+  echo "   cp .env.example .env"
+  exit 1
+fi
+
+# فحص venv
+if [[ ! -d ".venv" ]]; then
+  echo "${YELLOW}⚠️  venv غير موجود — سأجهزه الآن...${NC}"
+  bash scripts/botctl.sh setup
+fi
+
+# فحص موديل Rasa
+if [[ -z "$(ls models/*.tar.gz 2>/dev/null)" ]]; then
+  echo "${YELLOW}⚠️  لا يوجد موديل Rasa مدرّب.${NC}"
+  read -r -p "   هل تريد تدريب موديل الآن؟ [y/N] " answer
+  if [[ "${answer,,}" == "y" ]]; then
+    echo "${CYAN}🧠 جاري التدريب... (قد يأخذ بعض الوقت)${NC}"
+    bash scripts/botctl.sh train
+  else
+    echo "${RED}❌ يجب تدريب موديل أولاً: bash scripts/botctl.sh train${NC}"
+    exit 1
+  fi
+fi
+
+# ── تشغيل كل شيء ──────────────────────────────────────────────
+echo "${CYAN}🚀 جاري تشغيل جميع الخدمات...${NC}"
+echo ""
+
+$BOTCTL dev
+
+DEV
+chmod +x "$P/dev.sh"
+echo "✅ dev.sh created"Output✅ dev.sh created
+Done

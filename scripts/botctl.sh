@@ -18,6 +18,7 @@ WEBHOOK_WORKERS="${WEBHOOK_WORKERS:-1}"
 RASA_PORT="${RASA_PORT:-5005}"
 ACTIONS_PORT="${ACTIONS_PORT:-5055}"
 WEBHOOK_PORT="${WEBHOOK_PORT:-8000}"
+FRONTEND_PORT="${FRONTEND_PORT:-8080}"
 HOST="${HOST:-127.0.0.1}"
 
 BLUE=$'\033[1;34m'
@@ -43,6 +44,7 @@ Commands:
   train               Train the Rasa model.
   test                Run Rasa E2E tests.
   preflight           Run doctor + validate + Python syntax check.
+  dev                 Start everything: backend + frontend dev server (single command).
   start               Start actions, rasa, and webhook as background processes.
   stop                Stop background processes started by this script.
   restart             Stop then start.
@@ -327,10 +329,58 @@ cmd_start() {
   ok "Bot is running at http://127.0.0.1:${WEBHOOK_PORT}"
 }
 
+
+cmd_dev() {
+  # ── 1. تشغيل الباك اند ──────────────────────────────────────
+  cmd_start
+
+  # ── 2. تحقق من pnpm ─────────────────────────────────────────
+  if ! command -v pnpm >/dev/null 2>&1; then
+    warn "pnpm غير موجود — الفرونت لن يُشغَّل"
+    warn "لتثبيته: npm install -g pnpm  ثم أعد التشغيل"
+    ok "الباك اند يعمل على http://127.0.0.1:${WEBHOOK_PORT}"
+    return 0
+  fi
+
+  # ── 3. تثبيت deps الفرونت إن لزم ───────────────────────────
+  if [[ ! -d "azabot/node_modules" ]]; then
+    log "تثبيت packages الفرونت..."
+    (cd azabot && pnpm install --frozen-lockfile)
+  fi
+
+  # ── 4. تشغيل Vite dev server ────────────────────────────────
+  log "تشغيل الفرونت (Vite dev) على port ${FRONTEND_PORT:-8080}..."
+  FRONTEND_LOGFILE="$LOG_DIR/frontend.out.log"
+  local old_pid
+  old_pid="$(read_pid "frontend" || true)"
+  if is_running "$old_pid"; then
+    warn "الفرونت يعمل بالفعل: $old_pid"
+  else
+    nohup bash -c "cd azabot && VITE_DEV_BACKEND_URL=http://127.0.0.1:${WEBHOOK_PORT} pnpm dev"       > "$FRONTEND_LOGFILE" 2>&1 &
+    write_pid "frontend" "$!"
+    ok "الفرونت شغّال: PID $!"
+  fi
+
+  # ── 5. انتظر الفرونت ─────────────────────────────────────────
+  wait_http "Frontend" "http://127.0.0.1:${FRONTEND_PORT:-8080}" 30
+
+  echo ""
+  ok "══════════════════════════════════════════"
+  ok " 🚀 كل الخدمات شغّالة!"
+  ok " Frontend : http://localhost:${FRONTEND_PORT:-8080}"
+  ok " Backend  : http://localhost:${WEBHOOK_PORT}"
+  ok " Rasa     : http://localhost:${RASA_PORT}"
+  ok " Actions  : http://localhost:${ACTIONS_PORT}"
+  ok "══════════════════════════════════════════"
+  ok " لوقف كل شيء: bash scripts/botctl.sh stop"
+  ok " للسجلات:     bash scripts/botctl.sh logs all"
+  ok "══════════════════════════════════════════"
+}
+
 cmd_stop() {
   ensure_dirs
   local stopped=false
-  for service in webhook rasa actions; do
+  for service in frontend webhook rasa actions; do
     local pid
     pid="$(read_pid "$service" || true)"
     if is_running "$pid"; then
@@ -345,26 +395,54 @@ cmd_stop() {
 
 cmd_status() {
   ensure_dirs
-  for service in actions rasa webhook; do
-    local pid
+  local FRONTEND_PORT="${FRONTEND_PORT:-8080}"
+  echo ""
+  printf "%-20s %-10s %-8s %s
+" "الخدمة" "PID" "Process" "HTTP"
+  printf "%-20s %-10s %-8s %s
+" "────────────────" "────────" "───────" "────────────────────────────"
+
+  for service in actions rasa webhook frontend; do
+    local pid url label
     pid="$(read_pid "$service" || true)"
+    case "$service" in
+      actions)  url="http://127.0.0.1:${ACTIONS_PORT}/health"; label="Actions  :${ACTIONS_PORT}" ;;
+      rasa)     url="http://127.0.0.1:${RASA_PORT}/";          label="Rasa     :${RASA_PORT}" ;;
+      webhook)  url="http://127.0.0.1:${WEBHOOK_PORT}/health"; label="Webhook  :${WEBHOOK_PORT}" ;;
+      frontend) url="http://127.0.0.1:${FRONTEND_PORT}";       label="Frontend :${FRONTEND_PORT}" ;;
+    esac
+
+    local proc_status http_status
     if is_running "$pid"; then
-      ok "$service running: $pid"
+      proc_status="${GREEN}● running${NC}  (PID $pid)"
     else
-      warn "$service stopped"
+      proc_status="${RED}○ stopped${NC}"
+      pid="—"
     fi
+
+    if curl -fsS "$url" >/dev/null 2>&1; then
+      http_status="${GREEN}✅ healthy${NC}"
+    else
+      http_status="${YELLOW}⚠️  offline${NC}"
+    fi
+
+    printf "%-20s " "$label"
+    printf "proc: "; printf "$proc_status"
+    printf "  http: "; printf "$http_status
+"
   done
-  curl -fsS "http://127.0.0.1:${ACTIONS_PORT}/health" >/dev/null 2>&1 && ok "Actions HTTP healthy" || warn "Actions HTTP unavailable"
-  curl -fsS "http://127.0.0.1:${RASA_PORT}/" >/dev/null 2>&1 && ok "Rasa HTTP healthy" || warn "Rasa HTTP unavailable"
-  curl -fsS "http://127.0.0.1:${WEBHOOK_PORT}/health" >/dev/null 2>&1 && ok "Webhook HTTP healthy" || warn "Webhook HTTP unavailable"
+
+  echo ""
+  curl -fsS "http://127.0.0.1:${WEBHOOK_PORT}/health" >/dev/null 2>&1 &&     ok "🌐 الواجهة: http://localhost:${FRONTEND_PORT:-8080}" ||     warn "الباك اند غير متاح"
+  echo ""
 }
 
 cmd_logs() {
   ensure_dirs
   local service="${1:-all}"
   case "$service" in
-    actions|rasa|webhook) tail -n 120 -f "$LOG_DIR/$service.out.log" ;;
-    all) tail -n 80 -f "$LOG_DIR/actions.out.log" "$LOG_DIR/rasa.out.log" "$LOG_DIR/webhook.out.log" ;;
+    actions|rasa|webhook|frontend) tail -n 120 -f "$LOG_DIR/$service.out.log" ;;
+    all) tail -n 80 -f "$LOG_DIR/actions.out.log" "$LOG_DIR/rasa.out.log" "$LOG_DIR/webhook.out.log" "$LOG_DIR/frontend.out.log" 2>/dev/null ;;
     *) fail "Unknown log service: $service" ;;
   esac
 }
@@ -422,6 +500,7 @@ case "$cmd" in
   test) cmd_test "$@" ;;
   preflight) cmd_preflight "$@" ;;
   start) cmd_start "$@" ;;
+  dev) cmd_dev "$@" ;;
   stop) cmd_stop "$@" ;;
   restart) cmd_stop; cmd_start "$@" ;;
   status) cmd_status "$@" ;;

@@ -50,6 +50,9 @@ Deno.serve(async (req) => {
           "bot_name", "primary_color", "welcome_message", "quick_replies", "ai_model",
           "system_prompt", "voice_enabled", "voice_name", "auto_speak",
           "business_hours_enabled", "business_hours", "offline_message", "position",
+          "engine", "rasa_url", "rasa_timeout_ms",
+          "header_subtitle", "bubble_style", "show_branding", "sound_enabled",
+          "allow_human_takeover", "avatar_url",
         ];
         const patch: Record<string, unknown> = {};
         for (const k of allowed) if (k in body) patch[k] = body[k];
@@ -111,9 +114,38 @@ Deno.serve(async (req) => {
         return json({ ok: true });
       }
       case "list_logs": {
-        const { data } = await supabase.from("webhook_logs")
-          .select("*").order("created_at", { ascending: false }).limit(200);
+        const type = url.searchParams.get("type") || "";
+        const status = url.searchParams.get("status") || "";
+        const limit = Math.min(Number(url.searchParams.get("limit") || 200), 1000);
+        let q = supabase.from("webhook_logs").select("*")
+          .order("created_at", { ascending: false }).limit(limit);
+        if (type) q = q.eq("integration_type", type);
+        if (status) q = q.eq("status", status);
+        const { data } = await q;
         return json(data);
+      }
+      case "clear_logs": {
+        const type = (body.type as string) || "";
+        let q = supabase.from("webhook_logs").delete();
+        if (type) q = q.eq("integration_type", type);
+        else q = q.neq("id", "00000000-0000-0000-0000-000000000000");
+        const { error } = await q;
+        if (error) return json({ error: error.message }, 400);
+        return json({ ok: true });
+      }
+      case "change_password": {
+        const { current_password, new_password } = body as { current_password?: string; new_password?: string };
+        if (!new_password || new_password.length < 6)
+          return json({ error: "كلمة المرور الجديدة يجب أن تكون 6 أحرف فأكثر" }, 400);
+        const { verifyPassword, hashPassword } = await import("../_shared/jwt.ts");
+        const { data: row } = await supabase.from("admin_auth").select("password_hash").eq("id", 1).maybeSingle();
+        if (row?.password_hash) {
+          const ok = await verifyPassword(current_password || "", row.password_hash);
+          if (!ok) return json({ error: "كلمة المرور الحالية خاطئة" }, 401);
+        }
+        const hash = await hashPassword(new_password);
+        await supabase.from("admin_auth").update({ password_hash: hash, updated_at: new Date().toISOString() }).eq("id", 1);
+        return json({ ok: true });
       }
       case "stats": {
         const { count: convCount } = await supabase.from("conversations")
@@ -124,7 +156,86 @@ Deno.serve(async (req) => {
         const { count: todayCount } = await supabase.from("conversations")
           .select("*", { count: "exact", head: true })
           .gte("created_at", today.toISOString());
-        return json({ conversations: convCount || 0, messages: msgCount || 0, today: todayCount || 0 });
+
+        const since = new Date(); since.setDate(since.getDate() - 13); since.setHours(0,0,0,0);
+        const { data: convRows } = await supabase.from("conversations")
+          .select("created_at").gte("created_at", since.toISOString());
+        const { data: msgRows } = await supabase.from("messages")
+          .select("created_at, content, role").gte("created_at", since.toISOString());
+
+        const daily: Record<string, { conversations: number; messages: number }> = {};
+        for (let i = 0; i < 14; i++) {
+          const d = new Date(since); d.setDate(d.getDate() + i);
+          daily[d.toISOString().slice(0, 10)] = { conversations: 0, messages: 0 };
+        }
+        for (const r of convRows || []) {
+          const k = (r.created_at as string).slice(0, 10);
+          if (daily[k]) daily[k].conversations++;
+        }
+        const hourly: Record<number, number> = {};
+        for (let h = 0; h < 24; h++) hourly[h] = 0;
+        const userMsgs: string[] = [];
+        for (const r of msgRows || []) {
+          const k = (r.created_at as string).slice(0, 10);
+          if (daily[k]) daily[k].messages++;
+          hourly[new Date(r.created_at as string).getHours()]++;
+          if (r.role === "user" && r.content) userMsgs.push(String(r.content).trim());
+        }
+        const { data: settings } = await supabase.from("bot_settings").select("quick_replies").eq("id", 1).single();
+        const qrs: string[] = (settings?.quick_replies as string[]) || [];
+        const topQR = qrs.map((q) => ({
+          text: q,
+          count: userMsgs.filter((m) => m.toLowerCase() === q.toLowerCase()).length,
+        })).sort((a, b) => b.count - a.count).slice(0, 5);
+        const avg = (convCount || 0) > 0 ? Math.round(((msgCount || 0) / (convCount || 1)) * 10) / 10 : 0;
+
+        return json({
+          conversations: convCount || 0,
+          messages: msgCount || 0,
+          today: todayCount || 0,
+          avg_messages_per_conversation: avg,
+          daily: Object.entries(daily).map(([date, v]) => ({ date, ...v })),
+          hourly: Object.entries(hourly).map(([hour, count]) => ({ hour: Number(hour), count })),
+          top_quick_replies: topQR,
+        });
+      }
+      case "toggle_human_takeover": {
+        const { data, error } = await supabase.from("conversations")
+          .update({ human_takeover: !!body.enabled, assigned_admin: body.admin || null })
+          .eq("id", body.id).select().single();
+        if (error) return json({ error: error.message }, 400);
+        return json(data);
+      }
+      case "send_admin_message": {
+        const { conversation_id, content } = body;
+        if (!conversation_id || !content) return json({ error: "conversation_id & content required" }, 400);
+        const { data, error } = await supabase.from("messages")
+          .insert({ conversation_id, role: "assistant", content: `👨‍💼 ${content}` })
+          .select().single();
+        if (error) return json({ error: error.message }, 400);
+        return json(data);
+      }
+      case "test_rasa": {
+        const url = String(body.url || "").trim();
+        if (!url) return json({ error: "Rasa URL required" }, 400);
+        const target = url.replace(/\/$/, "") + "/webhooks/rest/webhook";
+        const startedAt = Date.now();
+        try {
+          const res = await fetch(target, {
+            method: "POST", headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ sender: "azabot-test", message: "ping" }),
+            signal: AbortSignal.timeout(10000),
+          });
+          const text = await res.text();
+          return json({ ok: res.ok, status: res.status, duration_ms: Date.now() - startedAt, response: text.slice(0, 1000) });
+        } catch (e) {
+          return json({ ok: false, error: e instanceof Error ? e.message : "Unknown" }, 200);
+        }
+      }
+      case "export_conversations": {
+        const { data } = await supabase.from("conversations")
+          .select("*").order("created_at", { ascending: false }).limit(5000);
+        return json(data || []);
       }
       default:
         return json({ error: "Unknown action" }, 400);

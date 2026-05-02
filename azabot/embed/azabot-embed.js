@@ -3,13 +3,16 @@
  * ─────────────────────────────────────────────────────────
  * أضفه في أي موقع بسطر واحد:
  *
- * <script src="https://bot.alazab.com/embed/azabot-embed.js"
+ * <script src="https://chat.alazab.com/embed/azabot-embed.js"
+ *         data-api="https://fjojyzvulhvqeitnaenv.supabase.co/functions/v1/chat-v2"
+ *         data-key="SUPABASE_ANON_KEY"
  *         data-site="luxury-finishing">
  * </script>
  *
  * المتغيرات:
  *   data-site      : معرف الموقع (اختياري، يُكشف من النطاق)
- *   data-api       : رابط FastAPI /chat (اختياري، الافتراضي نفس سيرفر السكريبت)
+ *   data-api       : رابط chat-v2 Edge Function
+ *   data-key       : Supabase anon key
  *   data-position  : "bottom-right" | "bottom-left" (default: bottom-right)
  * ─────────────────────────────────────────────────────────
  */
@@ -22,25 +25,18 @@
   window.__AZABOT_LOADED__ = true;
 
   // ── قراءة الإعدادات من السكريبت ──────────────────────────
-  var scriptEl = document.currentScript;
-  if (!scriptEl) {
-    var scripts = document.querySelectorAll("script[src*='azabot-embed.js'],script[data-api]");
-    scriptEl = scripts[scripts.length - 1];
-  }
+  var scripts = document.querySelectorAll("script[data-api]");
+  var scriptEl = scripts[scripts.length - 1];
   if (!scriptEl) return;
 
-  var scriptOrigin = window.location.origin;
-  try {
-    scriptOrigin = new URL(scriptEl.src, window.location.href).origin;
-  } catch (e) { /* keep fallback */ }
-
-  var API_URL = scriptEl.getAttribute("data-api") || (scriptOrigin + "/chat");
+  var API_URL = scriptEl.getAttribute("data-api") || "";
+  var API_KEY = scriptEl.getAttribute("data-key") || "";
   var SITE_ID = scriptEl.getAttribute("data-site") || "";
   var POSITION = scriptEl.getAttribute("data-position") || "bottom-right";
   var IS_RTL = POSITION === "bottom-right";
 
-  if (!API_URL) {
-    console.warn("[AzaBot] data-api is required.");
+  if (!API_URL || !API_KEY) {
+    console.warn("[AzaBot] data-api and data-key are required.");
     return;
   }
 
@@ -74,9 +70,9 @@
       botName: "مساعد العصفور",
       color: "#2D9CDB",
       header: "linear-gradient(135deg,#0a1a2a 0%,#0e2d3d 100%)",
-      actions: ["أحتاج خامة صعب ألاقيها","أريد توريد مواد بناء","كيف أطلب بالجملة؟","هل توصلون للموقع؟"],
-      welcome: "مرحباً! أنا مساعد لبن العصفور",
-      sub: "كيف أساعدك في توفير الخامات والقطع الصعبة؟",
+      actions: ["ما منتجاتكم؟","كيف أطلب بالجملة؟","هل توصلون للمنازل؟","أسعار الجبن"],
+      welcome: "مرحباً! أنا مساعد العصفور 🥛",
+      sub: "كيف أساعدك في منتجات الألبان؟",
     },
     "alazab": {
       botName: "عزبوت",
@@ -269,7 +265,6 @@
   var isOpen = false;
   var isStreaming = false;
   var history = []; // {role, content}
-  var senderId = getSenderId();
 
   // ── Helpers ────────────────────────────────────────────────
   var messagesEl = document.getElementById("az-messages");
@@ -337,29 +332,6 @@
     messagesEl.scrollTop = messagesEl.scrollHeight;
   }
 
-  function getSenderId() {
-    var key = "azabot_sender_id";
-    try {
-      var existing = localStorage.getItem(key);
-      if (existing) return existing;
-      var value = "web_" + Date.now().toString(36) + "_" + Math.random().toString(36).slice(2, 8);
-      localStorage.setItem(key, value);
-      return value;
-    } catch (e) {
-      return "web_" + Date.now().toString(36) + "_" + Math.random().toString(36).slice(2, 8);
-    }
-  }
-
-  function normalizeResponses(responses) {
-    if (!Array.isArray(responses)) return "";
-    return responses
-      .map(function(item) {
-        return item && typeof item.text === "string" ? item.text.trim() : "";
-      })
-      .filter(Boolean)
-      .join("\n\n");
-  }
-
   // ── Send ───────────────────────────────────────────────────
   async function sendMessage(text) {
     text = (text || "").trim();
@@ -386,14 +358,13 @@
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          "apikey": API_KEY,
+          "Authorization": "Bearer " + API_KEY,
         },
         body: JSON.stringify({
-          sender_id: senderId,
-          message: text,
-          channel: "website",
-          site_host: window.location.hostname,
-          site_path: window.location.pathname || "/",
-          brand: siteId,
+          messages: history.slice(-20),
+          siteId: siteId,
+          origin: window.location.origin,
         }),
       });
 
@@ -406,10 +377,32 @@
       var botWrap = messagesEl.lastElementChild;
       botTextEl = botWrap.querySelector(".az-text");
 
-      var data = await resp.json();
-      accumulated = normalizeResponses(data.responses);
-      botTextEl.textContent = accumulated || "لم يصل رد من الخادم. حاول مرة أخرى.";
-      scrollBottom();
+      var reader = resp.body.getReader();
+      var decoder = new TextDecoder();
+      var buf = "";
+
+      while (true) {
+        var readResult = await reader.read();
+        if (readResult.done) break;
+        buf += decoder.decode(readResult.value, { stream: true });
+        var nl;
+        while ((nl = buf.indexOf("\n")) !== -1) {
+          var line = buf.slice(0, nl).trimEnd();
+          buf = buf.slice(nl + 1);
+          if (!line.startsWith("data: ")) continue;
+          var json = line.slice(6).trim();
+          if (json === "[DONE]") { break; }
+          try {
+            var parsed = JSON.parse(json);
+            var chunk = parsed.choices?.[0]?.delta?.content || "";
+            if (chunk) {
+              accumulated += chunk;
+              botTextEl.textContent = accumulated;
+              scrollBottom();
+            }
+          } catch (e) { /* skip */ }
+        }
+      }
 
       if (accumulated) {
         history.push({ role: "assistant", content: accumulated });

@@ -1,3 +1,26 @@
+
+# ── Dev (بضغطة واحدة) ─────────────────────────────────────────
+dev: ## 🚀 تشغيل الفرونت + الباك بضغطة واحدة
+	@bash dev.sh
+
+dev-stop: ## 🛑 إيقاف كل شيء
+	@bash dev.sh stop
+
+dev-status: ## 📊 حالة كل الخدمات
+	@bash dev.sh status
+
+dev-logs: ## 📋 متابعة كل السجلات
+	@bash dev.sh logs
+
+dev-backend: ## ⚙️  الباك اند فقط
+	@bash dev.sh --backend
+
+dev-frontend: ## 🎨 الفرونت فقط
+	@bash dev.sh --frontend
+
+dev-restart: ## 🔄 إعادة تشغيل كل شيء
+	@bash dev.sh restart
+
 # ============================================================
 #  Makefile — Alazab Group Chatbot
 #  يدعم التشغيل المحلي و Docker Compose للإنتاج

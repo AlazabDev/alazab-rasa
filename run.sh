@@ -1,16 +1,19 @@
 #!/usr/bin/env bash
-set -euo pipefail
-
+# ══════════════════════════════════════════════════════════════
+#  run.sh — AzaBot Unified Launcher (بضغطة واحدة)
+#
+#  الاستخدام:
+#    bash run.sh              → تشغيل الكل (باك + فرونت)
+#    bash run.sh --backend    → باك فقط (actions + rasa + webhook)
+#    bash run.sh --frontend   → فرونت فقط
+#    bash run.sh --skip-train → تشغيل بدون تدريب جديد
+#    bash run.sh stop         → إيقاف كل شيء
+#    bash run.sh status       → حالة الخدمات
+#    bash run.sh logs [svc]   → سجلات (all|actions|rasa|webhook|frontend)
+# ══════════════════════════════════════════════════════════════
+set -Eeuo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$ROOT_DIR"
 
-if [[ ! -f "scripts/start-backend-nodocker.sh" ]]; then
-  echo "Missing script: scripts/start-backend-nodocker.sh" >&2
-  exit 1
-fi
-
-if [[ -z "${ALLOWED_ORIGINS:-}" ]]; then
-  export ALLOWED_ORIGINS="http://localhost:5173,http://127.0.0.1:5173"
-fi
-
-bash scripts/start-backend-nodocker.sh
+# تفويض مباشر لـ dev.sh
+exec bash "$ROOT_DIR/dev.sh" "$@"
