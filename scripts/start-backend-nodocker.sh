@@ -43,7 +43,7 @@ require_file "$ENDPOINTS_FILE"
 
 export PYTHONUTF8=1
 export PYTHONUNBUFFERED=1
-export ALLOWED_ORIGINS="${ALLOWED_ORIGINS:-http://localhost:5173,http://127.0.0.1:5173}"
+export ALLOWED_ORIGINS="${ALLOWED_ORIGINS:-http://localhost:8080,http://127.0.0.1:8080,http://localhost:5173,http://127.0.0.1:5173}"
 
 require_env_any ADMIN_PASSWORD
 require_env_any ADMIN_SESSION_SECRET
@@ -88,6 +88,7 @@ echo "Action server: http://$HOST_ADDRESS:$ACTION_PORT"
 echo "Rasa server:   http://$HOST_ADDRESS:$RASA_PORT"
 echo "Webhook API:   http://$HOST_ADDRESS:$WEBHOOK_PORT"
 
-wait -n "${pids[@]}"
+# انتظر أي process تنتهي ثم أوقف الباقين
+wait "${pids[@]}" 2>/dev/null || true
 echo "A backend process exited; stopping the remaining processes." >&2
 exit 1
