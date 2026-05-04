@@ -160,10 +160,6 @@ export function useChat(siteId?: string) {
     setMessages([]);
   }, [abort]);
 
-  const injectMessage = useCallback((msg: Message) => {
-    setMessages((prev) => prev.some((m) => m.id === msg.id) ? prev : [...prev, msg]);
-  }, []);
-
   const downloadConversation = useCallback(() => {
     if (messages.length === 0) {
       toast.info("لا توجد محادثة للتحميل.");
@@ -178,7 +174,6 @@ export function useChat(siteId?: string) {
     send,
     abort,
     clearMessages,
-    injectMessage,
     downloadConversation,
   };
 }

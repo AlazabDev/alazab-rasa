@@ -55,3 +55,8 @@ Thumbs.db
 # SSL (never commit real certs)
 ssl/fullchain.pem
 ssl/privkey.pem
+
+# LICENSE
+RASA_LICENSE1
+RASA_LICENSE2
+RASA_LICENSE3

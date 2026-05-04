@@ -15,7 +15,6 @@ Requires-Dist: python-multipart>=0.0.9
 Requires-Dist: pydantic>=2.0.0
 Requires-Dist: openai>=1.0.0
 Requires-Dist: psycopg[binary]>=3.2.0
-Requires-Dist: psutil>=5.9.0
 Provides-Extra: dev
 Requires-Dist: pytest>=8.0.0; extra == "dev"
 Requires-Dist: ruff>=0.4.0; extra == "dev"
@@ -107,7 +106,8 @@ alazab-rasa/
 │   └── webhook/server.py           # /chat, /lead, /brands, /webhook/meta
 │
 ├── 🎨 Chatbot Widget
-│   └── webhook/static/widget/       # سكربت التضمين وصفحة المعاينة
+│   ├── chatbot-widget/index.html   # صفحة معاينة كل البراندات
+│   └── chatbot-widget/widget.js    # سكربت التضمين الإنتاجي
 │
 ├── 🧪 Tests
 │   └── tests/e2e_test_cases/
@@ -123,7 +123,7 @@ alazab-rasa/
 ## 🚀 البدء السريع
 
 ### المتطلبات
-- Python 3.10 أو 3.11
+- Python 3.11+
 - Rasa Pro License
 - OpenAI API Key
 - Docker & Docker Compose
@@ -142,12 +142,6 @@ cd D:\A\chatbot\alazab-rasa
 
 ```powershell
 .\stop-dev.ps1
-```
-
-إذا كان الباك اند يعمل بالفعل وتريد تشغيل الواجهة فقط:
-
-```powershell
-.\start-frontend.ps1 -SkipInstall
 ```
 
 على WSL/Ubuntu:
@@ -191,7 +185,6 @@ make train          # تدريب النموذج
 make validate       # التحقق من صحة البيانات
 make up             # رفع الحاويات
 make status         # فحص الحالة
-make prod-readiness # فحص جاهزية ملفات الإنتاج
 ```
 
 ### 🔧 أوامر Make المتاحة
