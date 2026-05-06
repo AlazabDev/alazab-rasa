@@ -12,16 +12,21 @@ WorkingDirectory=/opt/azabot
 EnvironmentFile=/opt/azabot/.env
 Environment=PYTHONUTF8=1
 Environment=PYTHONUNBUFFERED=1
+Environment=NODE_ENV=production
 Environment=RASA_URL=http://127.0.0.1:5005
 Environment=ACTION_SERVER_URL=http://127.0.0.1:5055/webhook
 
+# ── 2 vCPU: 1 worker فقط ─────────────────────────────────────
+# Rasa يحتجز نواة كاملة — نترك نواة للـ webhook والـ nginx
 ExecStart=/opt/azabot/.venv/bin/uvicorn webhook.server:app \
     --host 127.0.0.1 \
     --port 8000 \
-    --workers 2 \
+    --workers 1 \
     --loop uvloop \
+    --http h11 \
     --access-log \
     --log-level info \
+    --timeout-keep-alive 30 \
     --no-use-colors
 
 ExecStop=/bin/kill -SIGTERM $MAINPID
@@ -33,6 +38,12 @@ RestartSec=5
 StartLimitIntervalSec=60
 StartLimitBurst=5
 
+# ── Resource limits لـ 2 vCPU / 8GB RAM ──────────────────────
+CPUQuota=40%
+MemoryMax=512M
+MemoryHigh=400M
+TasksMax=64
+
 StandardOutput=journal
 StandardError=journal
 SyslogIdentifier=azabot-webhook
@@ -40,6 +51,7 @@ SyslogIdentifier=azabot-webhook
 NoNewPrivileges=true
 PrivateTmp=true
 ProtectSystem=strict
+ProtectHome=true
 ReadWritePaths=/opt/azabot/logs /opt/azabot/.runtime /opt/azabot/webhook/static/uploads
 
 [Install]

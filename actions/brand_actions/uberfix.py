@@ -24,6 +24,44 @@ def _utter_result(dispatcher: CollectingDispatcher, result: dict[str, Any]) -> N
     )
 
 
+import json as _ctx_json
+
+def _from_ctx(tracker, field: str, fallback: str = "غير محدد") -> str:
+    """سحب قيمة من context_memory أو الـ slot مباشرة."""
+    direct = tracker.get_slot(field)
+    if direct:
+        return direct
+    raw = tracker.get_slot("context_memory") or "{}"
+    try:
+        ctx = _ctx_json.loads(raw)
+    except Exception:
+        ctx = {}
+    return ctx.get(field) or fallback
+
+
+def _build_full_message(tracker) -> str:
+    """بناء رسالة شاملة من context_memory."""
+    raw = tracker.get_slot("context_memory") or "{}"
+    try:
+        ctx = _ctx_json.loads(raw)
+    except Exception:
+        ctx = {}
+
+    parts = []
+    if tracker.get_slot("user_message"):
+        parts.append(tracker.get_slot("user_message"))
+    elif ctx.get("problem_description"):
+        parts.append(ctx["problem_description"])
+    if ctx.get("branch_name"):
+        parts.append(f"الفرع: {ctx['branch_name']}")
+    if ctx.get("location"):
+        parts.append(f"الموقع: {ctx['location']}")
+    if ctx.get("service_type"):
+        parts.append(f"نوع الخدمة: {ctx['service_type']}")
+    if ctx.get("urgency") and ctx["urgency"] not in ("غير محدد", ""):
+        parts.append(f"الإلحاح: {ctx['urgency']}")
+    return " | ".join(parts) if parts else "غير محدد"
+
 class ActionUberfixCreateRequest(Action):
     """Creates a maintenance request through the isolated maintenance service."""
 

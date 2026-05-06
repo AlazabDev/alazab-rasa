@@ -85,7 +85,7 @@ async def _save_to_db(table: str, data: dict) -> bool:
 # ═══════════════════════════════════════════════════════════════
 
 class ActionSaveLeadToCRM(Action):
-    """حفظ بيانات العميل في قاعدة البيانات."""
+    """حفظ بيانات العميل في قاعدة البيانات (CRM)."""
 
     def name(self) -> Text:
         return "action_save_lead_to_crm"

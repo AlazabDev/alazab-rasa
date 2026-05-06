@@ -1,0 +1,100 @@
+# ══════════════════════════════════════════════════════════════
+#  piper/pronunciation_lexicon.yml
+#  قاموس نطق عربي لتصحيح نطق TTS قبل الإرسال لـ OpenAI
+#  الصيغة: source → target (يُستبدل قبل إرسال النص للـ TTS API)
+# ══════════════════════════════════════════════════════════════
+
+# ── أسماء البراندات والشركة ──────────────────────────────────
+- source: "العزب"
+  target: "الْعَزَب"
+
+- source: "Alazab"
+  target: "الْعَزَب"
+
+- source: "alazab"
+  target: "الْعَزَب"
+
+- source: "AzaBot"
+  target: "عَزَبُوت"
+
+- source: "azabot"
+  target: "عَزَبُوت"
+
+- source: "عزبوت"
+  target: "عَزَبُوت"
+
+- source: "UberFix"
+  target: "أوبر فيكس"
+
+- source: "uberfix"
+  target: "أوبر فيكس"
+
+- source: "أوبرفيكس"
+  target: "أوبر فيكس"
+
+- source: "Luxury Finishing"
+  target: "لَكْشَري فينيشينج"
+
+- source: "Brand Identity"
+  target: "براند آيدنتيتي"
+
+- source: "Laban Alasfour"
+  target: "لَبَن الأصفر"
+
+- source: "لبن الأصفر"
+  target: "لَبَن الأصفر"
+
+# ── مصطلحات تقنية شائعة ────────────────────────────────────
+- source: "WhatsApp"
+  target: "واتساب"
+
+- source: "واتس اب"
+  target: "واتساب"
+
+- source: "Telegram"
+  target: "تيليجرام"
+
+- source: "AI"
+  target: "ذكاء اصطناعي"
+
+- source: "ChatGPT"
+  target: "شات جي بي تي"
+
+- source: "GPT"
+  target: "جي بي تي"
+
+- source: "Rasa"
+  target: "راسا"
+
+# ── أرقام وعملات ─────────────────────────────────────────────
+- source: "جنيه"
+  target: "جُنَيه"
+
+- source: "EGP"
+  target: "جُنَيه مصري"
+
+- source: "USD"
+  target: "دولار أمريكي"
+
+# ── مصطلحات بناء وتشطيب ─────────────────────────────────────
+- source: "م²"
+  target: "متر مربع"
+
+- source: "m²"
+  target: "متر مربع"
+
+- source: "متر مربع"
+  target: "مِتْر مُرَبَّع"
+
+- source: "Jotun"
+  target: "يوتن"
+
+- source: "بورسلان"
+  target: "بورسيلان"
+
+# ── تحيات وعبارات متكررة ────────────────────────────────────
+- source: "مجموعة العزب"
+  target: "مَجْمُوعَة الْعَزَب"
+
+- source: "Alazab Group"
+  target: "مَجْمُوعَة الْعَزَب"

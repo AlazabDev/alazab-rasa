@@ -53,9 +53,12 @@ export const QUICK_ACTIONS = [
 ] as const;
 
 export const VOICES: VoiceOption[] = [
-  { id: "ar-soft", label: "هادئ", desc: "عربي • ناعم • مريح", lang: "ar-SA", serverVoice: "nova" },
-  { id: "ar-warm", label: "دافئ", desc: "عربي • واضح • هادي", lang: "ar-SA", serverVoice: "shimmer" },
-  { id: "ar-clear", label: "واضح", desc: "عربي • سريع الفهم", lang: "ar-SA", serverVoice: "sage" },
+  { id: "ar-nova",    label: "نوفا",   desc: "عربي • ناعم • مريح",    lang: "ar-SA", serverVoice: "nova" },
+  { id: "ar-shimmer", label: "شيمر",   desc: "عربي • دافئ • واضح",   lang: "ar-SA", serverVoice: "shimmer" },
+  { id: "ar-alloy",   label: "ألوي",   desc: "عربي • طبيعي • رصين",  lang: "ar-SA", serverVoice: "alloy" },
+  { id: "ar-echo",    label: "إيكو",   desc: "عربي • خفيف • سريع",   lang: "ar-SA", serverVoice: "echo" },
+  { id: "ar-fable",   label: "فابل",   desc: "عربي • دافئ • حكائي",  lang: "ar-SA", serverVoice: "fable" },
+  { id: "ar-onyx",    label: "أونيكس",  desc: "عربي • عميق • رسمي",  lang: "ar-SA", serverVoice: "onyx" },
 ];
 
 export const NAV_ITEMS: NavItem[] = [

@@ -1,45 +1,47 @@
 version: "3.1"
 
-# ==================== UberFix ====================
+# ==================== UberFix Maintenance (Detailed from uberfix.txt) ====================
 responses:
-  utter_uberfix_request:
-    - text: |
-        📞 **طلب صيانة UberFix**
-
-        ممتاز! لتسجيل طلب صيانتك أحتاج:
-        1️⃣ اسمك الكريم
-        2️⃣ رقم هاتفك
-        3️⃣ وصف المشكلة أو العطل
-
-        ابدأ بكتابة اسمك 👇
-
   utter_uberfix_services:
     - text: |
-        🔧 **خدمات UberFix:**
-        صيانة كهرباء، سباكة، تكييف، وصيانة دورية للمنازل والمنشآت.
-      metadata:
-        rephrase: true
+        🛠️ **خدمات UberFix الاحترافية (سجل كامل من الخبرة):**
+        • **كهرباء وإضاءة**: صيانة لوحات، تغيير قواطع Schneider، تركيب كشافات (عز العرب/الصفا/فيلبس)، وليد بروفيل.
+        • **نجارة وأثاث**: صيانة درف الكاونتر، تغيير مفصلات هيدروليك، تصنيع وحدات تخزين، وترميم خشب البيتش باين.
+        • **سباكة ومياه**: إصلاح شبكات الصرف، تركيب خلاطات إيطالي، صيانة فلاتر تانك، ومعالجة تسريبات الأحواض.
+        • **أبواب ونوافذ**: صيانة أبواب السيكوريت، تغيير ماكينات غلق أوتوماتيك، وإصلاح الأبواب الصاج (الشطر).
+        • **رخام وأرضيات**: جلي وتلميع الرخام، تركيب عتبات دبل بلاك، ولصق وزرات الرخام بمواد تخصصية.
+        • **أنظمة الحريق**: صيانة لوحات إنذار (Apollo/Thorn)، تغيير حساسات، وتسليم شهادات السلامة المهنية.
+        • **تكييف وتهوية**: شحن فريون، تنظيف وحدات، صيانة ستائر هواء، وتركيب شفاطات فريش.
+        • **ترولي ومعدات**: صيانة شاملة للتروليات، تغيير عجلات (3 بوصة/سوستة)، ولحام هياكل.
 
-  utter_uberfix_subscriptions:
+  utter_uberfix_supplies_detailed:
     - text: |
-        📦 **باقات اشتراك UberFix:**
-        باقات سنوية للصيانة الدورية (أساسية، متقدمة، بريميوم).
-      metadata:
-        rephrase: true
+        🛒 **قطع الغيار المتوفرة (من واقع السجلات):**
+        • **إضاءة**: كشافات 30 وات (الصفا/عز العرب)، لمبات ليد 12 وات، ليد هاي باور لللافتات.
+        • **إكسسوارات**: مفصلات (نص ركبة/باكم)، مجاري أدراج، أقفال (سكريت/خطاف/فندقي).
+        • **كهرباء**: قواطع 32A/63A، محولات طاقة (20A/25A/30A)، كابلات السويدي وكات 6.
+        • **سباكة**: فلاتر تانك 5 مراحل، محابس زاوية سمارت، وصرف حوض 3 بوصة.
 
-  utter_uberfix_emergency:
+  utter_uberfix_repair_process:
     - text: |
-        🚨 **طوارئ صيانة عاجلة!**
-        يرجى التواصل الفوري عبر واتساب: **+201004006620**
-      metadata:
-        rephrase: true
+        🔄 **كيف تتم الصيانة في UberFix؟**
+        1️⃣ **الفحص**: مراجعة شاملة (مثل ضبط الجهد لـ 220 فولت أو فحص مسارات الصرف).
+        2️⃣ **التوريد**: توفير الخامات الأصلية (سيلر، دهانات، قطع غيار).
+        3️⃣ **التنفيذ**: أعمال المرمات، اللحام، أو التركيب بأيدي فنيين متخصصين.
+        4️⃣ **التسليم**: تنظيف الموقع (طبقة نظافة نهائية) والتأكد من كفاءة العمل.
 
 actions:
-  - action_uberfix_create_request
-  - action_uberfix_track_request
-  - action_uberfix_show_subscriptions
-  - action_uberfix_create_order
-  - action_uberfix_track_order
-  - action_uberfix_subscribe
-  - action_uberfix_schedule_appointment
-  - action_uberfix_submit_feedback
+  - action_uberfix_get_quote
+  - action_maintenance_form
+  - action_submit_maintenance_request
+
+intents:
+  - ask_uberfix_services
+  - ask_uberfix_about
+  - ask_uberfix_pricing
+  - ask_uberfix_warranty
+  - ask_uberfix_packages
+  - ask_uberfix_supplies
+  - ask_uberfix_fire_safety
+  - ask_uberfix_masonry_painting
+  - uberfix_specific_repair

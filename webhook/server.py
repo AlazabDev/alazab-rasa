@@ -79,9 +79,18 @@ from starlette.concurrency import run_in_threadpool
 # ══════════════════════════════════════════════════════════════
 #  Logging
 # ══════════════════════════════════════════════════════════════
+import sys
+
+# Structured logging: JSON في الإنتاج، human-readable في التطوير
+_LOG_FORMAT = (
+    '{"time":"%(asctime)s","level":"%(levelname)s","logger":"%(name)s","msg":"%(message)s"}'
+    if os.getenv("NODE_ENV") == "production"
+    else "%(asctime)s [%(levelname)s] %(name)s: %(message)s"
+)
 logging.basicConfig(
     level=logging.INFO,
-    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+    format=_LOG_FORMAT,
+    stream=sys.stdout,
 )
 logger = logging.getLogger("alazab.webhook")
 
@@ -2230,6 +2239,43 @@ async def chat_tts(payload: TTSRequest):
 # ══════════════════════════════════════════════════════════════
 #  LEADS
 # ══════════════════════════════════════════════════════════════
+@app.post("/chat/tts/stream", tags=["Chat"])
+async def chat_tts_stream(payload: TTSRequest):
+    """تحويل نص إلى صوت MP3 مع streaming (للنصوص الطويلة)."""
+
+    async def generate():
+        api_key = os.getenv("OPENAI_API_KEY", "").strip()
+        if not api_key or api_key.startswith("replace-with-"):
+            yield b""
+            return
+
+        selected_voice = (payload.voice or AUDIO_TTS_VOICE).strip() or AUDIO_TTS_VOICE
+        selected_model = (payload.model or AUDIO_TTS_MODEL).strip() or AUDIO_TTS_MODEL
+        clean_text = _apply_tts_pronunciation_lexicon(payload.text).strip()[:4096]
+
+        try:
+            client = AsyncOpenAI(api_key=api_key)
+            async with client.audio.speech.with_streaming_response.create(
+                model=selected_model,
+                voice=selected_voice,
+                input=clean_text,
+                response_format="mp3",
+            ) as response:
+                async for chunk in response.iter_bytes(chunk_size=4096):
+                    yield chunk
+        except Exception as exc:
+            logger.error("TTS stream error: %s", exc)
+
+    return StreamingResponse(
+        generate(),
+        media_type="audio/mpeg",
+        headers={
+            "Cache-Control": "no-store",
+            "Content-Disposition": 'inline; filename="azabot-reply.mp3"',
+            "X-Accel-Buffering": "no",
+        },
+    )
+
 @app.post("/lead", tags=["Leads"])
 async def receive_lead(lead: LeadData, background_tasks: BackgroundTasks):
     """يستقبل بيانات عميل جديد ويُشعر الفريق عبر جميع القنوات."""

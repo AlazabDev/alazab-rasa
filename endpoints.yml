@@ -1,19 +1,19 @@
 action_endpoint:
-  url: "${ACTION_SERVER_URL:-http://127.0.0.1:5055/webhook}"
+  url: "http://127.0.0.1:5055/webhook"
 
 tracker_store:
   type: redis
-  url: "${REDIS_HOST:-127.0.0.1}"
-  port: ${REDIS_PORT:-6379}
-  db: ${REDIS_DB:-0}
-  password: "${REDIS_PASSWORD:-}"
-  key_prefix: "${REDIS_KEY_PREFIX:-alazab}"
-  use_ssl: ${REDIS_USE_SSL:-false}
+  url: "127.0.0.1"
+  port: 6379
+  db: 0
+  password: ""
+  key_prefix: "alazab"
+  use_ssl: false
 
 lock_store:
   type: redis
-  url: "${REDIS_HOST:-127.0.0.1}"
-  port: ${REDIS_PORT:-6379}
-  db: ${REDIS_LOCK_DB:-1}
-  password: "${REDIS_PASSWORD:-}"
-  use_ssl: ${REDIS_USE_SSL:-false}
+  url: "127.0.0.1"
+  port: 6379
+  db: 1
+  password: ""
+  use_ssl: false

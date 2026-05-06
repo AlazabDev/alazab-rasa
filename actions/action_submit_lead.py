@@ -27,6 +27,35 @@ NOTIFY_PHONE       = os.getenv("NOTIFY_PHONE", "")
 # ──────────────────────────────────────────────────────────────
 #  Action: إرسال بيانات العميل
 # ──────────────────────────────────────────────────────────────
+import json as _ctx_json
+
+def _ctx_get(tracker, field: str, fallback: str = "غير محدد") -> str:
+    direct = tracker.get_slot(field)
+    if direct:
+        return direct
+    raw = tracker.get_slot("context_memory") or "{}"
+    try:
+        ctx = _ctx_json.loads(raw)
+    except Exception:
+        ctx = {}
+    return ctx.get(field) or fallback
+
+def _ctx_build_message(tracker) -> str:
+    raw = tracker.get_slot("context_memory") or "{}"
+    try:
+        ctx = _ctx_json.loads(raw)
+    except Exception:
+        ctx = {}
+    parts = []
+    if tracker.get_slot("user_message"):
+        parts.append(tracker.get_slot("user_message"))
+    elif ctx.get("problem_description"):
+        parts.append(ctx["problem_description"])
+    for key, label in [("branch_name","الفرع"),("location","الموقع"),("service_type","نوع الخدمة")]:
+        if ctx.get(key):
+            parts.append(f"{label}: {ctx[key]}")
+    return " | ".join(parts) if parts else "غير محدد"
+
 class ActionSubmitLead(Action):
     """
     يُنفَّذ بعد اكتمال collect_lead flow.
@@ -43,9 +72,9 @@ class ActionSubmitLead(Action):
         domain: DomainDict,
     ) -> List[Dict[Text, Any]]:
 
-        user_name    = tracker.get_slot("user_name") or "غير محدد"
-        user_phone   = tracker.get_slot("user_phone") or "غير محدد"
-        user_message = tracker.get_slot("user_message") or "غير محدد"
+        user_name    = _ctx_get(tracker, "user_name")
+        user_phone   = _ctx_get(tracker, "user_phone")
+        user_message = _ctx_build_message(tracker)
         brand        = tracker.get_slot("brand") or _detect_brand(tracker)
 
         lead_data = {

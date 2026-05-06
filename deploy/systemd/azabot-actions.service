@@ -1,7 +1,7 @@
 [Unit]
 Description=AzaBot — Rasa Actions Server
 Documentation=https://rasa.com/docs/rasa-pro/
-After=network.target redis.target
+After=network.target
 Wants=network.target
 
 [Service]
@@ -14,9 +14,11 @@ Environment=PYTHONUTF8=1
 Environment=PYTHONUNBUFFERED=1
 Environment=RASA_TELEMETRY_ENABLED=false
 
+# ── Actions: خفيف — نواة مشتركة مع الـ webhook ───────────────
 ExecStart=/opt/azabot/.venv/bin/python -m rasa_sdk.endpoint \
     --actions actions \
-    --port 5055
+    --port 5055 \
+    --workers 1
 
 ExecStop=/bin/kill -SIGTERM $MAINPID
 KillMode=mixed
@@ -27,14 +29,20 @@ RestartSec=10
 StartLimitIntervalSec=120
 StartLimitBurst=3
 
+# ── Resource limits ────────────────────────────────────────────
+CPUQuota=30%
+MemoryMax=512M
+MemoryHigh=400M
+TasksMax=32
+
 StandardOutput=journal
 StandardError=journal
 SyslogIdentifier=azabot-actions
 
-# Security hardening
 NoNewPrivileges=true
 PrivateTmp=true
 ProtectSystem=strict
+ProtectHome=true
 ReadWritePaths=/opt/azabot/logs /opt/azabot/.runtime
 
 [Install]

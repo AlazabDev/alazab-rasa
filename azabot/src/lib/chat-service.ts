@@ -188,47 +188,69 @@ async function playServerTTS(text: string, voice?: string): Promise<void> {
   const sequence = ++currentTtsSequence;
   const abortController = new AbortController();
   currentTtsAbortController = abortController;
+
+  // نقسم النص لأجزاء إذا تجاوز 500 حرف لتحسين زمن الاستجابة
+  const CHUNK_CHARS = 500;
+  const chunks: string[] = [];
+  if (text.length > CHUNK_CHARS) {
+    // تقسيم آمن بديل للـ lookbehind (غير مدعوم في كل المحركات)
+    const sentences = text
+      .replace(/([.!?؟،,])\s+/g, "$1\x00")
+      .split("\x00")
+      .filter(Boolean);
+    let current = "";
+    for (const s of sentences) {
+      if (current.length + s.length > CHUNK_CHARS && current) {
+        chunks.push(current.trim());
+        current = s;
+      } else {
+        current += (current ? " " : "") + s;
+      }
+    }
+    if (current.trim()) chunks.push(current.trim());
+  } else {
+    chunks.push(text);
+  }
+
+  for (const chunk of chunks) {
+    if (sequence !== currentTtsSequence) return;
+    await _playSingleTTS(chunk, voice, sequence, abortController);
+  }
+}
+
+async function _playSingleTTS(
+  text: string,
+  voice: string | undefined,
+  sequence: number,
+  abortController: AbortController
+): Promise<void> {
   const response = await fetch(CONFIG.api.tts, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ text, voice }),
     signal: abortController.signal,
   });
-  if (!response.ok) {
-    throw new Error(`TTS failed: ${response.status}`);
-  }
-  if (sequence !== currentTtsSequence) return;
+  if (!response.ok || sequence !== currentTtsSequence) return;
+
   const blob = await response.blob();
   if (sequence !== currentTtsSequence) return;
+
   const url = URL.createObjectURL(blob);
   const audio = new Audio(url);
+  audio.preload = "auto";
   currentAudio = audio;
 
   await new Promise<void>((resolve, reject) => {
-    audio.onended = () => {
+    const cleanup = () => {
       URL.revokeObjectURL(url);
       if (sequence === currentTtsSequence) {
         currentAudio = null;
         currentTtsAbortController = null;
       }
-      resolve();
     };
-    audio.onerror = () => {
-      URL.revokeObjectURL(url);
-      if (sequence === currentTtsSequence) {
-        currentAudio = null;
-        currentTtsAbortController = null;
-      }
-      reject(new Error("Server TTS playback failed"));
-    };
-    audio.play().catch((error) => {
-      URL.revokeObjectURL(url);
-      if (sequence === currentTtsSequence) {
-        currentAudio = null;
-        currentTtsAbortController = null;
-      }
-      reject(error);
-    });
+    audio.onended = () => { cleanup(); resolve(); };
+    audio.onerror = () => { cleanup(); reject(new Error("TTS playback failed")); };
+    audio.play().catch((e) => { cleanup(); reject(e); });
   });
 }
 

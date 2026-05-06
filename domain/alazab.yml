@@ -1,47 +1,55 @@
 version: "3.1"
 
-# ==================== Alazab Construction ====================
+# ==================== Alazab Construction — General & Civil ====================
 responses:
   utter_alazab_about:
     - text: |
-        🏢 **Alazab Construction**
-        الكيان الرئيسي لمجموعة العزب، متخصص في التنفيذ والإدارة المعمارية للمشروعات السكنية والتجارية والخدمية.
-      metadata:
-        rephrase: true
+        🏢 **Alazab Construction — التميز المعماري**
+        الكيان الرئيسي لمجموعة العزب، متخصص في الإدارة الهندسية المتكاملة للمشروعات.
+        نحن لا نبني جدراناً، نحن نبني استثمارات تدوم للأجيال بالتزام كامل بأصول الصناعة.
 
   utter_alazab_services:
     - text: |
-        🏢 **خدمات Alazab Construction:**
-        • إدارة وتنفيذ المشروعات السكنية والتجارية
-        • الإشراف الهندسي الكامل والتنسيق
-        • تنفيذ "تسليم مفتاح" جاهز للتشغيل
-      metadata:
-        rephrase: true
+        🏢 **خدمات Alazab Construction الهندسية:**
+        • **الإنشاءات**: بناء العمارات والفلل والمنشآت التجارية.
+        • **الإدارة الفنية**: الإشراف الكامل على المواقع والجداول الزمنية.
+        • **التجهيزات (Fit-out)**: تشطيبات متكاملة للمباني الإدارية والسكنية.
+        • **التطوير العقاري**: إدارة وتطوير المشروعات من الأرض حتى التسليم.
+
+  utter_alazab_technical_specs:
+    - text: |
+        🏗️ **المواصفات القياسية (أصول الصناعة):**
+        نحن نطبق أعلى المعايير الهندسية لضمان جودة "الجوهر":
+        • **اللياسة (البياض)**: تنفيذ بطريقة "البقج والأوتار" لضمان استواء الحوائط.
+        • **العزل**: عزل بيتومين 4 ملم (PY30E) بضمان 10 سنوات واختبار غمر 24 ساعة.
+        • **الأعمال الصحية**: تمديدات CPVC Flow Guard S.C.H.80 ومواسير Smart Home.
+        • **التكييف**: أنظمة Package و Concealed طبقاً لمعايير ASHRAE.
+        • **الكهرباء**: لوحات MGP رئيسية وقواطع Schneider مع كابلات السويدي الأصلية.
 
   utter_alazab_projects:
     - text: |
-        🏆 **أبرز إنجازات Alazab Construction:**
-        ✅ تنفيذ **125 وحدة تجارية** لسلسلة "أبو عوف".
-        ✅ إنشاء **20 وحدة سكنية** في القاهرة الجديدة.
-        ✅ تجهيز **10 وحدات تجارية** في أركان بلازا.
-      metadata:
-        rephrase: true
-
-  utter_alazab_contact:
-    - text: |
-        📞 **تواصل مع Alazab Construction:**
-        يمكنك مراسلتنا عبر: construction@alazab.com
-      metadata:
-        rephrase: true
+        🏆 **سجل الإنجازات:**
+        ✅ تنفيذ **125 فرعاً تجارياً** لسلاسل عالمية وإقليمية.
+        ✅ إنشاء عمارات سكنية متكاملة في القاهرة الجديدة والتجمع.
+        ✅ إدارة مشروعات الـ Fit-out لمكاتب إدارية بمساحات تتجاوز 5000 م².
 
   utter_alazab_quote:
     - text: |
-        💰 لطلب عرض سعر من Alazab Construction، يرجى تزويدي بنوع المشروع والمساحة.
-      metadata:
-        rephrase: true
+        💰 **طلب عرض سعر هندسي:**
+        لتقديم عرض سعر دقيق، يرجى تزويدنا بـ:
+        • نوع المشروع (سكني/تجاري).
+        • المساحة الكلية.
+        • هل توجد مقايسة معتمدة أم ترغب في عمل مقايسة جديدة؟
 
 actions:
   - action_alazab_show_projects
   - action_alazab_get_quote
   - action_construction_quote_form
   - action_submit_construction_quote
+
+intents:
+  - ask_alazab_services
+  - ask_alazab_projects
+  - ask_alazab_contact
+  - ask_alazab_quote
+  - ask_alazab_technical_specs

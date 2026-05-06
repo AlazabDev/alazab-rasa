@@ -15,13 +15,15 @@ Environment=PYTHONUNBUFFERED=1
 Environment=RASA_TELEMETRY_ENABLED=false
 Environment=ACTION_SERVER_URL=http://127.0.0.1:5055/webhook
 
+# ── 2 vCPU: تثبيت Rasa على النواة الأولى ─────────────────────
 ExecStart=/opt/azabot/.venv/bin/rasa run \
     --enable-api \
     --host 127.0.0.1 \
     --port 5005 \
     --credentials credentials.yml \
     --endpoints endpoints.yml \
-    --cors "${ALLOWED_ORIGINS}"
+    --cors "${ALLOWED_ORIGINS}" \
+    --num-threads 1
 
 ExecStop=/bin/kill -SIGTERM $MAINPID
 KillMode=mixed
@@ -32,6 +34,13 @@ RestartSec=15
 StartLimitIntervalSec=180
 StartLimitBurst=3
 
+# ── أولوية عالية للـ Rasa ─────────────────────────────────────
+CPUQuota=80%
+Nice=-5
+MemoryMax=6G
+MemoryHigh=5G
+TasksMax=128
+
 StandardOutput=journal
 StandardError=journal
 SyslogIdentifier=azabot-rasa
@@ -39,6 +48,7 @@ SyslogIdentifier=azabot-rasa
 NoNewPrivileges=true
 PrivateTmp=true
 ProtectSystem=strict
+ProtectHome=true
 ReadWritePaths=/opt/azabot/logs /opt/azabot/.runtime /opt/azabot/models
 
 [Install]

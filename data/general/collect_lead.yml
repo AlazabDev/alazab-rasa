@@ -2,67 +2,40 @@ version: "3.1"
 
 flows:
   collect_lead:
-    description: "يجمع بيانات التواصل من العميل لطلب عرض سعر أو استفسار عام"
-    name: "جمع بيانات العميل"
-
+    description: >
+      جمع بيانات العميل المحتمل (lead) لأي براند.
+      يستوعب أن المستخدم قد يذكر معلوماته في رسائل مختلفة
+      ويبني صورة كاملة تلقائياً دون تكرار الأسئلة.
+    name: "collect lead"
     steps:
-      - id: start
-        action: utter_ask_lead_info
+      # تجميع السياق أولاً من كامل المحادثة
+      - action: action_accumulate_context
 
+      # الاسم (يُملأ تلقائياً من السياق إذا ذُكر)
       - collect: user_name
-        description: "الاسم الكامل للعميل"
+        description: >
+          اسم العميل. إذا ذُكر في أي رسالة سابقة لا تسأل مجدداً.
+        ask_before_filling: false
+        reset_after_flow_ends: false
 
+      # الهاتف
       - collect: user_phone
-        description: "رقم الهاتف للتواصل"
+        description: >
+          رقم هاتف التواصل. إذا ذُكر سابقاً لا تسأل.
+        ask_before_filling: false
+        reset_after_flow_ends: false
 
-      - collect: location
-        description: "الموقع أو المدينة"
+      # بناء طلب شامل من السياق
+      - action: action_build_full_request
 
-      - collect: service_type
-        description: "نوع الخدمة المطلوبة: بناء، تشطيب، هوية، صيانة، توريدات"
+      # الطلب التفصيلي
+      - collect: user_message
+        description: >
+          وصف الطلب أو الخدمة المطلوبة.
+          يجمع تلقائياً من كل ما قاله المستخدم.
+        ask_before_filling: false
+        reset_after_flow_ends: false
 
-      - id: review
-        action: utter_ask_lead_confirmation
-        next:
-          - if: intent = "affirm"
-            then: save
-          - if: intent = "deny"
-            then: restart
-          - else: review
-
-      - id: save
-        action: action_save_lead_to_crm
-        next: notify
-
-      - id: notify
-        action: action_notify_sales_team
-        next: success
-
-      - id: success
-        action: utter_lead_captured
+      # إرسال
+      - action: action_submit_lead
         next: END
-
-      - id: restart
-        action: utter_ask_restart_collection
-        next:
-          - if: intent = "affirm"
-            then: start
-          - else: END
-
-responses:
-  utter_ask_lead_info:
-    - text: "يسعدنا جداً اهتمامك بخدماتنا. لضمان تواصل فريق المبيعات معك بأسرع وقت، أحتاج منك بعض البيانات البسيطة."
-
-  utter_ask_lead_confirmation:
-    - text: |
-        هل هذه البيانات صحيحة؟
-        الاسم: {user_name}
-        الهاتف: {user_phone}
-        الموقع: {location}
-        الخدمة: {service_type}
-
-  utter_lead_captured:
-    - text: "✅ تم استلام بياناتك بنجاح! سيتواصل معك أحد مهندسينا خلال 24 ساعة عمل."
-
-  utter_ask_restart_collection:
-    - text: "هل تريد البدء من جديد لتعديل البيانات؟"

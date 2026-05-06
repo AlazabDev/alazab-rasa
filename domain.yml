@@ -5,6 +5,7 @@ version: "3.1"
 # ══════════════════════════════════════════════════════════════
 
 includes:
+  - domain/general.yml
   - domain/alazab.yml
   - domain/luxury_finishing.yml
   - domain/brand_identity.yml
@@ -115,6 +116,62 @@ responses:
 # ══════════════════════════════════════════════════════════════
 #  Session Config
 # ══════════════════════════════════════════════════════════════
+
+  utter_lead_submitted:
+    - text: |
+        ✅ تم استلام بياناتك بنجاح!
+        سيتواصل معك أحد مهندسينا خلال 24 ساعة عمل.
+        شكراً لاهتمامك بمجموعة العزب. 🤝
+
+  utter_transfer_to_manager:
+    - text: |
+        👤 يتم تحويلك الآن لأحد ممثلينا.
+        ملخص محادثتك: {summary}
+        سيتواصل معك الفريق قريباً.
+
+  utter_ask_user_name:
+    - text: "ما اسمك الكريم؟"
+
+  utter_ask_user_phone:
+    - text: "ما رقم هاتفك؟ حتى يتواصل معك فريقنا."
+
+  utter_ask_user_message:
+    - text: "كيف يمكننا مساعدتك؟ اشرح طلبك باختصار."
+
+  utter_ask_location:
+    - text: "في أي منطقة أو محافظة تقع؟"
+
+  utter_ask_area_size:
+    - text: "ما المساحة التقريبية للمشروع؟ (بالمتر المربع)"
+
+  utter_default_fallback:
+    - text: |
+        آسف، لم أفهم طلبك جيداً.
+        يمكنني مساعدتك في: المقاولات، التشطيب، الهوية التجارية، الصيانة، أو التوريدات.
+        أو تحدث مع أحد ممثلينا مباشرة.
+
+
+  # ── Context Accumulator Slots ──────────────────────────────
+  context_memory:
+    type: text
+    mappings:
+      - type: custom
+
+  branch_name:
+    type: text
+    mappings:
+      - type: custom
+
+  location:
+    type: text
+    mappings:
+      - type: custom
+
+  service_type:
+    type: text
+    mappings:
+      - type: custom
+
 session_config:
   session_expiration_time: 60
   carry_over_slots_to_new_session: true
@@ -141,3 +198,27 @@ actions:
   - action_save_suggestion
   - action_collect_follow_up_contact
   - action_search_faq_by_keyword
+
+  # ── Brand + Form + Submit Actions ──────────────────────
+  - action_alazab_get_quote
+  - action_alazab_show_projects
+  - action_brand_get_quote
+  - action_brand_show_industries
+  - action_brand_show_process
+  - action_human_handoff
+  - action_laban_bulk_quote
+  - action_laban_check_delivery
+  - action_laban_show_catalog
+  - action_luxury_get_quote
+  - action_luxury_show_materials
+  - action_submit_lead
+  - action_uberfix_create_request
+  - action_uberfix_show_subscriptions
+  - action_uberfix_track_request
+  - validate_collect_lead_form
+
+  # ── Context Accumulator Actions ────────────────────────────
+  - action_accumulate_context
+  - action_smart_slot_check
+  - action_confirm_understanding
+  - action_build_full_request
