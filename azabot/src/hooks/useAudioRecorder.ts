@@ -47,28 +47,11 @@ export function useAudioRecorder(
     };
   }, []);
 
-  // اختصار Space لبدء/إيقاف التسجيل
-  // نستخدم refs لتجنب إعادة register الـ listener عند كل تغيير
+  // نستخدم refs لتجنب إعادة register اختصار لوحة المفاتيح عند كل تغيير
   const stateRef = useRef(state);
   stateRef.current = state;
-  const startRecordingRef = useRef(startRecording);
-  startRecordingRef.current = startRecording;
-  const stopRecordingRef = useRef(stopRecording);
-  stopRecordingRef.current = stopRecording;
-
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.code !== "Space") return;
-      const tag = (e.target as HTMLElement).tagName;
-      if (["INPUT", "TEXTAREA", "SELECT", "BUTTON"].includes(tag)) return;
-      e.preventDefault();
-      if (stateRef.current === "idle") startRecordingRef.current();
-      else if (stateRef.current === "recording") stopRecordingRef.current();
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  const startRecordingRef = useRef<() => Promise<void>>(async () => {});
+  const stopRecordingRef = useRef<() => void>(() => {});
 
   const _cleanup = () => {
     if (timerRef.current) clearInterval(timerRef.current);
@@ -190,6 +173,23 @@ export function useAudioRecorder(
     recorderRef.current?.stop();
     setState("recording"); // onstop سيغيّرها
     if (timerRef.current) clearInterval(timerRef.current);
+  }, []);
+
+  startRecordingRef.current = startRecording;
+  stopRecordingRef.current = stopRecording;
+
+  // اختصار Space لبدء/إيقاف التسجيل
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.code !== "Space") return;
+      const tag = (e.target as HTMLElement).tagName;
+      if (["INPUT", "TEXTAREA", "SELECT", "BUTTON"].includes(tag)) return;
+      e.preventDefault();
+      if (stateRef.current === "idle") startRecordingRef.current();
+      else if (stateRef.current === "recording") stopRecordingRef.current();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
   }, []);
 
   // ربط stopRecordingCbRef بـ stopRecording الفعلي

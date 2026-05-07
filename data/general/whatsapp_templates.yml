@@ -8,7 +8,7 @@ environment: "production"
 # 1. قائمة جميع القوالب (Templates Registry)
 # ============================================================================
 templates_registry:
-  
+
   # ---------- UberFix Templates (WABA: 459851797218855) ----------
   uberfix:
     waba_id: "459851797218855"
@@ -22,7 +22,7 @@ templates_registry:
         status: "APPROVED"
         variables: ["customer_name", "order_id"]
         description: "تأكيد استلام طلب الصيانة"
-        
+
       - id: "981478144320222"
         name: "uberfix_request_assigned"
         language: "ar"
@@ -30,7 +30,7 @@ templates_registry:
         status: "APPROVED"
         variables: ["customer_name", "technician_name", "order_id"]
         description: "تم تعيين فني للطلب"
-        
+
       - id: "1274422488128957"
         name: "uberfix_work_started"
         language: "ar"
@@ -38,7 +38,7 @@ templates_registry:
         status: "APPROVED"
         variables: ["customer_name", "order_id"]
         description: "بدأ تنفيذ أعمال الصيانة"
-        
+
       - id: "1474221431012426"
         name: "uberfix_request_completed"
         language: "ar"
@@ -46,7 +46,7 @@ templates_registry:
         status: "APPROVED"
         variables: ["customer_name", "order_id"]
         description: "اكتملت أعمال الصيانة"
-        
+
       - id: "1004423828765774"
         name: "uberfix_request_paid"
         language: "ar"
@@ -54,7 +54,7 @@ templates_registry:
         status: "APPROVED"
         variables: ["customer_name", "amount", "order_id"]
         description: "تأكيد استلام الدفع"
-        
+
       - id: "1606002977106310"
         name: "technician_assigned"
         language: "ar"
@@ -62,7 +62,7 @@ templates_registry:
         status: "APPROVED"
         variables: ["order_id", "technician_name", "track_url"]
         description: "تعيين فني مع رابط التتبع"
-        
+
       - id: "1550421369390793"
         name: "technician_on_way"
         language: "ar"
@@ -70,7 +70,7 @@ templates_registry:
         status: "APPROVED"
         variables: ["track_url"]
         description: "الفني في الطريق"
-        
+
       - id: "902577505870023"
         name: "technician_visit_scheduling"
         language: "ar"
@@ -78,7 +78,7 @@ templates_registry:
         status: "APPROVED"
         variables: ["customer_name", "service_type", "visit_date", "start_time", "end_time"]
         description: "جدولة زيارة الفني"
-        
+
       - id: "915900351376118"
         name: "appointment_scheduled"
         language: "ar"
@@ -86,7 +86,7 @@ templates_registry:
         status: "APPROVED"
         variables: ["date", "time", "track_url"]
         description: "تأكيد تحديد الموعد"
-        
+
       - id: "1454877156234136"
         name: "request_received"
         language: "ar"
@@ -94,7 +94,7 @@ templates_registry:
         status: "APPROVED"
         variables: ["order_id", "track_url"]
         description: "استلام الطلب (نسخة بديلة)"
-        
+
       - id: "932216912577872"
         name: "work_in_progress"
         language: "ar"
@@ -102,7 +102,7 @@ templates_registry:
         status: "APPROVED"
         variables: ["track_url"]
         description: "العمل جارٍ"
-        
+
       - id: "4149566491974056"
         name: "service_completed"
         language: "ar"
@@ -110,7 +110,7 @@ templates_registry:
         status: "APPROVED"
         variables: ["track_url"]
         description: "اكتملت الخدمة"
-        
+
       - id: "8765432109876543"
         name: "uberfix_hello_world"
         language: "en"
@@ -132,7 +132,7 @@ templates_registry:
         status: "APPROVED"
         variables: ["customer_name"]
         description: "ترحيب Luxury Finishing"
-        
+
       - id: "1430574292417324"
         name: "lux_service_intro"
         language: "ar"
@@ -140,7 +140,7 @@ templates_registry:
         status: "APPROVED"
         variables: []
         description: "مقدمة خدمات التشطيب"
-        
+
       - id: "3388655484628453"
         name: "lux_project_type"
         language: "ar"
@@ -148,7 +148,7 @@ templates_registry:
         status: "APPROVED"
         variables: ["customer_name"]
         description: "سؤال عن نوع المشروع"
-        
+
       - id: "26380775831577896"
         name: "lux_project_location"
         language: "ar"
@@ -156,7 +156,7 @@ templates_registry:
         status: "APPROVED"
         variables: ["project_type"]
         description: "طلب موقع المشروع"
-        
+
       - id: "1874922909957380"
         name: "lux_new_project_start"
         language: "ar"
@@ -164,7 +164,7 @@ templates_registry:
         status: "APPROVED"
         variables: ["customer_name"]
         description: "بدء مشروع جديد"
-        
+
       - id: "1482086090213115"
         name: "lux_inspection_request"
         language: "ar"
@@ -172,7 +172,7 @@ templates_registry:
         status: "APPROVED"
         variables: ["customer_name"]
         description: "طلب معاينة ميدانية"
-        
+
       - id: "1485705973258311"
         name: "lux_identify_purpose"
         language: "ar"
@@ -180,7 +180,7 @@ templates_registry:
         status: "APPROVED"
         variables: ["customer_name"]
         description: "تحديد الغرض من التواصل"
-        
+
       - id: "1000126005679805"
         name: "lux_finishing_level"
         language: "ar"
@@ -202,7 +202,7 @@ templates_registry:
         status: "APPROVED"
         variables: ["customer_name", "document_type", "project_name"]
         description: "طلب موافقة على المشروع"
-        
+
       - id: "1422073375913895"
         name: "technician_on_way"
         language: "ar"
@@ -210,7 +210,7 @@ templates_registry:
         status: "APPROVED"
         variables: ["customer_name", "estimated_time"]
         description: "الفني في الطريق"
-        
+
       - id: "987586796954043"
         name: "statement_ready"
         language: "ar"
@@ -218,7 +218,7 @@ templates_registry:
         status: "APPROVED"
         variables: ["account_number"]
         description: "كشف الحساب جاهز"
-        
+
       - id: "2080687079141970"
         name: "lux_welcome"
         language: "ar"
@@ -226,7 +226,7 @@ templates_registry:
         status: "APPROVED"
         variables: ["customer_name"]
         description: "ترحيب"
-        
+
       - id: "1430574292417324"
         name: "lux_service_intro"
         language: "ar"
@@ -234,7 +234,7 @@ templates_registry:
         status: "APPROVED"
         variables: []
         description: "مقدمة الخدمة"
-        
+
       - id: "3388655484628453"
         name: "lux_project_type"
         language: "ar"
@@ -242,7 +242,7 @@ templates_registry:
         status: "APPROVED"
         variables: ["customer_name"]
         description: "نوع المشروع"
-        
+
       - id: "26380775831577896"
         name: "lux_project_location"
         language: "ar"
@@ -250,7 +250,7 @@ templates_registry:
         status: "APPROVED"
         variables: ["project_type"]
         description: "موقع المشروع"
-        
+
       - id: "1874922909957380"
         name: "lux_new_project_start"
         language: "ar"
@@ -258,7 +258,7 @@ templates_registry:
         status: "APPROVED"
         variables: ["customer_name"]
         description: "بدء مشروع جديد"
-        
+
       - id: "1482086090213115"
         name: "lux_inspection_request"
         language: "ar"
@@ -266,7 +266,7 @@ templates_registry:
         status: "APPROVED"
         variables: ["customer_name"]
         description: "طلب معاينة"
-        
+
       - id: "1485705973258311"
         name: "lux_identify_purpose"
         language: "ar"
@@ -274,7 +274,7 @@ templates_registry:
         status: "APPROVED"
         variables: ["customer_name"]
         description: "تحديد الغرض"
-        
+
       - id: "1000126005679805"
         name: "lux_finishing_level"
         language: "ar"
@@ -282,7 +282,7 @@ templates_registry:
         status: "APPROVED"
         variables: []
         description: "مستوى التشطيب"
-        
+
       - id: "2364289283994208"
         name: "welcome_message"
         language: "ar"
@@ -290,7 +290,7 @@ templates_registry:
         status: "APPROVED"
         variables: ["customer_name"]
         description: "رسالة ترحيب عامة"
-        
+
       - id: "1579533249921028"
         name: "invoice_issued"
         language: "ar"
@@ -298,7 +298,7 @@ templates_registry:
         status: "APPROVED"
         variables: ["invoice_number", "amount", "invoice_url"]
         description: "تم إصدار فاتورة"
-        
+
       - id: "1708669090572351"
         name: "appointment_reminder"
         language: "ar"
@@ -306,7 +306,7 @@ templates_registry:
         status: "APPROVED"
         variables: ["date", "time", "track_url"]
         description: "تذكير بالموعد"
-        
+
       - id: "1342184297596484"
         name: "service_cancelled"
         language: "ar"
@@ -314,7 +314,7 @@ templates_registry:
         status: "APPROVED"
         variables: ["order_id"]
         description: "تم إلغاء الخدمة"
-        
+
       - id: "4149566491974056"
         name: "service_completed"
         language: "ar"
@@ -322,7 +322,7 @@ templates_registry:
         status: "APPROVED"
         variables: ["track_url"]
         description: "اكتملت الخدمة"
-        
+
       - id: "932216912577872"
         name: "work_in_progress"
         language: "ar"
@@ -330,7 +330,7 @@ templates_registry:
         status: "APPROVED"
         variables: ["track_url"]
         description: "العمل جارٍ"
-        
+
       - id: "1454877156234136"
         name: "request_received"
         language: "ar"
@@ -338,7 +338,7 @@ templates_registry:
         status: "APPROVED"
         variables: ["order_id", "track_url"]
         description: "تم استلام الطلب"
-        
+
       - id: "1606002977106310"
         name: "technician_assigned"
         language: "ar"
@@ -361,7 +361,7 @@ templates_registry:
         status: "APPROVED"
         variables: []
         description: "ترويج UberFix"
-        
+
       - id: "2036635873734786"
         name: "missed_appointment"
         language: "ar"
@@ -369,7 +369,7 @@ templates_registry:
         status: "APPROVED"
         variables: ["1", "2", "3", "4"]
         description: "تأكيد موعد فائت"
-        
+
       - id: "925222166624859"
         name: "appointment_scheduling"
         language: "ar"
@@ -377,7 +377,7 @@ templates_registry:
         status: "APPROVED"
         variables: ["1", "2", "3", "4", "5"]
         description: "جدولة الموعد"
-        
+
       - id: "1443910377115321"
         name: "appointment_confirmed"
         language: "ar"
@@ -385,7 +385,7 @@ templates_registry:
         status: "APPROVED"
         variables: ["1", "2", "3", "4"]
         description: "تأكيد الموعد"
-        
+
       - id: "1781092799228487"
         name: "appointment_cancellation"
         language: "ar"
@@ -393,7 +393,7 @@ templates_registry:
         status: "APPROVED"
         variables: ["1", "2", "3", "4"]
         description: "إلغاء الموعد"
-        
+
       - id: "873771338835468"
         name: "delivery_code"
         language: "en_US"
@@ -402,7 +402,7 @@ templates_registry:
         ttl_seconds: 600
         variables: ["1", "2"]
         description: "رمز التحقق للتوصيل"
-        
+
       - id: "828024176950673"
         name: "maintenance_request_form"
         language: "en"
@@ -411,7 +411,7 @@ templates_registry:
         status: "APPROVED"
         variables: []
         description: "نموذج طلب صيانة"
-        
+
       - id: "1607982397051161"
         name: "booking_confirmation_admin"
         language: "ar"
@@ -419,7 +419,7 @@ templates_registry:
         status: "APPROVED"
         variables: ["full_name", "email", "phone", "service_type", "date", "time", "booking_id"]
         description: "تأكيد حجز للإدارة"
-        
+
       - id: "899956366299323"
         name: "property_status_update"
         language: "ar"
@@ -427,7 +427,7 @@ templates_registry:
         status: "APPROVED"
         variables: []
         description: "تحديث حالة العقار"
-        
+
       - id: "2364289283994208"
         name: "welcome_message"
         language: "ar"
@@ -435,7 +435,7 @@ templates_registry:
         status: "APPROVED"
         variables: ["customer_name"]
         description: "رسالة ترحيب"
-        
+
       - id: "1579533249921028"
         name: "invoice_issued"
         language: "ar"
@@ -443,7 +443,7 @@ templates_registry:
         status: "APPROVED"
         variables: ["invoice_number", "amount", "invoice_url"]
         description: "إصدار فاتورة"
-        
+
       - id: "1708669090572351"
         name: "appointment_reminder"
         language: "ar"
@@ -451,7 +451,7 @@ templates_registry:
         status: "APPROVED"
         variables: ["date", "time", "track_url"]
         description: "تذكير بالموعد"
-        
+
       - id: "1342184297596484"
         name: "service_cancelled"
         language: "ar"
@@ -459,7 +459,7 @@ templates_registry:
         status: "APPROVED"
         variables: ["order_id"]
         description: "إلغاء الخدمة"
-        
+
       - id: "4149566491974056"
         name: "service_completed"
         language: "ar"
@@ -467,7 +467,7 @@ templates_registry:
         status: "APPROVED"
         variables: ["track_url"]
         description: "اكتمال الخدمة"
-        
+
       - id: "932216912577872"
         name: "work_in_progress"
         language: "ar"
@@ -475,7 +475,7 @@ templates_registry:
         status: "APPROVED"
         variables: ["track_url"]
         description: "العمل قيد التنفيذ"
-        
+
       - id: "1550421369390793"
         name: "technician_on_way"
         language: "ar"
@@ -483,7 +483,7 @@ templates_registry:
         status: "APPROVED"
         variables: ["track_url"]
         description: "الفني في الطريق"
-        
+
       - id: "915900351376118"
         name: "appointment_scheduled"
         language: "ar"
@@ -491,7 +491,7 @@ templates_registry:
         status: "APPROVED"
         variables: ["date", "time", "track_url"]
         description: "تم تحديد الموعد"
-        
+
       - id: "1606002977106310"
         name: "technician_assigned"
         language: "ar"
@@ -499,7 +499,7 @@ templates_registry:
         status: "APPROVED"
         variables: ["order_id", "technician_name", "track_url"]
         description: "تعيين فني"
-        
+
       - id: "1454877156234136"
         name: "request_received"
         language: "ar"
@@ -507,7 +507,7 @@ templates_registry:
         status: "APPROVED"
         variables: ["order_id", "track_url"]
         description: "استلام الطلب"
-        
+
       - id: "1618559682609488"
         name: "order_confirm_manual_2"
         language: "ar"
@@ -529,7 +529,7 @@ templates_registry:
         status: "APPROVED"
         variables: ["1", "2"]
         description: "إشعار توصيل الطلب"
-        
+
       - id: "1323030819751520"
         name: "event_rsvp"
         language: "ar"
@@ -551,7 +551,7 @@ templates_registry:
         status: "APPROVED"
         variables: ["customer_name", "invoice_number"]
         description: "الفاتورة جاهزة (عام)"
-        
+
       - id: "1579533249921028"
         name: "invoice_issued"
         language: "ar"
@@ -559,7 +559,7 @@ templates_registry:
         status: "APPROVED"
         variables: ["invoice_number", "amount", "invoice_url"]
         description: "تم إصدار الفاتورة"
-        
+
       - id: "987586796954043"
         name: "statement_ready"
         language: "ar"
@@ -581,7 +581,7 @@ templates_registry:
         status: "APPROVED"
         variables: ["customer_name"]
         description: "رسالة ترحيب تسويقية"
-        
+
       - id: "1385963419888210"
         name: "hello"
         language: "en"
@@ -589,7 +589,7 @@ templates_registry:
         status: "APPROVED"
         variables: []
         description: "رسالة Hello"
-        
+
       - id: "2769024126782546"
         name: "uberfix"
         language: "ar"
@@ -612,7 +612,7 @@ templates_registry:
         ttl_seconds: 600
         variables: ["1", "2", "3", "4", "5"]
         description: "رمز التحقق OTP"
-        
+
       - id: "900359469727385"
         name: "pass_temp"
         language: "ar"
@@ -621,7 +621,7 @@ templates_registry:
         ttl_seconds: 600
         variables: ["1", "2", "3", "4", "5"]
         description: "كلمة مرور مؤقتة"
-        
+
       - id: "873771338835468"
         name: "delivery_code"
         language: "en_US"
@@ -656,7 +656,7 @@ quick_reference:
       - appointment_confirmed
       - appointment_cancellation
       - delivery
-      
+
     MARKETING:
       - appointment_scheduled
       - work_in_progress
@@ -674,7 +674,7 @@ quick_reference:
       - property_status_update
       - hello
       - uberfix
-      
+
     AUTHENTICATION:
       - otp_verify
       - pass_temp
@@ -688,7 +688,7 @@ quick_reference:
       - uberfix_request_completed
       - request_received
       - order_confirm_manual_2
-      
+
     technician_communication:
       - technician_assigned
       - technician_on_way
@@ -697,7 +697,7 @@ quick_reference:
       - appointment_reminder
       - appointment_scheduling
       - appointment_confirmed
-      
+
     sales_n_marketing:
       - welcome_message
       - lux_welcome
@@ -706,13 +706,13 @@ quick_reference:
       - lux_new_project_start
       - uberone
       - maintenance_request_form
-      
+
     finance:
       - invoice_ready
       - invoice_issued
       - statement_ready
       - uberfix_request_paid
-      
+
     authentication:
       - otp_verify
       - pass_temp
@@ -766,7 +766,7 @@ helper_code: |
           "otp_verify": "831755329214907",
       }
       return templates_map.get(template_name, "")
-  
+
   def get_template_variables(template_name: str) -> list:
       """الحصول على متغيرات القالب"""
       template_vars = {

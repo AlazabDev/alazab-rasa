@@ -1,224 +1,333 @@
-version: "3.1"
-
-# ══════════════════════════════════════════════════════════════
-#  domain.yml — الملف المركزي لإدارة مجموعة العزب
-# ══════════════════════════════════════════════════════════════
-
+version: '3.1'
 includes:
-  - domain/general.yml
-  - domain/alazab.yml
-  - domain/luxury_finishing.yml
-  - domain/brand_identity.yml
-  - domain/laban_alasfour.yml
-  - domain/uberfix.yml
-
-# ══════════════════════════════════════════════════════════════
-#  Global Intents — الـ Intents المشتركة لكل البراندات
-# ══════════════════════════════════════════════════════════════
+- domain/general.yml
+- domain/alazab.yml
+- domain/luxury_finishing.yml
+- domain/brand_identity.yml
+- domain/laban_alasfour.yml
+- domain/uberfix.yml
 intents:
-  - greet
-  - goodbye
-  - thanks
-  - affirm
-  - deny
-  - bot_challenge
-  - out_of_scope
-  - session_start
-
-# ══════════════════════════════════════════════════════════════
-#  Global Slots — الـ Slots الموحدة للذكاء الاصطناعي (CALM)
-# ══════════════════════════════════════════════════════════════
+- greet
+- goodbye
+- thanks
+- affirm
+- deny
+- bot_challenge
+- out_of_scope
+- session_start
+- ask_alazab_about
+- ask_alazab_contact
+- ask_alazab_projects
+- ask_alazab_quote
+- ask_alazab_services
+- ask_alazab_technical_specs
+- ask_brand_complete_identity
+- ask_brand_industries
+- ask_brand_portfolio
+- ask_brand_process
+- ask_brand_quote
+- ask_brand_services
+- ask_brand_shop_fitting
+- ask_faq_location
+- ask_faq_payment
+- ask_faq_prices
+- ask_faq_timing
+- ask_faq_warranty
+- ask_help
+- ask_laban_bulk_order
+- ask_laban_catalog
+- ask_laban_contact
+- ask_laban_delivery
+- ask_laban_products
+- ask_luxury_materials
+- ask_luxury_portfolio
+- ask_luxury_quote
+- ask_luxury_services
+- ask_luxury_timeline
+- ask_uberfix_about
+- ask_uberfix_contact
+- ask_uberfix_emergency
+- ask_uberfix_emergency_contact
+- ask_uberfix_features
+- ask_uberfix_feedback
+- ask_uberfix_fire_safety
+- ask_uberfix_masonry_painting
+- ask_uberfix_new_request
+- ask_uberfix_order_number
+- ask_uberfix_order_status
+- ask_uberfix_price
+- ask_uberfix_price_warranty
+- ask_uberfix_report_problem
+- ask_uberfix_request
+- ask_uberfix_request_ac
+- ask_uberfix_request_electric
+- ask_uberfix_request_plumbing
+- ask_uberfix_reschedule
+- ask_uberfix_schedule
+- ask_uberfix_services
+- ask_uberfix_subscribe
+- ask_uberfix_subscription
+- ask_uberfix_subscription_advanced
+- ask_uberfix_subscription_basic
+- ask_uberfix_subscription_plans
+- ask_uberfix_subscription_premium
+- ask_uberfix_supplies
+- ask_uberfix_track
+- ask_uberfix_tracking
+- ask_uberfix_working_hours
+- give_feedback
+- provide_rating
+- provide_suggestion
+- uberfix_specific_repair
 slots:
   brand:
     type: text
     mappings:
-      - type: from_llm
-
+    - type: from_llm
   service_type:
     type: text
     mappings:
-      - type: from_llm
-
+    - type: custom
   user_name:
     type: text
     mappings:
-      - type: from_llm
-
+    - type: from_llm
   user_phone:
     type: text
     mappings:
-      - type: from_llm
-
+    - type: from_llm
+  user_message:
+    type: text
+    mappings:
+    - type: from_llm
   location:
     type: text
     mappings:
-      - type: from_llm
-
+    - type: custom
   area_size:
     type: text
     mappings:
-      - type: from_llm
-
+    - type: from_llm
   order_id:
     type: text
     mappings:
-      - type: from_llm
-
+    - type: from_llm
   problem_type:
     type: text
     mappings:
-      - type: from_llm
-
+    - type: from_llm
   subscription_type:
     type: text
     mappings:
-      - type: from_llm
-
+    - type: from_llm
   confirm_human_handoff:
     type: categorical
     values:
-      - "Yes"
-      - "No"
+    - 'Yes'
+    - 'No'
     mappings:
-      - type: from_llm
-
-# ══════════════════════════════════════════════════════════════
-#  Global Responses — الـ الردود العامة المشتركة
-# ══════════════════════════════════════════════════════════════
-responses:
-  utter_greet:
-    - text: "أهلاً بك في مجموعة العزب. كيف أقدر أساعدك اليوم؟"
-      metadata:
-        rephrase: true
-
-  utter_goodbye:
-    - text: "شكرًا لتواصلك مع مجموعة العزب. نتطلع لخدمتك دائمًا! 🤝"
-
-  utter_thanks:
-    - text: "العفو، تحت أمرك في أي وقت."
-      metadata:
-        rephrase: true
-
-  utter_bot_challenge:
-    - text: "أنا مساعد مجموعة العزب الذكي، أساعدك في الاستفسارات وطلبات التواصل."
-
-  utter_out_of_scope:
-    - text: "عذراً، هذا السؤال خارج نطاق خدماتنا حالياً. يمكنني مساعدتك في المقاولات، التشطيبات، الهوية التجارية، الصيانة أو التوريدات."
-
-  utter_ask_confirm_human_handoff:
-    - text: "هل تريد التحدث مع أحد موظفينا مباشرة؟"
-      buttons:
-        - title: "✅ نعم"
-          payload: "/SetSlots(confirm_human_handoff=Yes)"
-        - title: "❌ لا"
-          payload: "/SetSlots(confirm_human_handoff=No)"
-
-# ══════════════════════════════════════════════════════════════
-#  Session Config
-# ══════════════════════════════════════════════════════════════
-
-  utter_lead_submitted:
-    - text: |
-        ✅ تم استلام بياناتك بنجاح!
-        سيتواصل معك أحد مهندسينا خلال 24 ساعة عمل.
-        شكراً لاهتمامك بمجموعة العزب. 🤝
-
-  utter_transfer_to_manager:
-    - text: |
-        👤 يتم تحويلك الآن لأحد ممثلينا.
-        ملخص محادثتك: {summary}
-        سيتواصل معك الفريق قريباً.
-
-  utter_ask_user_name:
-    - text: "ما اسمك الكريم؟"
-
-  utter_ask_user_phone:
-    - text: "ما رقم هاتفك؟ حتى يتواصل معك فريقنا."
-
-  utter_ask_user_message:
-    - text: "كيف يمكننا مساعدتك؟ اشرح طلبك باختصار."
-
-  utter_ask_location:
-    - text: "في أي منطقة أو محافظة تقع؟"
-
-  utter_ask_area_size:
-    - text: "ما المساحة التقريبية للمشروع؟ (بالمتر المربع)"
-
-  utter_default_fallback:
-    - text: |
-        آسف، لم أفهم طلبك جيداً.
-        يمكنني مساعدتك في: المقاولات، التشطيب، الهوية التجارية، الصيانة، أو التوريدات.
-        أو تحدث مع أحد ممثلينا مباشرة.
-
-
-  # ── Context Accumulator Slots ──────────────────────────────
-  context_memory:
-    type: text
-    mappings:
-      - type: custom
-
+    - type: from_llm
   branch_name:
     type: text
     mappings:
-      - type: custom
-
-  location:
-    type: text
+    - type: custom
+  is_available:
+    type: bool
     mappings:
-      - type: custom
-
-  service_type:
-    type: text
+    - type: custom
+  queue_position:
+    type: float
     mappings:
-      - type: custom
+    - type: custom
+  rating:
+    type: float
+    mappings:
+    - type: custom
+  search_found:
+    type: bool
+    mappings:
+    - type: custom
+responses:
+  utter_greet:
+  - text: أهلاً بك في مجموعة العزب. كيف أقدر أساعدك اليوم؟
+  utter_goodbye:
+  - text: شكرًا لتواصلك مع مجموعة العزب. نتطلع لخدمتك دائمًا! 🤝
+  utter_thanks:
+  - text: العفو، تحت أمرك في أي وقت.
+  utter_bot_challenge:
+  - text: أنا مساعد مجموعة العزب الذكي، أساعدك في الاستفسارات وطلبات التواصل.
+  utter_out_of_scope:
+  - text: عذراً، هذا السؤال خارج نطاق خدماتنا حالياً. يمكنني مساعدتك في المقاولات، التشطيبات، الهوية التجارية، الصيانة أو
+      التوريدات.
+  utter_ask_confirm_human_handoff:
+  - text: هل تريد التحدث مع أحد موظفينا مباشرة؟
+    buttons:
+    - title: ✅ نعم
+      payload: /SetSlots(confirm_human_handoff=Yes)
+    - title: ❌ لا
+      payload: /SetSlots(confirm_human_handoff=No)
+  utter_lead_submitted:
+  - text: '✅ تم استلام بياناتك بنجاح!
 
+      سيتواصل معك أحد مهندسينا خلال 24 ساعة عمل.
+
+      شكراً لاهتمامك بمجموعة العزب. 🤝
+
+      '
+  utter_transfer_to_manager:
+  - text: '👤 يتم تحويلك الآن لأحد ممثلينا.
+
+      ملخص محادثتك: {summary}
+
+      سيتواصل معك الفريق قريباً.
+
+      '
+  utter_ask_user_name:
+  - text: ما اسمك الكريم؟
+  utter_ask_user_phone:
+  - text: ما رقم هاتفك؟ حتى يتواصل معك فريقنا.
+  utter_ask_user_message:
+  - text: كيف يمكننا مساعدتك؟ اشرح طلبك باختصار.
+  utter_ask_location:
+  - text: في أي منطقة أو محافظة تقع؟
+  utter_ask_area_size:
+  - text: ما المساحة التقريبية للمشروع؟ (بالمتر المربع)
+  utter_default_fallback:
+  - text: 'آسف، لم أفهم طلبك جيداً.
+
+      يمكنني مساعدتك في: المقاولات، التشطيب، الهوية التجارية، الصيانة، أو التوريدات.
+
+      أو تحدث مع أحد ممثلينا مباشرة.
+
+      '
+  utter_alazab_about:
+  - text: تم استلام طلبك. من فضلك أرسل التفاصيل المطلوبة لاستكمال الإجراء.
+  utter_alazab_contact:
+  - text: تم استلام طلبك. من فضلك أرسل التفاصيل المطلوبة لاستكمال الإجراء.
+  utter_alazab_projects:
+  - text: تم استلام طلبك. من فضلك أرسل التفاصيل المطلوبة لاستكمال الإجراء.
+  utter_alazab_quote:
+  - text: تم استلام طلبك. من فضلك أرسل التفاصيل المطلوبة لاستكمال الإجراء.
+  utter_alazab_services:
+  - text: تم استلام طلبك. من فضلك أرسل التفاصيل المطلوبة لاستكمال الإجراء.
+  utter_ask_feedback:
+  - text: تم استلام طلبك. من فضلك أرسل التفاصيل المطلوبة لاستكمال الإجراء.
+  utter_ask_help:
+  - text: تم استلام طلبك. من فضلك أرسل التفاصيل المطلوبة لاستكمال الإجراء.
+  utter_brand_industries:
+  - text: تم استلام طلبك. من فضلك أرسل التفاصيل المطلوبة لاستكمال الإجراء.
+  utter_brand_portfolio:
+  - text: تم استلام طلبك. من فضلك أرسل التفاصيل المطلوبة لاستكمال الإجراء.
+  utter_brand_process:
+  - text: تم استلام طلبك. من فضلك أرسل التفاصيل المطلوبة لاستكمال الإجراء.
+  utter_brand_quote:
+  - text: تم استلام طلبك. من فضلك أرسل التفاصيل المطلوبة لاستكمال الإجراء.
+  utter_brand_services:
+  - text: تم استلام طلبك. من فضلك أرسل التفاصيل المطلوبة لاستكمال الإجراء.
+  utter_faq_location:
+  - text: تم استلام طلبك. من فضلك أرسل التفاصيل المطلوبة لاستكمال الإجراء.
+  utter_faq_payment:
+  - text: تم استلام طلبك. من فضلك أرسل التفاصيل المطلوبة لاستكمال الإجراء.
+  utter_faq_prices:
+  - text: تم استلام طلبك. من فضلك أرسل التفاصيل المطلوبة لاستكمال الإجراء.
+  utter_faq_timing:
+  - text: تم استلام طلبك. من فضلك أرسل التفاصيل المطلوبة لاستكمال الإجراء.
+  utter_faq_warranty:
+  - text: تم استلام طلبك. من فضلك أرسل التفاصيل المطلوبة لاستكمال الإجراء.
+  utter_laban_bulk_order:
+  - text: تم استلام طلبك. من فضلك أرسل التفاصيل المطلوبة لاستكمال الإجراء.
+  utter_laban_catalog:
+  - text: تم استلام طلبك. من فضلك أرسل التفاصيل المطلوبة لاستكمال الإجراء.
+  utter_laban_contact:
+  - text: تم استلام طلبك. من فضلك أرسل التفاصيل المطلوبة لاستكمال الإجراء.
+  utter_laban_delivery:
+  - text: تم استلام طلبك. من فضلك أرسل التفاصيل المطلوبة لاستكمال الإجراء.
+  utter_laban_products:
+  - text: تم استلام طلبك. من فضلك أرسل التفاصيل المطلوبة لاستكمال الإجراء.
+  utter_luxury_materials:
+  - text: تم استلام طلبك. من فضلك أرسل التفاصيل المطلوبة لاستكمال الإجراء.
+  utter_luxury_portfolio:
+  - text: تم استلام طلبك. من فضلك أرسل التفاصيل المطلوبة لاستكمال الإجراء.
+  utter_luxury_quote:
+  - text: تم استلام طلبك. من فضلك أرسل التفاصيل المطلوبة لاستكمال الإجراء.
+  utter_luxury_services:
+  - text: تم استلام طلبك. من فضلك أرسل التفاصيل المطلوبة لاستكمال الإجراء.
+  utter_luxury_timeline:
+  - text: تم استلام طلبك. من فضلك أرسل التفاصيل المطلوبة لاستكمال الإجراء.
+  utter_uberfix_emergency:
+  - text: تم استلام طلبك. من فضلك أرسل التفاصيل المطلوبة لاستكمال الإجراء.
+  utter_uberfix_request:
+  - text: تم استلام طلبك. من فضلك أرسل التفاصيل المطلوبة لاستكمال الإجراء.
+  utter_uberfix_services:
+  - text: تم استلام طلبك. من فضلك أرسل التفاصيل المطلوبة لاستكمال الإجراء.
+  utter_ask_if_more_faqs:
+  - text: هل تريد البحث عن سؤال آخر، أم تحتاج مساعدة في طلب مختلف؟
+  utter_ask_reason_for_handoff:
+  - text: ما سبب رغبتك في التحدث مع ممثل خدمة العملاء؟
+  utter_offer_human_handoff:
+  - text: هل تريد تحويل المحادثة إلى ممثل الآن؟
+  utter_human_handoff_immediate:
+  - text: ممثل خدمة العملاء سيتحدث معك الآن. برجاء الانتظار لحظة.
+  utter_human_handoff_queue:
+  - text: "أنت في قائمة الانتظار. رقمك في الطابور: {queue_position}"
+  utter_agent_connected:
+  - text: تم الاتصال بممثل خدمة العملاء.
+  utter_human_handoff_offline:
+  - text: ممثلو خدمة العملاء غير متاحين حالياً.
+  utter_offer_alternative_contact:
+  - text: هل تريد التواصل عبر واتساب مباشرة؟
+  utter_provide_whatsapp:
+  - text: تواصل معنا عبر واتساب وسيتم الرد عليك في أقرب وقت.
+  utter_handoff_cancelled:
+  - text: تم إلغاء التحويل. كيف يمكنني مساعدتك؟
+  utter_receive_escalation:
+  - text: سأرفع مشكلتك للمدير المسؤول. من فضلك أرسل التفاصيل.
+  utter_escalate_to_manager:
+  - text: تم إرسال مشكلتك للمدير المسؤول وسيتواصل معك الفريق.
+  utter_confirm_cancel:
+  - text: هل أنت متأكد من الإلغاء؟
 session_config:
   session_expiration_time: 60
   carry_over_slots_to_new_session: true
-
 actions:
-  # ── General Actions (action_general.py) ──────────────────
-  - action_save_lead_to_crm
-  - action_notify_sales_team
-  - action_receive_handoff_reason
-  - action_check_human_availability
-  - action_check_queue_position
-  - action_initiate_human_handoff
-  - action_wait_for_agent
-  - action_transfer_to_agent
-  - action_notify_team_via_whatsapp
-  - action_collect_escalation_details
-  - action_create_escalation_ticket
-  - action_notify_manager
-  - action_receive_feedback_service
-  - action_receive_rating
-  - action_receive_feedback_text
-  - action_receive_suggestion
-  - action_save_feedback
-  - action_save_suggestion
-  - action_collect_follow_up_contact
-  - action_search_faq_by_keyword
-
-  # ── Brand + Form + Submit Actions ──────────────────────
-  - action_alazab_get_quote
-  - action_alazab_show_projects
-  - action_brand_get_quote
-  - action_brand_show_industries
-  - action_brand_show_process
-  - action_human_handoff
-  - action_laban_bulk_quote
-  - action_laban_check_delivery
-  - action_laban_show_catalog
-  - action_luxury_get_quote
-  - action_luxury_show_materials
-  - action_submit_lead
-  - action_uberfix_create_request
-  - action_uberfix_show_subscriptions
-  - action_uberfix_track_request
-  - validate_collect_lead_form
-
-  # ── Context Accumulator Actions ────────────────────────────
-  - action_accumulate_context
-  - action_smart_slot_check
-  - action_confirm_understanding
-  - action_build_full_request
+- action_save_lead_to_crm
+- action_notify_sales_team
+- action_receive_handoff_reason
+- action_check_human_availability
+- action_check_queue_position
+- action_initiate_human_handoff
+- action_wait_for_agent
+- action_transfer_to_agent
+- action_notify_team_via_whatsapp
+- action_collect_escalation_details
+- action_create_escalation_ticket
+- action_notify_manager
+- action_receive_feedback_service
+- action_receive_rating
+- action_receive_feedback_text
+- action_receive_suggestion
+- action_save_feedback
+- action_save_suggestion
+- action_collect_follow_up_contact
+- action_search_faq_by_keyword
+- action_alazab_get_quote
+- action_alazab_show_projects
+- action_brand_get_quote
+- action_brand_show_industries
+- action_brand_show_process
+- action_human_handoff
+- action_laban_bulk_quote
+- action_laban_check_delivery
+- action_laban_show_catalog
+- action_luxury_get_quote
+- action_luxury_show_materials
+- action_submit_lead
+- action_uberfix_create_request
+- action_uberfix_show_subscriptions
+- action_uberfix_track_request
+- validate_collect_lead_form
+- action_accumulate_context
+- action_smart_slot_check
+- action_confirm_understanding
+- action_build_full_request
+entities: []

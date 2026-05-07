@@ -1,0 +1,10 @@
+{
+  "changes": [
+    "No flow patch needed. ask_if_more_faqs already exists in data/general/show_faqs.yml",
+    "No domain patch needed. utter_ask_if_more_faqs already exists."
+  ],
+  "errors": [],
+  "flow_files_found": [
+    "data/general/show_faqs.yml"
+  ]
+}

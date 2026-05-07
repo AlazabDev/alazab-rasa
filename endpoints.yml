@@ -17,3 +17,19 @@ lock_store:
   db: 1
   password: ""
   use_ssl: false
+
+model_groups:
+  - id: openai-gpt-4o
+    models:
+      - provider: openai
+        model: gpt-4o
+        timeout: 15
+  - id: openai-gpt-4o-mini
+    models:
+      - provider: openai
+        model: gpt-4o-mini
+        timeout: 15
+  - id: openai-embeddings
+    models:
+      - provider: openai
+        model: text-embedding-3-large

@@ -1,0 +1,177 @@
+version: "3.1"
+
+flows:
+  show_faqs:
+    description: "يعرض للمستخدم أمثلة على الأسئلة الشائعة التي يمكن طرحها على المساعد"
+    name: "show_faqs"
+
+    steps:
+      - id: show_top_faqs
+        action: utter_top_faqs
+        next: ask_user_selection
+
+      - id: ask_user_selection
+        action: utter_ask_faq_topic
+        next:
+          - if: intent = "ask_faq_prices"
+            then: show_prices
+          - if: intent = "ask_faq_timing"
+            then: show_timing
+          - if: intent = "ask_faq_warranty"
+            then: show_warranty
+          - if: intent = "ask_faq_payment"
+            then: show_payment
+          - if: intent = "ask_faq_location"
+            then: show_location
+          - else: show_faqs_menu
+
+      - id: show_prices
+        action: utter_faq_prices
+        next: ask_if_more_faqs
+
+      - id: show_timing
+        action: utter_faq_timing
+        next: ask_if_more_faqs
+
+      - id: show_warranty
+        action: utter_faq_warranty
+        next: ask_if_more_faqs
+
+      - id: show_payment
+        action: utter_faq_payment
+        next: ask_if_more_faqs
+
+      - id: show_location
+        action: utter_faq_location
+        next: ask_if_more_faqs
+
+      - id: show_faqs_menu
+        action: utter_faqs_menu
+        next: ask_user_selection
+
+      - id: ask_if_more_faqs
+        action: utter_ask_more_faqs
+        next:
+          - if: intent = "affirm"
+            then: show_faqs_menu
+          - else: end
+
+      - id: end
+        action: utter_thanks_for_faq
+        next: END
+
+  search_faq_by_keyword:
+    description: "يبحث في الأسئلة الشائعة بناءً على كلمة مفتاحية"
+    name: "search_faq_by_keyword"
+
+    steps:
+      - id: ask_keyword
+        action: utter_ask_faq_keyword
+        next: process_keyword
+
+      - id: process_keyword
+        action: action_search_faq_by_keyword
+        next:
+          - if: slots.search_found = true
+            then: show_search_results
+          - else: no_results_found
+
+      - id: show_search_results
+        action: utter_search_results
+        next: ask_if_more_faqs
+
+      - id: no_results_found
+        action: utter_no_faq_results
+        next: ask_user_selection
+
+responses:
+  utter_top_faqs:
+    - text: |
+        🔥 الأسئلة الأكثر شيوعاً:
+
+        💰 "كم سعر التشطيب"
+        ⏰ "المدة الزمنية للبناء"
+        🔒 "عندكم ضمان إيه"
+        📍 "بتشتغلوا فين"
+        💳 "إزاي أدفع"
+
+  utter_ask_faq_topic:
+    - text: |
+        🔍 أي موضوع تريد معرفة المزيد عنه؟
+
+        1️⃣ الأسعار
+        2️⃣ المدة الزمنية
+        3️⃣ الضمان
+        4️⃣ الدفع
+        5️⃣ التغطية
+
+  utter_faqs_menu:
+    - text: |
+        📚 الأسئلة الشائعة
+
+        1️⃣ الأسعار
+        2️⃣ المدة الزمنية
+        3️⃣ الضمان
+        4️⃣ طرق الدفع
+        5️⃣ التغطية الجغرافية
+
+  utter_faq_prices:
+    - text: |
+        💰 الأسعار التقريبية:
+        • البناء: من 2,500 ج/م²
+        • التشطيب: من 1,500 ج/م²
+        • الهوية: من 15,000 ج
+        • الصيانة: الكشفية 300 ج
+
+  utter_faq_timing:
+    - text: |
+        ⏰ المدة الزمنية:
+        • بناء عمارة: 12-18 شهر
+        • تشطيب شقة: 30-45 يوم
+        • هوية تجارية: 15-25 يوم
+        • صيانة: 24 ساعة
+
+  utter_faq_warranty:
+    - text: |
+        🔒 الضمان:
+        • بناء: 10 سنوات هيكلي
+        • تشطيب: 3 سنوات
+        • صيانة: 3 أشهر
+
+  utter_faq_payment:
+    - text: |
+        💳 طرق الدفع:
+        • دفع عند الاستلام
+        • تحويل بنكي
+        • بطاقات ائتمان
+        • إنستا باي
+        • تقسيط متاح
+
+  utter_faq_location:
+    - text: |
+        📍 نغطي:
+        • القاهرة الكبرى
+        • الإسكندرية
+        • مدن الأقاليم
+        • صعيد مصر
+
+  utter_ask_more_faqs:
+    - text: "هل تريد معرفة المزيد؟"
+
+  utter_thanks_for_faq:
+    - text: "🙏 أتمنى أن أكون قد أجبت على استفسارك. هل تريد مساعدة أخرى؟"
+
+  utter_ask_faq_keyword:
+    - text: "🔎 اكتب كلمة مفتاحية عن ما تبحث عنه. مثال: سعر، ضمان"
+
+  utter_search_results:
+    - text: |
+        📋 نتائج البحث عن "{keyword}":
+
+        {results}
+
+  utter_no_faq_results:
+    - text: "لم أجد نتائج لبحثك عن {keyword}. حاول كلمة أخرى."
+
+actions:
+  - action_search_faq_by_keyword

@@ -1,0 +1,7 @@
+Rasa Pro Version  :         3.16.5
+Minimum Compatible Version: 3.16.0rc2
+Rasa SDK Version  :         3.16.1
+Python Version    :         3.11.15
+Operating System  :         Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.39
+Python Path       :         /home/azab/azabot/alazab-rasa/.venv/bin/python3.11
+License Expires   :         2029-04-09T21:21:30+00:00

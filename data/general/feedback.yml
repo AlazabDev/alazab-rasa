@@ -9,11 +9,11 @@ flows:
       - id: welcome_feedback
         action: utter_ask_feedback
         next:
-          - if: intent = "provide_rating"
+          - if: context.intent.name = "provide_rating"
             then: ask_service
-          - if: intent = "provide_suggestion"
+          - if: context.intent.name = "provide_suggestion"
             then: ask_suggestion
-          - if: intent = "give_feedback"
+          - if: context.intent.name = "give_feedback"
             then: ask_feedback_text
           - else: welcome_feedback
 
@@ -69,7 +69,7 @@ flows:
       - id: ask_follow_up
         action: utter_ask_follow_up_contact
         next:
-          - if: intent = "affirm"
+          - if: context.intent.name = "affirm"
             then: collect_lead_info
           - else: save_feedback
 

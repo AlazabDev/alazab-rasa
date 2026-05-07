@@ -13,15 +13,15 @@ flows:
       - id: ask_user_selection
         action: utter_ask_faq_topic
         next:
-          - if: intent = "ask_faq_prices"
+          - if: context.intent.name = "ask_faq_prices"
             then: show_prices
-          - if: intent = "ask_faq_timing"
+          - if: context.intent.name = "ask_faq_timing"
             then: show_timing
-          - if: intent = "ask_faq_warranty"
+          - if: context.intent.name = "ask_faq_warranty"
             then: show_warranty
-          - if: intent = "ask_faq_payment"
+          - if: context.intent.name = "ask_faq_payment"
             then: show_payment
-          - if: intent = "ask_faq_location"
+          - if: context.intent.name = "ask_faq_location"
             then: show_location
           - else: show_faqs_menu
 
@@ -52,7 +52,7 @@ flows:
       - id: ask_if_more_faqs
         action: utter_ask_more_faqs
         next:
-          - if: intent = "affirm"
+          - if: context.intent.name = "affirm"
             then: show_faqs_menu
           - else: end
 
@@ -82,7 +82,18 @@ flows:
 
       - id: no_results_found
         action: utter_no_faq_results
-        next: ask_user_selection
+        next: ask_keyword
+
+      - id: ask_if_more_faqs
+        action: utter_ask_more_faqs
+        next:
+          - if: context.intent.name = "affirm"
+            then: ask_keyword
+          - else: end
+
+      - id: end
+        action: utter_thanks_for_faq
+        next: END
 
 responses:
   utter_top_faqs:

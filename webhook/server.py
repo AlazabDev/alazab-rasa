@@ -785,13 +785,13 @@ def _handle_uberfix_gateway_sync(
 def _uberfix_db_connect():
     if not all([DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASSWORD]):
         raise HTTPException(status_code=503, detail="PostgreSQL غير مضبوط في .env")
-    
+
     import psycopg
     from psycopg.rows import dict_row
-    
+
     max_retries = 3
     retry_delay = 2
-    
+
     for attempt in range(max_retries):
         try:
             return psycopg.connect(

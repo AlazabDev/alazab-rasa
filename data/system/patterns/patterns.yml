@@ -41,6 +41,6 @@ flows:
     steps:
       - action: utter_confirm_cancel
         next:
-          - if: intent = "affirm"
+          - if: context.intent.name = "affirm"
             then: END
-          - else: RESUME
+          - else: END

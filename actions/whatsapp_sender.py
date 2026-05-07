@@ -59,7 +59,7 @@ class WhatsAppTemplate:
         self.waba_name = data.get("waba_name")
         self.variables = data.get("variables", [])
         self.description = data.get("description", "")
-        
+
     def to_dict(self) -> Dict[str, Any]:
         """تحويل الكائن إلى قاموس"""
         return {
@@ -87,32 +87,32 @@ class WhatsAppMessage:
 def get_template_from_supabase(template_name: str, waba_id: str = None) -> Optional[WhatsAppTemplate]:
     """
     جلب قالب من Supabase باستخدام اسم القالب
-    
+
     Args:
         template_name: اسم القالب (مثل: uberfix_request_received)
         waba_id: معرف WABA (اختياري)
-    
+
     Returns:
         WhatsAppTemplate object or None
     """
     if not supabase:
         logger.error("Supabase not configured")
         return None
-    
+
     try:
         query = supabase.table("whatsapp_templates").select("*").eq("name", template_name)
-        
+
         if waba_id:
             query = query.eq("waba_id", waba_id)
-        
+
         response = query.execute()
-        
+
         if response.data and len(response.data) > 0:
             return WhatsAppTemplate(response.data[0])
         else:
             logger.warning(f"Template '{template_name}' not found in Supabase")
             return None
-            
+
     except Exception as e:
         logger.error(f"Error fetching template from Supabase: {e}")
         return None
@@ -123,17 +123,17 @@ def get_all_templates(waba_id: str = None) -> List[WhatsAppTemplate]:
     if not supabase:
         logger.error("Supabase not configured")
         return []
-    
+
     try:
         query = supabase.table("whatsapp_templates").select("*")
-        
+
         if waba_id:
             query = query.eq("waba_id", waba_id)
-        
+
         response = query.execute()
-        
+
         return [WhatsAppTemplate(row) for row in response.data]
-        
+
     except Exception as e:
         logger.error(f"Error fetching templates: {e}")
         return []
@@ -142,34 +142,34 @@ def get_all_templates(waba_id: str = None) -> List[WhatsAppTemplate]:
 def create_template_components(variables: Dict[str, str]) -> List[Dict]:
     """
     إنشاء components للإرسال بناءً على المتغيرات
-    
+
     Args:
         variables: قاموس المتغيرات {variable_name: value}
-    
+
     Returns:
         قائمة components بصيغة Meta API
     """
     if not variables:
         return []
-    
+
     body_parameters = []
     button_parameters = []
-    
+
     for var_name, var_value in variables.items():
         param = {
             "type": "text",
             "text": var_value
         }
         body_parameters.append(param)
-    
+
     components = []
-    
+
     if body_parameters:
         components.append({
             "type": "body",
             "parameters": body_parameters
         })
-    
+
     if button_parameters:
         components.append({
             "type": "button",
@@ -177,27 +177,27 @@ def create_template_components(variables: Dict[str, str]) -> List[Dict]:
             "index": 0,
             "parameters": button_parameters
         })
-    
+
     return components
 
 
 def send_whatsapp_message(message: WhatsAppMessage) -> Dict[str, Any]:
     """
     إرسال رسالة عبر WhatsApp Cloud API
-    
+
     Args:
         message: كائن WhatsAppMessage
-    
+
     Returns:
         استجابة من Meta API
     """
     url = f"{BASE_URL}/{PHONE_NUMBER_ID}/messages"
-    
+
     headers = {
         "Authorization": f"Bearer {WHATSAPP_TOKEN}",
         "Content-Type": "application/json"
     }
-    
+
     payload = {
         "messaging_product": "whatsapp",
         "to": message.to,
@@ -209,12 +209,12 @@ def send_whatsapp_message(message: WhatsAppMessage) -> Dict[str, Any]:
             }
         }
     }
-    
+
     if message.components:
         payload["template"]["components"] = message.components
-    
+
     logger.info(f"Sending WhatsApp message to {message.to}: {message.template_name}")
-    
+
     try:
         with httpx.Client(timeout=30.0) as client:
             response = client.post(url, headers=headers, json=payload)
@@ -222,7 +222,7 @@ def send_whatsapp_message(message: WhatsAppMessage) -> Dict[str, Any]:
             result = response.json()
             logger.info(f"WhatsApp message sent successfully: {result.get('messages', [{}])[0].get('id')}")
             return {"success": True, "data": result}
-            
+
     except httpx.HTTPStatusError as e:
         logger.error(f"WhatsApp API error: {e.response.text}")
         return {"success": False, "error": e.response.text}
@@ -237,7 +237,7 @@ def send_whatsapp_message(message: WhatsAppMessage) -> Dict[str, Any]:
 
 class UberFixTemplates:
     """قوالب أوبرفيكس الجاهزة"""
-    
+
     @staticmethod
     def request_received(to: str, order_id: str, track_url: str = None) -> WhatsAppMessage:
         """قالب: تم استلام طلب الصيانة"""
@@ -245,7 +245,7 @@ class UberFixTemplates:
             "customer_name": "",
             "order_id": order_id
         }
-        
+
         components = [
             {
                 "type": "body",
@@ -255,7 +255,7 @@ class UberFixTemplates:
                 ]
             }
         ]
-        
+
         if track_url:
             components.append({
                 "type": "button",
@@ -263,14 +263,14 @@ class UberFixTemplates:
                 "index": 0,
                 "parameters": [{"type": "text", "text": track_url}]
             })
-        
+
         return WhatsAppMessage(
             to=to,
             template_name="uberfix_request_received",
             language="ar",
             components=components
         )
-    
+
     @staticmethod
     def technician_assigned(to: str, order_id: str, technician_name: str, track_url: str) -> WhatsAppMessage:
         """قالب: تم تعيين فني"""
@@ -284,14 +284,14 @@ class UberFixTemplates:
                 ]
             }
         ]
-        
+
         return WhatsAppMessage(
             to=to,
             template_name="technician_assigned",
             language="ar",
             components=components
         )
-    
+
     @staticmethod
     def technician_on_way(to: str, track_url: str) -> WhatsAppMessage:
         """قالب: الفني في الطريق"""
@@ -307,14 +307,14 @@ class UberFixTemplates:
                 "parameters": [{"type": "text", "text": track_url}]
             }
         ]
-        
+
         return WhatsAppMessage(
             to=to,
             template_name="technician_on_way",
             language="ar",
             components=components
         )
-    
+
     @staticmethod
     def work_started(to: str, customer_name: str, order_id: str) -> WhatsAppMessage:
         """قالب: بدء العمل"""
@@ -327,14 +327,14 @@ class UberFixTemplates:
                 ]
             }
         ]
-        
+
         return WhatsAppMessage(
             to=to,
             template_name="uberfix_work_started",
             language="ar",
             components=components
         )
-    
+
     @staticmethod
     def work_completed(to: str, customer_name: str, order_id: str) -> WhatsAppMessage:
         """قالب: اكتمال العمل"""
@@ -347,14 +347,14 @@ class UberFixTemplates:
                 ]
             }
         ]
-        
+
         return WhatsAppMessage(
             to=to,
             template_name="uberfix_request_completed",
             language="ar",
             components=components
         )
-    
+
     @staticmethod
     def payment_received(to: str, customer_name: str, amount: str, order_id: str) -> WhatsAppMessage:
         """قالب: تأكيد استلام الدفع"""
@@ -368,7 +368,7 @@ class UberFixTemplates:
                 ]
             }
         ]
-        
+
         return WhatsAppMessage(
             to=to,
             template_name="uberfix_request_paid",
@@ -379,7 +379,7 @@ class UberFixTemplates:
 
 class LuxuryFinishingTemplates:
     """قوالب Luxury Finishing الجاهزة"""
-    
+
     @staticmethod
     def welcome(to: str, customer_name: str) -> WhatsAppMessage:
         """قالب: ترحيب Luxury Finishing"""
@@ -389,14 +389,14 @@ class LuxuryFinishingTemplates:
                 "parameters": [{"type": "text", "text": customer_name}]
             }
         ]
-        
+
         return WhatsAppMessage(
             to=to,
             template_name="lux_welcome",
             language="ar",
             components=components
         )
-    
+
     @staticmethod
     def inspection_request(to: str, customer_name: str) -> WhatsAppMessage:
         """قالب: طلب معاينة"""
@@ -406,7 +406,7 @@ class LuxuryFinishingTemplates:
                 "parameters": [{"type": "text", "text": customer_name}]
             }
         ]
-        
+
         return WhatsAppMessage(
             to=to,
             template_name="lux_inspection_request",
@@ -417,7 +417,7 @@ class LuxuryFinishingTemplates:
 
 class GeneralTemplates:
     """قوالب عامة"""
-    
+
     @staticmethod
     def welcome_message(to: str, customer_name: str) -> WhatsAppMessage:
         """قالب: رسالة ترحيب عامة"""
@@ -427,14 +427,14 @@ class GeneralTemplates:
                 "parameters": [{"type": "text", "text": customer_name}]
             }
         ]
-        
+
         return WhatsAppMessage(
             to=to,
             template_name="welcome_message",
             language="ar",
             components=components
         )
-    
+
     @staticmethod
     def invoice_ready(to: str, customer_name: str, invoice_number: str) -> WhatsAppMessage:
         """قالب: الفاتورة جاهزة"""
@@ -447,7 +447,7 @@ class GeneralTemplates:
                 ]
             }
         ]
-        
+
         return WhatsAppMessage(
             to=to,
             template_name="invoice_ready",
@@ -468,13 +468,13 @@ async def send_template_message(
 ) -> Dict[str, Any]:
     """
     إرسال رسالة قالب إلى واتساب
-    
+
     Args:
         to: رقم الهاتف المستلم (بالصيغة الدولية: 20xxxxxxxxx)
         template_name: اسم القالب (مثل: uberfix_request_received)
         variables: قاموس المتغيرات {variable_name: value}
         language: لغة القالب (افتراضي: ar)
-    
+
     Returns:
         نتيجة الإرسال
     """
@@ -482,26 +482,26 @@ async def send_template_message(
     if not to.startswith("20") and not to.startswith("+"):
         to = f"20{to}"
     to = to.replace("+", "")
-    
+
     # إنشاء components من المتغيرات
     components = []
-    
+
     if variables:
         body_parameters = []
         button_parameters = []
-        
+
         for var_name, var_value in variables.items():
             body_parameters.append({
                 "type": "text",
                 "text": str(var_value)
             })
-        
+
         if body_parameters:
             components.append({
                 "type": "body",
                 "parameters": body_parameters
             })
-        
+
         if button_parameters:
             components.append({
                 "type": "button",
@@ -509,7 +509,7 @@ async def send_template_message(
                 "index": 0,
                 "parameters": button_parameters
             })
-    
+
     # إرسال الرسالة
     message = WhatsAppMessage(
         to=to,
@@ -517,7 +517,7 @@ async def send_template_message(
         language=language,
         components=components
     )
-    
+
     return send_whatsapp_message(message)
 
 
@@ -528,7 +528,7 @@ async def send_order_confirmation(to: str, order_id: str, track_url: str = None)
     }
     if track_url:
         variables["track_url"] = track_url
-    
+
     return await send_template_message(to, "uberfix_request_received", variables)
 
 
@@ -602,17 +602,17 @@ async def send_bulk_messages(
 ) -> List[Dict[str, Any]]:
     """
     إرسال رسائل متعددة لنفس القالب
-    
+
     Args:
         recipients: قائمة المستلمين [{to: "20123456789", name: "أحمد"}]
         template_name: اسم القالب
         variables_template: قالب المتغيرات (سيتم استبدال {name} بالقيم)
-    
+
     Returns:
         قائمة بنتائج الإرسال
     """
     results = []
-    
+
     for recipient in recipients:
         # استبدال المتغيرات لكل مستلم
         variables = {}
@@ -621,19 +621,19 @@ async def send_bulk_messages(
             for placeholder, val in recipient.items():
                 value = value.replace(f"{{{placeholder}}}", str(val))
             variables[key] = value
-        
+
         result = await send_template_message(
             to=recipient["to"],
             template_name=template_name,
             variables=variables
         )
-        
+
         results.append({
             "to": recipient["to"],
             "success": result.get("success", False),
             "result": result
         })
-    
+
     return results
 
 
@@ -644,13 +644,13 @@ async def send_bulk_messages(
 async def test_sender():
     """اختبار إرسال رسالة تجريبية"""
     test_number = os.environ.get("TEST_PHONE_NUMBER", "201004006620")
-    
+
     result = await send_order_confirmation(
         to=test_number,
         order_id="TEST-001",
         track_url="https://uberfix.shop/track/test"
     )
-    
+
     print(f"Test result: {result}")
     return result
 
@@ -660,10 +660,10 @@ async def test_sender():
 # ============================================================================
 if __name__ == "__main__":
     import asyncio
-    
+
     async def main():
         logger.info("🧪 Testing WhatsApp sender...")
         result = await test_sender()
         print(json.dumps(result, indent=2, ensure_ascii=False))
-    
+
     asyncio.run(main())
