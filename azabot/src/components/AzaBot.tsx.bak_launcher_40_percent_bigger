@@ -26,12 +26,6 @@ import { VoiceSelector } from "./chat/VoiceSelector";
 
 import type { Attachment, ChatTab } from "@/types/chat";
 
-const LAUNCHER_PHRASES = [
-  "أهلاً بك 👋",
-  "أنا عزبوت",
-  "جاهز أساعدك",
-];
-
 export default function AzaBot() {
   const [open, setOpen] = useState(false);
   const [tab, setTab] = useState<ChatTab>("text");
@@ -40,7 +34,6 @@ export default function AzaBot() {
   const [inputText, setInputText] = useState("");
   const [pendingAttachments, setPendingAttachments] = useState<Attachment[]>([]);
   const [pendingFiles, setPendingFiles] = useState<File[]>([]);
-  const [launcherTextIndex, setLauncherTextIndex] = useState(0);
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const lastAutoSpokenMessageId = useRef<string | null>(null);
@@ -51,17 +44,6 @@ export default function AzaBot() {
   // Hooks
   const { messages, streaming, send, clearMessages, downloadConversation } = useChat(site.id);
   const tts = useTTS();
-
-  // تدوير نص زر البوت المغلق ليتماشى مع حركة التحية
-  useEffect(() => {
-    if (open) return;
-
-    const id = window.setInterval(() => {
-      setLauncherTextIndex((prev) => (prev + 1) % LAUNCHER_PHRASES.length);
-    }, 2200);
-
-    return () => window.clearInterval(id);
-  }, [open]);
 
   // Auto-scroll عند كل رسالة جديدة
   useEffect(() => {
@@ -139,60 +121,23 @@ export default function AzaBot() {
 
   if (!open) {
     return (
-      <div className="fixed bottom-2 left-4 z-50 flex flex-col items-center overflow-visible translate-y-4">
-        <style>
-          {`
-            @keyframes azabot-float {
-              0%, 100% { transform: translateY(0) scale(1.55); }
-              50% { transform: translateY(-6px) scale(1.55); }
-            }
-
-            @keyframes azabot-bubble {
-              0%, 100% { transform: translateY(0); opacity: 0.98; }
-              50% { transform: translateY(-2px); opacity: 1; }
-            }
-          `}
-        </style>
-
-        <div
-          className="relative mb-[-6px]"
-          style={{ animation: "azabot-bubble 2.6s ease-in-out infinite" }}
+      <button
+        onClick={() => setOpen(true)}
+        className="fixed bottom-5 left-5 z-50 group flex h-[112px] w-[86px] items-end justify-center rounded-[2rem] bg-transparent p-0 border-0 outline-none hover:scale-105 active:scale-95 transition-transform duration-300"
+        aria-label={`فتح المساعد الذكي ${site.botName}`}
+      >
+        <span
+          className="absolute bottom-1 left-1/2 h-14 w-14 -translate-x-1/2 rounded-full bg-brand/20 blur-xl opacity-80 group-hover:bg-brand/30"
           aria-hidden
-        >
-          <div className="min-h-[38px] rounded-2xl border border-slate-200 bg-white/95 px-4 py-2 text-sm font-bold text-slate-900 shadow-[0_12px_30px_rgba(15,23,42,0.10)] backdrop-blur-sm">
-            <span
-              key={launcherTextIndex}
-              className="block whitespace-nowrap animate-in fade-in-0 slide-in-from-bottom-1 duration-500"
-            >
-              {LAUNCHER_PHRASES[launcherTextIndex]}
-            </span>
-          </div>
-
-          <span
-            className="absolute -bottom-1 left-1/2 h-3 w-3 -translate-x-1/2 rotate-45 border-b border-r border-slate-200 bg-white/95"
-          />
-        </div>
-
-        <button
-          onClick={() => setOpen(true)}
-          className="group relative flex h-[190px] w-[150px] items-end justify-center overflow-visible rounded-[2rem] bg-transparent p-0 border-0 outline-none hover:scale-105 active:scale-95 transition-transform duration-300"
-          aria-label={`فتح المساعد الذكي ${site.botName}`}
-        >
-          <span
-            className="absolute bottom-8 left-1/2 h-14 w-14 -translate-x-1/2 rounded-full bg-[#f5bf23]/18 blur-2xl opacity-70 transition-all duration-300 group-hover:opacity-90 group-hover:scale-110"
-            aria-hidden
-          />
-
-          <img
-            src={sloBotGif}
-            alt=""
-            className="relative h-[170px] w-auto origin-bottom object-contain drop-shadow-[0_18px_28px_rgba(15,23,42,0.26)]"
-            style={{ animation: "azabot-float 3.2s ease-in-out infinite" }}
-            draggable={false}
-            aria-hidden
-          />
-        </button>
-      </div>
+        />
+        <img
+          src={sloBotGif}
+          alt=""
+          className="relative h-[112px] w-auto object-contain drop-shadow-[0_14px_24px_rgba(0,0,0,0.28)]"
+          draggable={false}
+          aria-hidden
+        />
+      </button>
     );
   }
 

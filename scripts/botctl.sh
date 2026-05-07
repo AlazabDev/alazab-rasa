@@ -137,8 +137,15 @@ load_env() {
   if [[ "${REDIS_HOST:-}" == "redis" ]]; then
     export REDIS_HOST=127.0.0.1
   fi
-  # endpoints.yml uses REDIS_HOST directly now — also export for legacy compat
-  export REDIS_URL="${REDIS_HOST:-127.0.0.1}"
+  export REDIS_HOST="${REDIS_HOST:-127.0.0.1}"
+  export REDIS_PORT="${REDIS_PORT:-6379}"
+  export REDIS_DB="${REDIS_DB:-0}"
+  export REDIS_LOCK_DB="${REDIS_LOCK_DB:-1}"
+  export REDIS_PASSWORD="${REDIS_PASSWORD:-}"
+  export REDIS_KEY_PREFIX="${REDIS_KEY_PREFIX:-alazab}"
+  export REDIS_USE_SSL="${REDIS_USE_SSL:-false}"
+  # endpoints.yml uses REDIS_HOST directly now - also export for legacy compat.
+  export REDIS_URL="$REDIS_HOST"
 }
 
 require_env() {

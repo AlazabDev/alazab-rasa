@@ -139,27 +139,12 @@ export default function AzaBot() {
 
   if (!open) {
     return (
-      <div className="fixed bottom-2 left-4 z-50 flex flex-col items-center overflow-visible translate-y-4">
-        <style>
-          {`
-            @keyframes azabot-float {
-              0%, 100% { transform: translateY(0) scale(1.55); }
-              50% { transform: translateY(-6px) scale(1.55); }
-            }
-
-            @keyframes azabot-bubble {
-              0%, 100% { transform: translateY(0); opacity: 0.98; }
-              50% { transform: translateY(-2px); opacity: 1; }
-            }
-          `}
-        </style>
-
+      <div className="fixed bottom-3 left-3 z-50 flex flex-col items-center overflow-visible">
         <div
-          className="relative mb-[-6px]"
-          style={{ animation: "azabot-bubble 2.6s ease-in-out infinite" }}
+          className="relative mb-0"
           aria-hidden
         >
-          <div className="min-h-[38px] rounded-2xl border border-slate-200 bg-white/95 px-4 py-2 text-sm font-bold text-slate-900 shadow-[0_12px_30px_rgba(15,23,42,0.10)] backdrop-blur-sm">
+          <div className="min-h-[38px] rounded-2xl border border-border bg-background/95 px-4 py-2 text-sm font-bold text-foreground shadow-[0_10px_26px_rgba(0,0,0,0.12)] backdrop-blur-sm">
             <span
               key={launcherTextIndex}
               className="block whitespace-nowrap animate-in fade-in-0 slide-in-from-bottom-1 duration-500"
@@ -169,7 +154,7 @@ export default function AzaBot() {
           </div>
 
           <span
-            className="absolute -bottom-1 left-1/2 h-3 w-3 -translate-x-1/2 rotate-45 border-b border-r border-slate-200 bg-white/95"
+            className="absolute -bottom-1 left-1/2 h-3 w-3 -translate-x-1/2 rotate-45 border-b border-r border-border bg-background/95"
           />
         </div>
 
@@ -179,15 +164,14 @@ export default function AzaBot() {
           aria-label={`فتح المساعد الذكي ${site.botName}`}
         >
           <span
-            className="absolute bottom-8 left-1/2 h-14 w-14 -translate-x-1/2 rounded-full bg-[#f5bf23]/18 blur-2xl opacity-70 transition-all duration-300 group-hover:opacity-90 group-hover:scale-110"
+            className="absolute bottom-5 left-1/2 h-16 w-16 -translate-x-1/2 rounded-full bg-brand/15 blur-2xl opacity-70 transition-all duration-300 group-hover:bg-brand/25 group-hover:scale-110"
             aria-hidden
           />
 
           <img
             src={sloBotGif}
             alt=""
-            className="relative h-[170px] w-auto origin-bottom object-contain drop-shadow-[0_18px_28px_rgba(15,23,42,0.26)]"
-            style={{ animation: "azabot-float 3.2s ease-in-out infinite" }}
+            className="relative h-[170px] w-auto origin-bottom scale-[1.55] object-contain drop-shadow-[0_18px_28px_rgba(0,0,0,0.28)]"
             draggable={false}
             aria-hidden
           />

@@ -23,6 +23,7 @@ hdr()  { echo -e "\n${BOLD}${BLUE}═══ $1 ═══${NC}"; }
 DOMAIN="chat.alazab.com"
 EMAIL="admin@alazab.com"
 DEPLOY_DIR="/opt/azabot"
+SUPABASE_URL="https://daraqtdmiwdszczwticd.supabase.co"
 REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
 [[ $EUID -ne 0 ]] && err "يجب تشغيل السكريبت كـ root: sudo ./deploy.sh"
@@ -75,9 +76,9 @@ hdr "4. نسخ ملفات المشروع"
 # ════════════════════════════════════════════════════════════
 mkdir -p "$DEPLOY_DIR"/{nginx,static/{embed,api},logs}
 
-cp -r "$REPO_DIR/deploy/nginx/"*.conf       "$DEPLOY_DIR/nginx/"
-cp    "$REPO_DIR/docker/docker-compose.yaml" "$DEPLOY_DIR/docker-compose.yml"
-cp -r "$REPO_DIR/deploy/static/"*           "$DEPLOY_DIR/static/" 2>/dev/null || true
+cp -r "$REPO_DIR/deploy/nginx/"*.conf   "$DEPLOY_DIR/nginx/"
+cp    "$REPO_DIR/deploy/docker-compose.yml" "$DEPLOY_DIR/"
+cp -r "$REPO_DIR/deploy/static/"*       "$DEPLOY_DIR/static/" 2>/dev/null || true
 cp    "$REPO_DIR/azabot/embed/azabot-embed.js" "$DEPLOY_DIR/static/embed/"
 
 # Build الـ React app إذا كان dist/ موجود
@@ -85,7 +86,7 @@ if [[ -d "$REPO_DIR/azabot/dist" ]]; then
   cp -r "$REPO_DIR/azabot/dist/." "$DEPLOY_DIR/static/"
   log "تم نسخ dist/ للـ static"
 else
-  warn "لم يُوجد azabot/dist — قم بتشغيل: cd azabot && pnpm build"
+  warn "لم يُوجد azabot/dist — قم بـ: cd azabot && npm run build أولاً"
 fi
 
 log "تم نسخ ملفات المشروع إلى $DEPLOY_DIR"
@@ -119,19 +120,27 @@ docker compose up -d --remove-orphans
 log "الحاويات تعمل"
 
 # ════════════════════════════════════════════════════════════
-hdr "7. Supabase اختياري وليس ضمن المسار الأساسي"
+hdr "7. نشر Supabase Edge Functions"
 # ════════════════════════════════════════════════════════════
-warn "تم تخطي نشر Supabase Functions. المسار الأساسي الآن: Browser -> FastAPI -> Rasa -> Actions."
-warn "لو أردت Supabase كإضافة مستقلة، انشره يدوياً من مجلد azabot."
+if command -v supabase &>/dev/null; then
+  cd "$REPO_DIR"
+  supabase functions deploy chat-v2       --no-verify-jwt
+  supabase functions deploy elevenlabs-tts --no-verify-jwt
+  supabase functions deploy elevenlabs-stt --no-verify-jwt
+  log "تم نشر Edge Functions"
+else
+  warn "supabase CLI غير مثبت — ثبّته من: https://supabase.com/docs/guides/cli"
+  warn "ثم نفّذ يدوياً: supabase functions deploy chat-v2"
+fi
 
 # ════════════════════════════════════════════════════════════
-hdr "8. أسرار الإدارة المحلية"
+hdr "8. تعيين أسرار Edge Functions"
 # ════════════════════════════════════════════════════════════
-warn "تأكد أن سيرفر FastAPI يحتوي على متغيرات الإدارة:"
+warn "تذكّر تعيين الأسرار في Supabase Dashboard أو بالأمر التالي:"
 echo ""
-echo "  ADMIN_EMAIL=admin@alazab.com"
-echo "  ADMIN_PASSWORD=<strong-password>"
-echo "  ADMIN_SESSION_SECRET=<long-random-secret>"
+echo "  supabase secrets set CLAUDE_API=sk-ant-api03-..."
+echo "  supabase secrets set ELEVENLABS_API_KEY=sk_..."
+echo "  supabase secrets set GEMINI_API_KEY=AIzaSy..."
 echo ""
 
 # ════════════════════════════════════════════════════════════

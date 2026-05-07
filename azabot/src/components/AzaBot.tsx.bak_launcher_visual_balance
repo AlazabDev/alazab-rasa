@@ -139,27 +139,12 @@ export default function AzaBot() {
 
   if (!open) {
     return (
-      <div className="fixed bottom-2 left-4 z-50 flex flex-col items-center overflow-visible translate-y-4">
-        <style>
-          {`
-            @keyframes azabot-float {
-              0%, 100% { transform: translateY(0) scale(1.55); }
-              50% { transform: translateY(-6px) scale(1.55); }
-            }
-
-            @keyframes azabot-bubble {
-              0%, 100% { transform: translateY(0); opacity: 0.98; }
-              50% { transform: translateY(-2px); opacity: 1; }
-            }
-          `}
-        </style>
-
+      <div className="fixed bottom-4 left-4 z-50 flex flex-col items-start">
         <div
-          className="relative mb-[-6px]"
-          style={{ animation: "azabot-bubble 2.6s ease-in-out infinite" }}
+          className="relative mb-2 ml-2"
           aria-hidden
         >
-          <div className="min-h-[38px] rounded-2xl border border-slate-200 bg-white/95 px-4 py-2 text-sm font-bold text-slate-900 shadow-[0_12px_30px_rgba(15,23,42,0.10)] backdrop-blur-sm">
+          <div className="min-h-[42px] rounded-2xl border border-border bg-background/95 px-4 py-2 text-sm font-semibold text-foreground shadow-[0_10px_30px_rgba(0,0,0,0.14)] backdrop-blur-sm">
             <span
               key={launcherTextIndex}
               className="block whitespace-nowrap animate-in fade-in-0 slide-in-from-bottom-1 duration-500"
@@ -169,25 +154,24 @@ export default function AzaBot() {
           </div>
 
           <span
-            className="absolute -bottom-1 left-1/2 h-3 w-3 -translate-x-1/2 rotate-45 border-b border-r border-slate-200 bg-white/95"
+            className="absolute -bottom-1 left-8 h-3 w-3 rotate-45 border-b border-r border-border bg-background/95"
           />
         </div>
 
         <button
           onClick={() => setOpen(true)}
-          className="group relative flex h-[190px] w-[150px] items-end justify-center overflow-visible rounded-[2rem] bg-transparent p-0 border-0 outline-none hover:scale-105 active:scale-95 transition-transform duration-300"
+          className="group relative flex h-[157px] w-[120px] items-end justify-center rounded-[2rem] bg-transparent p-0 border-0 outline-none hover:scale-105 active:scale-95 transition-transform duration-300"
           aria-label={`فتح المساعد الذكي ${site.botName}`}
         >
           <span
-            className="absolute bottom-8 left-1/2 h-14 w-14 -translate-x-1/2 rounded-full bg-[#f5bf23]/18 blur-2xl opacity-70 transition-all duration-300 group-hover:opacity-90 group-hover:scale-110"
+            className="absolute bottom-3 left-1/2 h-20 w-20 -translate-x-1/2 rounded-full bg-brand/20 blur-xl opacity-80 transition-all duration-300 group-hover:bg-brand/30 group-hover:scale-110"
             aria-hidden
           />
 
           <img
             src={sloBotGif}
             alt=""
-            className="relative h-[170px] w-auto origin-bottom object-contain drop-shadow-[0_18px_28px_rgba(15,23,42,0.26)]"
-            style={{ animation: "azabot-float 3.2s ease-in-out infinite" }}
+            className="relative h-[157px] w-auto object-contain drop-shadow-[0_18px_30px_rgba(0,0,0,0.30)]"
             draggable={false}
             aria-hidden
           />

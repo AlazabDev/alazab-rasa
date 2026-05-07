@@ -3,14 +3,14 @@
   "sites": [
     {
       "id": "luxury-finishing",
-      "name": "العزب للتشطيبات الفاخرة",
+      "name": "الأعزب للتشطيبات الفاخرة",
       "domain": "luxury-finishing.alazab.com",
       "botName": "عزبوت التشطيبات",
       "color": "#C9A84C"
     },
     {
       "id": "brand-identity",
-      "name": "العزب للهوية البصرية",
+      "name": "الأعزب للهوية البصرية",
       "domain": "brand-identity.alazab.com",
       "botName": "عزبوت الهوية",
       "color": "#E63946"
@@ -24,14 +24,14 @@
     },
     {
       "id": "laban-alasfour",
-      "name": "لبن العصفور",
+      "name": "ألبان العصفور",
       "domain": "laban-alasfour.alazab.com",
       "botName": "مساعد العصفور",
       "color": "#2D9CDB"
     },
     {
       "id": "alazab",
-      "name": "مجموعة العزب",
+      "name": "مجموعة الأعزب",
       "domain": "alazab.com",
       "botName": "عزبوت",
       "color": "#C9A84C"

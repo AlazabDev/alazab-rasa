@@ -139,7 +139,7 @@ export default function AzaBot() {
 
   if (!open) {
     return (
-      <div className="fixed bottom-2 left-4 z-50 flex flex-col items-center overflow-visible translate-y-4">
+      <div className="fixed bottom-4 left-4 z-50 flex flex-col items-center overflow-visible">
         <style>
           {`
             @keyframes azabot-float {
