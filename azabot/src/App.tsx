@@ -8,7 +8,7 @@
  * ─────────────────────────────────────────────────────────
  */
 
-import { lazy, Suspense, useState } from "react";
+import { lazy, Suspense, useState, Component, ErrorInfo, ReactNode } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Link, Route, Routes } from "react-router-dom";
 import { Toaster } from "@/components/ui/toaster";
@@ -35,7 +35,32 @@ const queryClient = new QueryClient({
 });
 
 function PageFallback() {
-  return <div className="min-h-screen bg-background" aria-hidden />;
+  return <div className="min-h-screen bg-background flex items-center justify-center">
+    <div className="w-8 h-8 border-4 border-brand border-t-transparent rounded-full animate-spin" />
+  </div>;
+}
+
+class ErrorBoundary extends Component<{ children: ReactNode }, { hasError: boolean }> {
+  constructor(props: { children: ReactNode }) {
+    super(props);
+    this.state = { hasError: false };
+  }
+  static getDerivedStateFromError() { return { hasError: true }; }
+  componentDidCatch(error: Error, errorInfo: ErrorInfo) { console.error("Uncaught error:", error, errorInfo); }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="min-h-screen flex items-center justify-center bg-background p-4 text-center">
+          <div className="max-w-md space-y-4">
+            <h1 className="text-2xl font-bold">عذراً، حدث خطأ غير متوقع</h1>
+            <p className="text-muted-foreground">يرجى تحديث الصفحة أو المحاولة لاحقاً.</p>
+            <button onClick={() => window.location.reload()} className="px-6 py-2 bg-brand text-white rounded-xl">تحديث الصفحة</button>
+          </div>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
 }
 
 
@@ -120,56 +145,51 @@ function AdminHamburger() {
 
 export default function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner position="top-center" richColors />
-        <BrowserRouter>
-          <AdminHamburger />
-          {/*
-           * SiteProvider داخل BrowserRouter كي يستخدم useLocation
-           * لمعرفة المسار الحالي وتحديد الموقع النشط
-           */}
-          <SiteProvider>
-            <Routes>
-              {/* ─── وجهات المواقع ───────────────────── */}
-              <Route path="/" element={<SitePage />} />
-              <Route path="/brand-identity" element={<SitePage />} />
-              <Route path="/luxury-finishing" element={<SitePage />} />
-              <Route path="/uberfix" element={<SitePage />} />
-              <Route path="/laban-alasfour" element={<SitePage />} />
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner position="top-center" richColors />
+          <BrowserRouter>
+            <AdminHamburger />
+            <SiteProvider>
+              <Routes>
+                <Route path="/" element={<SitePage />} />
+                <Route path="/brand-identity" element={<SitePage />} />
+                <Route path="/luxury-finishing" element={<SitePage />} />
+                <Route path="/uberfix" element={<SitePage />} />
+                <Route path="/laban-alasfour" element={<SitePage />} />
 
-              {/* ─── لوحة الإدارة ─────────────────────── */}
-              <Route
-                path="/admin"
-                element={
-                  <Suspense fallback={<PageFallback />}>
-                    <Admin />
-                  </Suspense>
-                }
-              />
-              <Route
-                path="/admin/login"
-                element={
-                  <Suspense fallback={<PageFallback />}>
-                    <AdminLogin />
-                  </Suspense>
-                }
-              />
+                <Route
+                  path="/admin/*"
+                  element={
+                    <Suspense fallback={<PageFallback />}>
+                      <Admin />
+                    </Suspense>
+                  }
+                />
+                <Route
+                  path="/admin/login"
+                  element={
+                    <Suspense fallback={<PageFallback />}>
+                      <AdminLogin />
+                    </Suspense>
+                  }
+                />
 
-              {/* ─── 404 ──────────────────────────────── */}
-              <Route
-                path="*"
-                element={
-                  <Suspense fallback={<PageFallback />}>
-                    <NotFound />
-                  </Suspense>
-                }
-              />
-            </Routes>
-          </SiteProvider>
-        </BrowserRouter>
-      </TooltipProvider>
-    </QueryClientProvider>
+                <Route
+                  path="*"
+                  element={
+                    <Suspense fallback={<PageFallback />}>
+                      <NotFound />
+                    </Suspense>
+                  }
+                />
+              </Routes>
+            </SiteProvider>
+          </BrowserRouter>
+        </TooltipProvider>
+      </QueryClientProvider>
+    </ErrorBoundary>
   );
 }

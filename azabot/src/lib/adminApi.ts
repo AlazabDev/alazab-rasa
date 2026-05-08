@@ -43,15 +43,30 @@ export function adminAssetUrl(path?: string | null) {
 
 export async function adminApi<T = unknown>(
   action: string,
-  opts: { method?: string; body?: unknown; query?: Record<string, string> } = {},
+  opts: { method?: string; body?: unknown; query?: Record<string, string>; headers?: Record<string, string> } = {},
 ): Promise<T> {
   const t = adminToken.get();
   if (!t) throw new Error("Not authenticated");
   const qs = new URLSearchParams({ action, ...(opts.query || {}) }).toString();
+
+  const headers: Record<string, string> = {
+    "Authorization": `Bearer ${t}`,
+    ...opts.headers,
+  };
+
+  const isFormData = opts.body instanceof FormData;
+  if (!isFormData && !headers["Content-Type"]) {
+    headers["Content-Type"] = "application/json";
+  }
+
   const res = await fetch(`${API_ORIGIN}/admin/api?${qs}`, {
     method: opts.method || "POST",
-    headers: { "Content-Type": "application/json", "Authorization": `Bearer ${t}` },
-    body: opts.method === "GET" ? undefined : JSON.stringify(opts.body || {}),
+    headers,
+    body: opts.method === "GET"
+      ? undefined
+      : isFormData
+        ? (opts.body as FormData)
+        : JSON.stringify(opts.body || {}),
   });
   const data = await readJsonResponse(res);
   if (res.status === 401) {
