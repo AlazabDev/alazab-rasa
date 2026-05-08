@@ -376,7 +376,7 @@ export default function KnowledgeBaseTab() {
                                                                     doc.status === 'failed' ? 'فشل' : 'قيد الانتظار'}
                                                         </Badge>
                                                     </div>
-                                                    {doc.metadata?.source && (
+                                                    {!!doc.metadata?.source && (
                                                         <div className="text-xs text-muted-foreground mt-1 truncate">
                                                             المصدر: {doc.metadata.source as string}
                                                         </div>

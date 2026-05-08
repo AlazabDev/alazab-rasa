@@ -74,7 +74,7 @@ export default function IntegrationsTab() {
       type,
       name: TYPES.find((t) => t.id === type)?.label || "",
       enabled: true,
-      config: getDefaultConfig(type) as any,
+      config: getDefaultConfig(type) as Record<string, unknown>,
       events: ["message.created"]
     });
     setOpen(true);
@@ -123,7 +123,7 @@ export default function IntegrationsTab() {
 
   const getConfigValue = (key: string): string => {
     if (!editing) return "";
-    const val = (editing.config as any)[key];
+    const val = (editing.config as Record<string, unknown>)[key];
     if (typeof val === 'string') return val;
     if (Array.isArray(val)) return val.join(", ");
     if (typeof val === 'boolean') return val ? "true" : "false";
@@ -250,7 +250,7 @@ export default function IntegrationsTab() {
                         <Label>Headers (JSON)</Label>
                         <Textarea
                           value={(() => {
-                            const headers = (editing.config as any).headers;
+                            const headers = (editing.config as Record<string, unknown>).headers;
                             if (typeof headers === 'object' && headers !== null) {
                               return JSON.stringify(headers, null, 2);
                             }
@@ -260,7 +260,9 @@ export default function IntegrationsTab() {
                             try {
                               const headers = JSON.parse(e.target.value);
                               updateConfig("headers", headers);
-                            } catch { }
+                            } catch {
+                              // ignore invalid JSON while typing
+                            }
                           }}
                           rows={4}
                           className="mt-1.5 font-mono text-sm"

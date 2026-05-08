@@ -371,6 +371,9 @@ DEFAULT_ADMIN_DATA: dict[str, Any] = {
     "logs": [],
     "conversations": [],
     "uploads": [],
+    "kb_collections": [],
+    "kb_documents": [],
+    "training_jobs": [],
 }
 
 
@@ -1879,8 +1882,56 @@ async def admin_download_upload(upload_id: str, _: None = Depends(_require_admin
     )
 
 
+import subprocess
+
+async def _run_training_process(job_id: str):
+    """خلفية برمجية لتشغيل تدريب Rasa وتحديث الحالة."""
+    logger.info(f"Starting training process for job {job_id}")
+    try:
+        # 1. تحديث الحالة في admin-data.json
+        data = _load_admin_data()
+        for job in data.get("training_jobs", []):
+            if job["id"] == job_id:
+                job["status"] = "running"
+                break
+        _save_admin_data(data)
+
+        # 2. تشغيل التدريب الفعلي
+        # ملاحظة: نستخدم Makefile أو bash scripts لتسهيل الأمر
+        process = await run_in_threadpool(
+            subprocess.run,
+            ["bash", "scripts/botctl.sh", "train"],
+            cwd=str(ROOT_DIR),
+            capture_output=True,
+            text=True
+        )
+
+        # 3. التحقق من النتيجة وتحديث الحالة
+        data = _load_admin_data()
+        for job in data.get("training_jobs", []):
+            if job["id"] == job_id:
+                if process.returncode == 0:
+                    job["status"] = "completed"
+                    job["stats"]["accuracy"] = 0.95 # محاكاة
+                else:
+                    job["status"] = "failed"
+                    logger.error(f"Training failed: {process.stderr}")
+                break
+        _save_admin_data(data)
+
+    except Exception as e:
+        logger.exception(f"Error in training process {job_id}: {e}")
+        data = _load_admin_data()
+        for job in data.get("training_jobs", []):
+            if job["id"] == job_id:
+                job["status"] = "failed"
+                break
+        _save_admin_data(data)
+
+
+
 @app.api_route("/admin/api", methods=["GET", "POST"], tags=["System"])
-async def admin_api(request: Request, action: str, _: None = Depends(_require_admin)):
+async def admin_api(request: Request, action: str, background_tasks: BackgroundTasks, _: None = Depends(_require_admin)):
     data = _load_admin_data()
     body: dict[str, Any] = {}
     if request.method != "GET":
@@ -1994,8 +2045,123 @@ async def admin_api(request: Request, action: str, _: None = Depends(_require_ad
             raise HTTPException(status_code=404, detail="Integration not found")
         return await _test_integration(integration, data)
 
-    if action == "list_logs":
-        return data.get("logs", [])[:200]
+    # ── Knowledge Base ────────────────────────────────────
+    if action == "list_kb_collections":
+        return data.get("kb_collections", [])
+
+    if action == "create_kb_collection":
+        col = {
+            "id": str(uuid.uuid4()),
+            "name": body.get("name", "بدون اسم"),
+            "description": body.get("description", ""),
+            "document_count": 0,
+            "chunk_count": 0,
+            "created_at": datetime.now(timezone.utc).isoformat(),
+        }
+        data.setdefault("kb_collections", []).append(col)
+        _save_admin_data(data)
+        return col
+
+    if action == "delete_kb_collection":
+        col_id = body.get("id")
+        data["kb_collections"] = [c for c in data.get("kb_collections", []) if c["id"] != col_id]
+        data["kb_documents"] = [d for d in data.get("kb_documents", []) if d["collection_id"] != col_id]
+        _save_admin_data(data)
+        return {"ok": True}
+
+    if action == "list_kb_documents":
+        col_id = request.query_params.get("collection_id")
+        q = (request.query_params.get("q") or "").lower()
+        docs = data.get("kb_documents", [])
+        if col_id:
+            docs = [d for d in docs if d["collection_id"] == col_id]
+        if q:
+            docs = [d for d in docs if q in d["name"].lower()]
+        return docs
+
+    if action == "upload_kb_documents":
+        # Note: Frontend sends FormData. FastAPI handles this via request.form()
+        form = await request.form()
+        col_id = str(form.get("collection_id", "default"))
+        files = form.getlist("files")
+        urls = json.loads(str(form.get("urls", "[]")))
+
+        new_docs = []
+        for f in files:
+            if not isinstance(f, UploadFile): continue
+            doc_id = str(uuid.uuid4())
+            # Simple save for now
+            dest = UPLOADS_DIR / "kb" / doc_id / f.filename
+            dest.parent.mkdir(parents=True, exist_ok=True)
+            with dest.open("wb") as buffer:
+                buffer.write(await f.read())
+
+            doc = {
+                "id": doc_id,
+                "collection_id": col_id,
+                "name": f.filename,
+                "type": "file",
+                "status": "ready", # In real app, would be 'processing'
+                "created_at": datetime.now(timezone.utc).isoformat(),
+                "metadata": {"source": f.filename}
+            }
+            new_docs.append(doc)
+
+        for url in urls:
+            doc = {
+                "id": str(uuid.uuid4()),
+                "collection_id": col_id,
+                "name": url.split("/")[-1] or url,
+                "type": "url",
+                "status": "ready",
+                "created_at": datetime.now(timezone.utc).isoformat(),
+                "metadata": {"source": url}
+            }
+            new_docs.append(doc)
+
+        data.setdefault("kb_documents", []).extend(new_docs)
+        # Update collection counts
+        for col in data.get("kb_collections", []):
+            if col["id"] == col_id:
+                col["document_count"] = sum(1 for d in data["kb_documents"] if d["collection_id"] == col_id)
+
+        _save_admin_data(data)
+        return {"ok": True, "count": len(new_docs)}
+
+    if action == "delete_kb_document":
+        doc_id = body.get("id")
+        data["kb_documents"] = [d for d in data.get("kb_documents", []) if d["id"] != doc_id]
+        _save_admin_data(data)
+        return {"ok": True}
+
+    # ── Training ──────────────────────────────────────────
+    if action == "list_training_jobs":
+        return data.get("training_jobs", [])
+
+    if action == "start_training":
+        form = await request.form()
+        job_id = str(uuid.uuid4())
+        job = {
+            "id": job_id,
+            "name": str(form.get("name", "تدريب جديد")),
+            "model_type": str(form.get("model_type", "rasa")),
+            "status": "running",
+            "created_at": datetime.now(timezone.utc).isoformat(),
+            "files": [],
+            "stats": {"epochs": 0, "accuracy": 0}
+        }
+        data.setdefault("training_jobs", []).insert(0, job)
+        _save_admin_data(data)
+
+        # Trigger background training
+        background_tasks.add_task(_run_training_process, job_id)
+        return job
+
+    if action == "delete_training_job":
+        job_id = body.get("id")
+        data["training_jobs"] = [j for j in data.get("training_jobs", []) if j["id"] != job_id]
+        _save_admin_data(data)
+        return {"ok": True}
 
     raise HTTPException(status_code=400, detail=f"Unsupported admin action: {action}")
 

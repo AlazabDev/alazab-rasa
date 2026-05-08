@@ -148,7 +148,7 @@ export interface AdminIntegration {
   type: IntegrationType | string;
   name: string;
   enabled: boolean;
-  config: Record<string, any> | IntegrationConfig;  // مرونة أكبر في الإعدادات الديناميكية
+  config: Record<string, unknown> | IntegrationConfig;  // مرونة أكبر في الإعدادات الديناميكية
   events: string[];
   created_at?: string;
   updated_at?: string;
