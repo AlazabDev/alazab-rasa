@@ -7,11 +7,7 @@ import logging
 import httpx
 from typing import Dict, Any, List, Optional
 from datetime import datetime
-try:
-    from supabase import create_client, Client
-except Exception:
-    create_client = None
-    Client = object
+from supabase import create_client, Client
 
 # ============================================================================
 # إعدادات التسجيل

@@ -8,14 +8,13 @@
  * ─────────────────────────────────────────────────────────
  */
 
-import { lazy, Suspense, useState } from "react";
+import { lazy, Suspense } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Link, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { SiteProvider } from "@/context/SiteContext";
-import { Menu, X, ShieldCheck, LogIn, Home } from "lucide-react";
 
 // Page حيوية — eager
 import SitePage from "./pages/SitePage";
@@ -38,86 +37,6 @@ function PageFallback() {
   return <div className="min-h-screen bg-background" aria-hidden />;
 }
 
-
-function AdminHamburger() {
-  const [open, setOpen] = useState(false);
-
-  const links = [
-    {
-      to: "/",
-      label: "الرئيسية",
-      description: "واجهة عزبوت",
-      icon: Home,
-    },
-    {
-      to: "/admin",
-      label: "لوحة الإدارة",
-      description: "إدارة المحادثات والإعدادات",
-      icon: ShieldCheck,
-    },
-    {
-      to: "/admin/login",
-      label: "دخول الإدارة",
-      description: "تسجيل دخول المسؤول",
-      icon: LogIn,
-    },
-  ];
-
-  return (
-    <div className="fixed top-4 right-4 z-[70]" dir="rtl">
-      <button
-        type="button"
-        onClick={() => setOpen((v) => !v)}
-        className="flex h-11 w-11 items-center justify-center rounded-2xl border border-border bg-background/95 text-foreground shadow-[0_12px_30px_rgba(15,23,42,0.14)] backdrop-blur-md transition hover:scale-105 active:scale-95"
-        aria-label={open ? "إغلاق قائمة الإدارة" : "فتح قائمة الإدارة"}
-        aria-expanded={open}
-      >
-        {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-      </button>
-
-      {open && (
-        <div className="mt-3 w-72 overflow-hidden rounded-3xl border border-border bg-background/95 shadow-[0_18px_45px_rgba(15,23,42,0.18)] backdrop-blur-xl animate-in fade-in-0 zoom-in-95 duration-200">
-          <div className="border-b border-border px-4 py-3">
-            <p className="text-sm font-bold text-foreground">قائمة الإدارة</p>
-            <p className="mt-1 text-xs text-muted-foreground">
-              روابط سريعة لإدارة عزبوت
-            </p>
-          </div>
-
-          <nav className="p-2">
-            {links.map((item) => {
-              const Icon = item.icon;
-
-              return (
-                <Link
-                  key={item.to}
-                  to={item.to}
-                  onClick={() => setOpen(false)}
-                  className="flex items-center gap-3 rounded-2xl px-3 py-3 text-sm transition hover:bg-muted"
-                >
-                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-brand/10 text-brand">
-                    <Icon className="h-5 w-5" />
-                  </span>
-
-                  <span className="min-w-0">
-                    <span className="block font-bold text-foreground">
-                      {item.label}
-                    </span>
-                    <span className="mt-0.5 block text-xs text-muted-foreground">
-                      {item.description}
-                    </span>
-                  </span>
-                </Link>
-              );
-            })}
-          </nav>
-        </div>
-      )}
-    </div>
-  );
-}
-
-
 export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
@@ -125,7 +44,6 @@ export default function App() {
         <Toaster />
         <Sonner position="top-center" richColors />
         <BrowserRouter>
-          <AdminHamburger />
           {/*
            * SiteProvider داخل BrowserRouter كي يستخدم useLocation
            * لمعرفة المسار الحالي وتحديد الموقع النشط

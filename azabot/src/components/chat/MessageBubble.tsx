@@ -35,18 +35,18 @@ export function MessageBubble({ msg, ttsEnabled, onSpeak }: MessageBubbleProps) 
       <div
         className={"w-8 h-8 rounded-full flex items-center justify-center shrink-0 text-xs font-bold " +
           (isUser ? "bg-primary text-primary-foreground" :
-           msg.isError ? "bg-destructive/20 text-destructive" :
-           "bg-brand text-brand-foreground")}
+            msg.isError ? "bg-destructive/20 text-destructive" :
+              "bg-brand text-brand-foreground")}
         aria-hidden
       >
-        {isUser ? "أنا" : <Bot className="w-4 h-4" />}
+        {isUser ? "⚧️" : <Bot className="w-4 h-4" />}
       </div>
 
       <div className={"max-w-[78%] flex flex-col gap-1 " + (isUser ? "items-end" : "items-start")}>
         <div className={"px-3.5 py-2.5 rounded-2xl shadow-bubble text-sm leading-relaxed " +
           (isUser ? "bg-primary text-primary-foreground rounded-tr-sm" :
-           msg.isError ? "bg-destructive/10 text-destructive border border-destructive/20 rounded-tl-sm" :
-           "bg-muted text-foreground rounded-tl-sm")}>
+            msg.isError ? "bg-destructive/10 text-destructive border border-destructive/20 rounded-tl-sm" :
+              "bg-muted text-foreground rounded-tl-sm")}>
 
           {msg.role === "assistant" && msg.content ? (
             <div className="prose prose-sm max-w-none prose-p:my-1 prose-headings:my-2 prose-pre:my-2 prose-ul:my-1 prose-li:my-0 dark:prose-invert">
