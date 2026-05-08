@@ -1,9 +1,0 @@
-version: "3.1"
-
-flows:
-  goodbye:
-    description: "توديع المستخدم وإنهاء المحادثة"
-    nlu_trigger:
-      - intent: goodbye
-    steps:
-      - action: utter_goodbye

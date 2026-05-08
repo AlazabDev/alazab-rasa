@@ -1,9 +1,0 @@
-version: "3.1"
-
-flows:
-  hello:
-    description: "الترحيب العام بالمستخدم"
-    nlu_trigger:
-      - intent: greet
-    steps:
-      - action: utter_greet
