@@ -1,0 +1,157 @@
+version: "3.1"
+
+flows:
+  give_feedback:
+    description: "يجمع تقييم المستخدم واقتراحاته"
+    name: "give_feedback"
+
+    steps:
+      - id: welcome_feedback
+        action: utter_ask_feedback
+        next:
+          - if: context.intent.name = "provide_rating"
+            then: ask_service
+          - if: context.intent.name = "provide_suggestion"
+            then: ask_suggestion
+          - if: context.intent.name = "give_feedback"
+            then: ask_feedback_text
+          - else: welcome_feedback
+
+      - id: ask_service
+        action: utter_ask_which_service
+        next: receive_service
+
+      - id: receive_service
+        action: action_receive_feedback_service
+        next: ask_rating
+
+      - id: ask_rating
+        action: utter_ask_rating
+        next: receive_rating
+
+      - id: receive_rating
+        action: action_receive_rating
+        next: ask_feedback_text
+
+      - id: ask_feedback_text
+        action: utter_ask_feedback_details
+        next: receive_feedback_text
+
+      - id: receive_feedback_text
+        action: action_receive_feedback_text
+        next:
+          - if: slots.rating >= 4
+            then: positive_feedback
+          - if: slots.rating <= 2
+            then: negative_feedback
+          - else: neutral_feedback
+
+      - id: ask_suggestion
+        action: utter_ask_suggestion_details
+        next: receive_suggestion
+
+      - id: receive_suggestion
+        action: action_receive_suggestion
+        next: save_suggestion
+
+      - id: positive_feedback
+        action: utter_positive_feedback
+        next: save_feedback
+
+      - id: negative_feedback
+        action: utter_negative_apology
+        next: ask_follow_up
+
+      - id: neutral_feedback
+        action: utter_neutral_feedback
+        next: save_feedback
+
+      - id: ask_follow_up
+        action: utter_ask_follow_up_contact
+        next:
+          - if: context.intent.name = "affirm"
+            then: collect_lead_info
+          - else: save_feedback
+
+      - id: collect_lead_info
+        action: action_collect_follow_up_contact
+        next: save_feedback
+
+      - id: save_feedback
+        action: action_save_feedback
+        next: thank_user
+
+      - id: save_suggestion
+        action: action_save_suggestion
+        next: thank_suggestion
+
+      - id: thank_user
+        action: utter_thanks_for_feedback
+        next: END
+
+      - id: thank_suggestion
+        action: utter_thanks_for_suggestion
+        next: END
+
+responses:
+  utter_ask_feedback:
+    - text: |
+        ⭐ نقدر رأيك!
+
+        هل تريد:
+        1️⃣ تقييم الخدمة من 1 إلى 5
+        2️⃣ اقتراح تطوير
+        3️⃣ مشاركة تجربتك
+
+  utter_ask_which_service:
+    - text: |
+        🔧 أي خدمة تقيمها؟
+
+        • Alazab Construction
+        • Luxury Finishing
+        • Brand Identity
+        • UberFix
+        • Laban Alasfour
+
+  utter_ask_rating:
+    - text: |
+        ⭐ قيم خدمتنا من 1 إلى 5:
+
+        1 - سيء جداً
+        2 - سيء
+        3 - متوسط
+        4 - جيد
+        5 - ممتاز
+
+  utter_ask_feedback_details:
+    - text: "📝 شاركنا تجربتك بالتفصيل."
+
+  utter_ask_suggestion_details:
+    - text: "💡 شاركنا اقتراحك لتطوير الخدمة."
+
+  utter_positive_feedback:
+    - text: "😊 يسعدنا أنك راضٍ عن خدمتنا. شكراً لك."
+
+  utter_negative_apology:
+    - text: "🙏 نأسف أن تجربتك لم تكن مرضية. سنراجع الأمر ونعمل على التحسين."
+
+  utter_neutral_feedback:
+    - text: "📝 شكراً لرأيك الصريح. سنعمل على تحسين خدماتنا."
+
+  utter_ask_follow_up_contact:
+    - text: "هل تسمح لنا بالتواصل معك لحل المشكلة؟"
+
+  utter_thanks_for_feedback:
+    - text: "📝 شكراً لمشاركتنا تجربتك. رأيك مهم لنا."
+
+  utter_thanks_for_suggestion:
+    - text: "💡 شكراً لاقتراحك. تم تسجيله وسنعمل على دراسته."
+
+actions:
+  - action_receive_feedback_service
+  - action_receive_rating
+  - action_receive_feedback_text
+  - action_receive_suggestion
+  - action_save_feedback
+  - action_save_suggestion
+  - action_collect_follow_up_contact

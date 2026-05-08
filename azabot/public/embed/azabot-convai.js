@@ -7,25 +7,25 @@
  * Optional attributes:
  *   data-position="left|right"   (default: right)
  *   data-color="#FFB800"         (overrides bot primary color)
- *   data-api="https://..."       (override Supabase functions origin)
- *   data-key="ANON_KEY"          (override anon key)
+ *   data-api="https://..."       (override FastAPI origin)
  */
 (function () {
   "use strict";
   if (window.__AZABOT_CONVAI__) return;
   window.__AZABOT_CONVAI__ = true;
 
-  // ── Resolve API origin & key from script tag or defaults ───
+  // ── Resolve API origin from script tag or script origin ───
   var thisScript = document.currentScript || (function () {
     var s = document.getElementsByTagName("script");
     return s[s.length - 1];
   })();
 
-  var DEFAULT_API = "https://daraqtdmiwdszczwticd.supabase.co";
-  var DEFAULT_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRhcmFxdGRtaXdkc3pjend0aWNkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY2MjkxMDQsImV4cCI6MjA5MjIwNTEwNH0.4RR-lXA2LO9LQTiCHi5fwAKuKhzjhiLDnOUqp2xrUxs";
+  var DEFAULT_API = window.location.origin;
+  try {
+    DEFAULT_API = new URL(thisScript && thisScript.src ? thisScript.src : "", window.location.href).origin;
+  } catch (e) { /* keep fallback */ }
 
-  var API_ORIGIN = (thisScript && thisScript.getAttribute("data-api")) || DEFAULT_API;
-  var API_KEY = (thisScript && thisScript.getAttribute("data-key")) || DEFAULT_KEY;
+  var API_ORIGIN = ((thisScript && thisScript.getAttribute("data-api")) || DEFAULT_API).replace(/\/$/, "");
 
   // ── Web Component ─────────────────────────────────────────
   class AzabotConvai extends HTMLElement {
@@ -62,9 +62,7 @@
 
     async _loadSettings() {
       try {
-        var r = await fetch(API_ORIGIN + "/functions/v1/bot-public-settings", {
-          headers: { "apikey": API_KEY, "Authorization": "Bearer " + API_KEY },
-        });
+        var r = await fetch(API_ORIGIN + "/bot-public-settings");
         if (r.ok) {
           var data = await r.json();
           Object.assign(this._settings, data || {});
@@ -250,51 +248,31 @@
       this._appendAndScroll();
       this._showTyping();
       try {
-        var resp = await fetch(API_ORIGIN + "/functions/v1/chat", {
+        var resp = await fetch(API_ORIGIN + "/chat", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            "apikey": API_KEY,
-            "Authorization": "Bearer " + API_KEY,
           },
           body: JSON.stringify({
-            messages: this._history.slice(-20),
-            session_id: this._sessionId,
+            sender_id: this._sessionId,
+            message: text,
+            channel: "website",
+            site_host: window.location.hostname,
+            site_path: window.location.pathname || "/",
+            brand: this.getAttribute("agent-id") || undefined,
           }),
         });
         if (!resp.ok) throw new Error("HTTP " + resp.status);
 
-        var reader = resp.body.getReader();
-        var dec = new TextDecoder();
-        var buf = "", acc = "";
+        var data = await resp.json();
+        var acc = this._normalizeResponses(data && data.responses);
         this._history.push({ role: "assistant", content: "" });
         this._removeTyping();
-        while (true) {
-          var r = await reader.read();
-          if (r.done) break;
-          buf += dec.decode(r.value, { stream: true });
-          var lines = buf.split("\n");
-          buf = lines.pop() || "";
-          for (var i = 0; i < lines.length; i++) {
-            var line = lines[i].trim();
-            if (!line.startsWith("data:")) continue;
-            var data = line.slice(5).trim();
-            if (data === "[DONE]") continue;
-            try {
-              var j = JSON.parse(data);
-              var delta = j.choices && j.choices[0] && j.choices[0].delta && j.choices[0].delta.content;
-              if (delta) {
-                acc += delta;
-                this._history[this._history.length - 1].content = acc;
-                this._updateLastBot(acc);
-              }
-            } catch (_) { /* ignore */ }
-          }
-        }
         if (!acc) {
-          this._history[this._history.length - 1].content = "…";
-          this._updateLastBot("…");
+          acc = "لم يصل رد من الخادم.";
         }
+        this._history[this._history.length - 1].content = acc;
+        this._updateLastBot(acc);
         if (!this._open) { this._unread = (this._unread || 0) + 1; this._render(); }
       } catch (e) {
         this._removeTyping();
@@ -305,6 +283,13 @@
         var inp = this.shadowRoot.getElementById("input");
         if (inp) { inp.value = ""; inp.style.height = "auto"; }
       }
+    }
+
+    _normalizeResponses(responses) {
+      if (!Array.isArray(responses)) return "";
+      return responses.map(function (item) {
+        return item && typeof item.text === "string" ? item.text.trim() : "";
+      }).filter(Boolean).join("\n\n");
     }
 
     _appendAndScroll() {

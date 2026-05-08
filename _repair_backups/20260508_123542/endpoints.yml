@@ -1,0 +1,35 @@
+action_endpoint:
+  url: "http://127.0.0.1:5055/webhook"
+
+tracker_store:
+  type: redis
+  url: "127.0.0.1"
+  port: 6379
+  db: 0
+  password: ""
+  key_prefix: "alazab"
+  use_ssl: false
+
+lock_store:
+  type: redis
+  url: "127.0.0.1"
+  port: 6379
+  db: 1
+  password: ""
+  use_ssl: false
+
+model_groups:
+  - id: openai-gpt-4o
+    models:
+      - provider: openai
+        model: gpt-4o
+        timeout: 15
+  - id: openai-gpt-4o-mini
+    models:
+      - provider: openai
+        model: gpt-4o-mini
+        timeout: 15
+  - id: openai-embeddings
+    models:
+      - provider: openai
+        model: text-embedding-3-large
