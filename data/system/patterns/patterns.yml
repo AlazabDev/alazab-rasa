@@ -9,9 +9,9 @@ version: "3.1"
 
 flows:
   pattern_cannot_handle:
-    description: "يتم استدعاؤه عندما لا يفهم البوت طلب المستخدم"
+    description: "يتم استدعاؤه عندما لا يجد البوت إجابة مناسبة في قاعدة المعرفة أو الخدمات"
     steps:
-      - action: utter_out_of_scope
+      - action: utter_no_relevant_answer_found
         next: END
 
   pattern_completed:
@@ -28,8 +28,15 @@ flows:
       - action: action_correct_flow_slot
         next: END
 
+  pattern_search:
+    name: "البحث في قاعدة المعرفة"
+    description: "يتم استدعاؤه عند طرح سؤال معرفي يتطلب البحث في البيانات"
+    steps:
+      - action: action_trigger_search
+        next: END
+
   pattern_clarification:
-    description: "يُستخدم عندما يكون طلب المستخدم محتملاً لأكثر من مسار، ويجب أن يكون سؤال التوضيح بالعربية"
+    description: "يُستخدم عندما يكون طلب المستخدم محتملاً لأكثر من مسار"
     name: "توضيح الطلب"
     steps:
       - noop: true

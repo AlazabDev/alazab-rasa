@@ -1,0 +1,55 @@
+flows:
+  create_maintenance_request:
+    description: |
+      يتيح للمستخدم تقديم طلب صيانة لفرع أو محل تابع لشبكة العزب (700 فرع).
+      ⚠️ [يرجى استكمال بيانات الفروع وأنواع الخدمات من الإدارة]
+    name: create_maintenance_request
+    steps:
+      - collect: maintenance_client_name
+        description: |
+          اسم الفرع أو العميل.
+          ⚠️ [قائمة الفروع قابلة للتوسعة]
+      - collect: maintenance_client_phone
+        description: رقم الهاتف لإتمام التواصل.
+      - collect: maintenance_service_type
+        description: |
+          نوع خدمة الصيانة (كهرباء، سباكة، إلخ).
+          ⚠️ [قائمة أنواع الخدمات تُحدث من الإدارة]
+      - collect: maintenance_description
+        description: وصف المشكلة أو الطلب.
+      - collect: maintenance_priority
+        description: أولوية الطلب (عالية/متوسطة/منخفضة)
+      - action: action_create_maintenance_request
+      - action: utter_maintenance_request_created
+  get_maintenance_status:
+    description: |
+      استعلام عن حالة طلب صيانة باستخدام رقم الطلب أو المعرف.
+      ⚠️ [مطلوب رقم الطلب/المعرف]
+    name: get_maintenance_status
+    steps:
+      - collect: maintenance_request_id
+        description: |
+          رقم الطلب أو المعرف.
+          ⚠️ [يمكن ربطها بلوحة متابعة الطلبات مستقبلا]
+      - action: action_get_maintenance_status
+      - action: utter_maintenance_status
+  triage_maintenance_request:
+    description: |
+      نقل طلب صيانة إلى مرحلة المراجعة (triaged).
+      ⚠️ [الإجراء يتم غالبًا من قبل الإدارة]
+    name: triage_maintenance_request
+    steps:
+      - collect: maintenance_request_id
+        description: رقم الطلب المطلوب مراجعته.
+      - action: action_triage_maintenance_request
+      - action: utter_maintenance_triaged
+  assign_maintenance_request:
+    description: |
+      تعيين فني لطلب الصيانة.
+      ⚠️ [يرجى تحديث بيانات الفنيين من الإدارة]
+    name: assign_maintenance_request
+    steps:
+      - collect: maintenance_request_id
+        description: رقم الطلب المطلوب تعيين فني له.
+      - action: action_assign_maintenance_request
+      - action: utter_maintenance_assigned

@@ -39,7 +39,7 @@ export function MessageBubble({ msg, ttsEnabled, onSpeak }: MessageBubbleProps) 
               "bg-brand text-brand-foreground")}
         aria-hidden
       >
-        {isUser ? "⚧️" : <Bot className="w-4 h-4" />}
+        {isUser ? "@" : <Bot className="w-4 h-4" />}
       </div>
 
       <div className={"max-w-[78%] flex flex-col gap-1 " + (isUser ? "items-end" : "items-start")}>

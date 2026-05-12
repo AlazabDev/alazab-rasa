@@ -73,7 +73,7 @@ export interface ConversationDetail extends ConversationSummary {
 
 // ============ أنواع التكاملات الموسعة ============
 
-export type IntegrationType = "webhook" | "telegram" | "whatsapp" | "twilio" | "slack" | "discord" | "email";
+export type IntegrationType = "webhook" | "telegram" | "whatsapp" | "twilio" | "slack" | "discord" | "email" | "daftra" | "openai" | "supabase";
 
 // تكوينات كل نوع تكامل
 export interface WebhookIntegrationConfig {
@@ -131,6 +131,24 @@ export interface EmailIntegrationConfig {
   use_tls?: boolean;
 }
 
+export interface DaftraIntegrationConfig {
+  api_key: string;
+  base_url: string;
+}
+
+export interface OpenAIIntegrationConfig {
+  api_key: string;
+  tts_model?: string;
+  stt_model?: string;
+  llm_model?: string;
+}
+
+export interface SupabaseIntegrationConfig {
+  url: string;
+  anon_key: string;
+  service_role_key?: string;
+}
+
 // Union type لجميع إعدادات التكاملات
 export type IntegrationConfig = Record<string, unknown> & (
   | WebhookIntegrationConfig
@@ -140,6 +158,9 @@ export type IntegrationConfig = Record<string, unknown> & (
   | SlackIntegrationConfig
   | DiscordIntegrationConfig
   | EmailIntegrationConfig
+  | DaftraIntegrationConfig
+  | OpenAIIntegrationConfig
+  | SupabaseIntegrationConfig
 );
 
 // واجهة التكامل الرئيسية (متوافقة مع الموجودة مع دعم الأنواع الموسعة)
@@ -241,7 +262,10 @@ export const getIntegrationTypeLabel = (type: string): string => {
     twilio: 'Twilio',
     slack: 'Slack',
     discord: 'Discord',
-    email: 'البريد الإلكتروني'
+    email: 'البريد الإلكتروني',
+    daftra: 'دفترة (Daftra)',
+    openai: 'OpenAI',
+    supabase: 'Supabase'
   };
   return labels[type] || type;
 };

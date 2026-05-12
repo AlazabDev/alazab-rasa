@@ -1,0 +1,20 @@
+[Unit]
+Description=Alazab Rasa Actions Server
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=azab
+WorkingDirectory=/home/azab/azabot/alazab-rasa
+EnvironmentFile=-/home/azab/azabot/alazab-rasa/.env
+Environment=PYTHONUTF8=1
+Environment=PYTHONIOENCODING=utf-8
+ExecStart=/home/azab/azabot/alazab-rasa/.venv/bin/rasa run actions --port 5055
+Restart=always
+RestartSec=5
+KillSignal=SIGINT
+TimeoutStopSec=30
+
+[Install]
+WantedBy=multi-user.target

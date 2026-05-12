@@ -47,3 +47,31 @@ class ValidateCollectLeadForm(FormValidationAction):
             dispatcher.utter_message(text="من فضلك اكتب الطلب أو المشكلة بشكل مختصر وواضح.")
             return {"user_message": None}
         return {"user_message": value}
+
+
+class ValidateMaintenanceForm(FormValidationAction):
+    def name(self) -> Text:
+        return "validate_maintenance_form"
+
+    def validate_user_name(self, slot_value, dispatcher, tracker, domain):
+        # Reuse same logic as Lead form
+        value = str(slot_value or "").strip()
+        if len(value) < 2:
+            dispatcher.utter_message(text="من فضلك اكتب الاسم بشكل أوضح.")
+            return {"user_name": None}
+        return {"user_name": value}
+
+    def validate_user_phone(self, slot_value, dispatcher, tracker, domain):
+        # Reuse same logic as Lead form
+        value = re.sub(r"[^0-9+]", "", str(slot_value or "").strip())
+        if not re.fullmatch(r"(?:\+?20|0)?1[0125]\d{8}", value):
+            dispatcher.utter_message(text="من فضلك اكتب رقم موبايل مصري صحيح.")
+            return {"user_phone": None}
+        return {"user_phone": value}
+
+    def validate_branch_name(self, slot_value, dispatcher, tracker, domain):
+        value = str(slot_value or "").strip()
+        if len(value) < 3:
+            dispatcher.utter_message(text="من فضلك حدد اسم الفرع بوضوح (مثلاً: فرع المعادي).")
+            return {"branch_name": None}
+        return {"branch_name": value}

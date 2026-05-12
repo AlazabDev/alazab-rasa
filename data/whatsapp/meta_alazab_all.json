@@ -191,7 +191,7 @@
             "name": "ElevenLabs Agents",
             "id": "1592615517968289"
           },
-          "override_callback_uri": "https://api.us.elevenlabs.io/v1/convai/whatsapp"
+          "override_callback_uri": "https://api.elevenlabs.io/v1/convai/conversations/whatsapp/agent_1701kpmdwe5vftjv0zas44bkmcm1"
         }
       ],
       "webhooks": null

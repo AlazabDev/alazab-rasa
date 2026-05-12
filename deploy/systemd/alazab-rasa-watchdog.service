@@ -1,0 +1,16 @@
+[Unit]
+Description=Alazab Rasa Watchdog
+After=network-online.target alazab-rasa-server.service alazab-rasa-actions.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=azab
+WorkingDirectory=/home/azab/azabot/alazab-rasa
+EnvironmentFile=-/home/azab/azabot/alazab-rasa/.env
+ExecStart=/bin/bash /home/azab/azabot/alazab-rasa/scripts/watchdog.sh run
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

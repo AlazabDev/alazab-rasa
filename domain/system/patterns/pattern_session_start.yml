@@ -1,0 +1,14 @@
+responses:
+  utter_welcome:
+    - text: |
+        👋 مرحبًا بك في مجموعة العزب.
+        نحن مجموعة متخصصة في البناء، التشطيب، التسويق، الصيانة والتوريدات.
+        علاماتنا التجارية:
+        1. [Alazab Construction](https://alazab.com) — تنفيذ المشروعات
+        2. [Luxury Finishing](https://luxury-finishingalazab.com) — التشطيبات الراقية
+        3. [Brand Identity](https://brand-identityalazab.com) — هوية العلامات
+        4. [UberFix](https://uberfix.alazab.com) — منصة الصيانة الذكية
+        5. [Laban Alasfour](https://laban-alasfour.alazab.com) — التوريدات والخامات
+        كيف يمكنني مساعدتك اليوم؟
+        الموقع: alazab.com
+        البريد: info@alazab.com

@@ -1,0 +1,198 @@
+version: "3.1"
+nlu:
+  # ── UberFix (Maintenance) ────────────────────────────────
+  - intent: ask_uberfix_request
+    examples: |
+      - عايز أطلب صيانة
+      - السباكة عندي بايظة
+      - في عطل في الكهرباء
+      - محتاج فني تكييف
+      - صيانة
+      - تسجيل بلاغ عطل
+      - عندي مشكلة في البيت محتاجة تصليح
+      - uberfix request
+      - صيانة دورية
+
+  - intent: ask_uberfix_order_status
+    examples: |
+      - فين طلبي
+      - حالة الطلب
+      - الفني هييجي امتى
+      - تتبع بلاغ الصيانة
+      - track my order
+      - شيك على طلبي
+      - الطلب اتنفذ ولا لسه
+
+  - intent: ask_uberfix_subscription
+    examples: |
+      - باقات الصيانة السنوية
+      - اشتراك أوبرفيكس
+      - عايز أشترك في باقة صيانة
+      - عروض الصيانة
+      - uberfix subscription
+      - بكام الاشتراك السنوي
+
+  - intent: ask_uberfix_emergency
+    examples: |
+      - حالة طوارئ
+      - ماس كهربائي
+      - ماسورة مية مفرقعة
+      - الحقوني في مشكلة كبيرة
+      - emergency
+      - طوارئ صيانة
+
+  # ── Luxury Finishing (Interior) ──────────────────────────
+  - intent: ask_luxury_services
+    examples: |
+      - خدمات التشطيب الراقي
+      - بتعملوا ديكورات
+      - عايز أشطب شقتي
+      - تشطيب فيلات
+      - luxury finishing services
+      - تصميم داخلي
+
+  - intent: ask_luxury_materials
+    examples: |
+      - خامات التشطيب
+      - بتستخدموا رخام ايه
+      - أنواع الدهانات
+      - جودة الخامات
+      - luxury materials
+
+  - intent: ask_luxury_quote
+    examples: |
+      - عايز عرض سعر تشطيب
+      - المتر بكام تشطيب
+      - تكلفة تشطيب شقة 100 متر
+      - مقايسة تشطيب
+      - luxury quote
+      - السعر كام
+
+  - intent: ask_luxury_portfolio
+    examples: |
+      - عايز أشوف صور شغلكم
+      - سابقة الأعمال في التشطيب
+      - بورتفوليو التشطيب
+      - نماذج مشاريع سكنية
+      - luxury portfolio
+
+  - intent: ask_luxury_timeline
+    examples: |
+      - التشطيب بياخد وقت قد ايه
+      - مدة استلام الشقة
+      - جدول زمني للتنفيذ
+      - luxury timeline
+
+  # ── Brand Identity (Retail Fit-out) ──────────────────────
+  - intent: ask_brand_services
+    examples: |
+      - تجهيز محلات
+      - تأسيس فروع تجارية
+      - خدمات براند آيدنتيتي
+      - تجهيز مطاعم
+      - brand identity services
+      - فرنشايز وتجهيز
+
+  - intent: ask_brand_process
+    examples: |
+      - خطوات تجهيز الفرع
+      - بتبدأوا ازاي في التصميم التجاري
+      - مراحل تنفيذ الهوية البصرية
+      - brand process
+
+  - intent: ask_brand_quote
+    examples: |
+      - تكلفة تجهيز محل
+      - عرض سعر تأسيس فرع
+      - ميزانية تجهيز براند
+      - brand quote
+
+  - intent: ask_brand_industries
+    examples: |
+      - بتشتغلوا في أنشطة ايه
+      - تجهيز كافيهات
+      - تجهيز عيادات
+      - تجهيز مكاتب
+      - brand industries
+
+  - intent: ask_brand_portfolio
+    examples: |
+      - صور فروع نفذتوها
+      - بورتفوليو تجهيز المحلات
+      - سابقة أعمال براند آيدنتيتي
+      - brand portfolio
+
+  # ── Alazab Construction (General) ────────────────────────
+  - intent: ask_alazab_services
+    examples: |
+      - خدمات مجموعة العزب
+      - بتعملوا ايه
+      - تخصصات الشركة
+      - alazab services
+      - المقاولات العامة
+
+  - intent: ask_alazab_quote
+    examples: |
+      - عايز عرض سعر مشروع
+      - مقايسة مقاولات
+      - تكلفة البناء
+      - alazab quote
+
+  - intent: ask_alazab_about
+    examples: |
+      - مين مجموعة العزب
+      - تاريخ الشركة
+      - خبرة العزب في السوق
+      - about alazab group
+
+  - intent: ask_alazab_contact
+    examples: |
+      - عايز أكلم حد
+      - رقم تليفون الشركة
+      - عنوان المكتب
+      - تواصل معانا
+      - alazab contact
+
+  - intent: ask_alazab_projects
+    examples: |
+      - مشاريع الشركة الكبيرة
+      - نفذتوا ايه قبل كده
+      - سابقة أعمال العزب
+      - alazab projects
+
+  # ── Laban Alasfour (Supplies) ────────────────────────────
+  - intent: ask_laban_products
+    examples: |
+      - منتجات لبن العصفور
+      - بتوردوا ايه
+      - خامات البناء المتاحة
+      - laban products
+      - خامات نادرة
+
+  - intent: ask_laban_catalog
+    examples: |
+      - عايز الكتالوج
+      - كتالوج المنتجات
+      - قائمة الخامات والأسعار
+      - laban catalog
+
+  - intent: ask_laban_bulk_order
+    examples: |
+      - طلبات الجملة
+      - عايز كمية كبيرة
+      - توريد للمشروعات
+      - bulk order
+      - طلبيات خاصة
+
+  - intent: ask_laban_delivery
+    examples: |
+      - التوصيل
+      - بتشحنوا للمحافظات
+      - مدة الشحن
+      - laban delivery
+
+  - intent: ask_laban_contact
+    examples: |
+      - تواصل مع لبن العصفور
+      - رقم مبيعات التوريدات
+      - laban contact

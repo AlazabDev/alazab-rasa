@@ -1,0 +1,22 @@
+[Unit]
+Description=Alazab Rasa Server
+After=network-online.target alazab-rasa-actions.service
+Wants=network-online.target
+Requires=alazab-rasa-actions.service
+
+[Service]
+Type=simple
+User=azab
+WorkingDirectory=/home/azab/azabot/alazab-rasa
+EnvironmentFile=-/home/azab/azabot/alazab-rasa/.env
+Environment=PYTHONUTF8=1
+Environment=PYTHONIOENCODING=utf-8
+ExecStartPre=/bin/bash /home/azab/azabot/alazab-rasa/scripts/botctl.sh heal
+ExecStart=/home/azab/azabot/alazab-rasa/.venv/bin/rasa run --enable-api --cors "*" --port 5005 --endpoints /home/azab/azabot/alazab-rasa/.runtime/endpoints.generated.yml
+Restart=always
+RestartSec=7
+KillSignal=SIGINT
+TimeoutStopSec=45
+
+[Install]
+WantedBy=multi-user.target

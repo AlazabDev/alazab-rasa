@@ -1,0 +1,11 @@
+version: "3.1"
+slots:
+  placeholder_slot:
+    type: text
+    influence_conversation: false
+responses:
+  utter_placeholder:
+    - text: "هذه رسالة مؤقتة (placeholder). استبدلها لاحقًا برد فعلي."
+actions:
+  - action_placeholder
+  # ⚠️ أضف هنا الأكشنات الفعلية لاحقًا

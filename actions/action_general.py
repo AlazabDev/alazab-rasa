@@ -23,17 +23,7 @@ from rasa_sdk.types import DomainDict
 
 logger = logging.getLogger(__name__)
 
-# ── ENV ────────────────────────────────────────────────────────
-WHATSAPP_TOKEN   = os.getenv("WHATSAPP_TOKEN", "")
-NOTIFY_PHONE     = os.getenv("NOTIFY_PHONE", "")
-WHATSAPP_API_URL = os.getenv("WHATSAPP_API_URL", "")
-NOTIFY_TG_CHAT   = os.getenv("NOTIFY_TG_CHAT_ID", "")
-TG_BOT_TOKEN     = os.getenv("TELEGRAM_BOT_TOKEN", "")
-DB_HOST          = os.getenv("DB_HOST", "127.0.0.1")
-DB_PORT          = int(os.getenv("DB_PORT", 5432))
-DB_NAME          = os.getenv("DB_NAME", "alazab_core")
-DB_USER          = os.getenv("DB_USER", "")
-DB_PASSWORD      = os.getenv("DB_PASSWORD", "")
+from .config import DB_CONFIG, WHATSAPP_TOKEN, WHATSAPP_API_URL, NOTIFY_PHONE
 
 # ── Helpers ────────────────────────────────────────────────────
 
@@ -65,10 +55,7 @@ async def _save_to_db(table: str, data: dict) -> bool:
     """حفظ البيانات في قاعدة البيانات PostgreSQL."""
     try:
         import asyncpg  # type: ignore
-        conn = await asyncpg.connect(
-            host=DB_HOST, port=DB_PORT, database=DB_NAME,
-            user=DB_USER, password=DB_PASSWORD,
-        )
+        conn = await asyncpg.connect(**DB_CONFIG)
         cols   = ", ".join(data.keys())
         vals   = ", ".join(f"${i+1}" for i in range(len(data)))
         query  = f"INSERT INTO {table} ({cols}) VALUES ({vals})"
@@ -107,6 +94,11 @@ class ActionSaveLeadToCRM(Action):
             "created_at":   time.strftime("%Y-%m-%d %H:%M:%S"),
             "source":       "chatbot",
             "status":       "new",
+            "metadata":     {
+                "urgency": tracker.get_slot("urgency") or "normal",
+                "budget":  tracker.get_slot("budget") or "not_specified",
+                "property_type": tracker.get_slot("property_type") or "unknown"
+            }
         }
 
         saved = await _save_to_db("leads", lead)
@@ -329,6 +321,37 @@ class ActionCreateEscalationTicket(Action):
         await _save_to_db("escalation_tickets", ticket)
         return []
 
+# ═══════════════════════════════════════════════════════════════
+#  PROJECT TRACKING (Construction & Finishing)
+# ═══════════════════════════════════════════════════════════════
+
+class ActionCreateProject(Action):
+    """إنشاء مشروع جديد في قاعدة البيانات للمقاولات والتشطيب."""
+
+    def name(self) -> Text:
+        return "action_create_project"
+
+    async def run(
+        self,
+        dispatcher: CollectingDispatcher,
+        tracker: Tracker,
+        domain: DomainDict,
+    ) -> List[Dict[Text, Any]]:
+        project = {
+            "project_number": f"PRJ-{int(time.time())}",
+            "client_name":    tracker.get_slot("user_name") or "غير محدد",
+            "client_phone":   tracker.get_slot("user_phone") or "",
+            "brand":          tracker.get_slot("brand") or "alazab",
+            "project_type":   tracker.get_slot("service_type") or "construction",
+            "status":         "planning",
+            "progress_percentage": 0,
+            "daftra_client_id": tracker.get_slot("daftra_client_id") or "",
+            "created_at":     time.strftime("%Y-%m-%d %H:%M:%S"),
+        }
+        await _save_to_db("projects", project)
+        dispatcher.utter_message(text=f"🏗️ تم فتح ملف مشروع جديد برقم: {project['project_number']}. جاري المتابعة معك...")
+        return []
+
 
 class ActionNotifyManager(Action):
     """إشعار المدير بتذكرة تصعيد."""
@@ -494,32 +517,17 @@ class ActionCollectFollowUpContact(Action):
 
 
 # ═══════════════════════════════════════════════════════════════
-#  FAQ
+#  DYNAMIC KNOWLEDGE SEARCH (Swiss Watch Mode)
 # ═══════════════════════════════════════════════════════════════
 
-# قاموس الأسئلة الشائعة للبحث
-_FAQ_INDEX: List[Dict[str, str]] = [
-    {"keywords": ["سعر", "تكلفة", "كام", "price", "تسعير"],
-     "answer": "أسعارنا تبدأ من: البناء 2500ج/م²، التشطيب 1500ج/م²، الهوية 15,000ج، الصيانة 150ج."},
-    {"keywords": ["ضمان", "guarantee", "warranty"],
-     "answer": "الضمانات: هيكل البناء 10 سنوات، التشطيب 3 سنوات، صيانة UberFix 3 أشهر."},
-    {"keywords": ["مدة", "وقت", "يوم", "شهر", "timeline", "duration"],
-     "answer": "المدد: البناء 12-18 شهر، التشطيب 30-45 يوم، الهوية 15-25 يوم، الصيانة نفس اليوم."},
-    {"keywords": ["دفع", "تقسيط", "payment", "فيزا", "كريدت"],
-     "answer": "طرق الدفع: نقداً، تحويل بنكي، Visa/Mastercard، إنستاباي، تقسيط."},
-    {"keywords": ["محافظة", "منطقة", "فين", "location", "غطية", "تغطية"],
-     "answer": "نغطي: القاهرة الكبرى، الإسكندرية، مدن الأقاليم، العاصمة الإدارية."},
-    {"keywords": ["صيانة", "كهرباء", "سباكة", "تكييف", "uberfix", "أوبرفيكس"],
-     "answer": "UberFix يقدم: صيانة كهرباء، سباكة، تكييف، وعقود صيانة سنوية."},
-    {"keywords": ["تشطيب", "luxury", "ديكور", "داخلي"],
-     "answer": "Luxury Finishing: تشطيب سكني وتجاري فاخر، رخام إيطالي، بورسلان، دهانات Jotun."},
-    {"keywords": ["بناء", "عمارة", "مقاولات", "construction", "هيكل"],
-     "answer": "Alazab Construction: بناء سكني وتجاري وخدمي، تسليم مفتاح، ضمان 10 سنوات."},
-]
-
+try:
+    from .knowledge_search import KnowledgeSearch
+    ks = KnowledgeSearch()
+except ImportError:
+    ks = None
 
 class ActionSearchFaqByKeyword(Action):
-    """البحث في الأسئلة الشائعة بكلمة مفتاحية."""
+    """البحث الذكي في قاعدة بيانات الإنتاج (آل عزب)."""
 
     def name(self) -> Text:
         return "action_search_faq_by_keyword"
@@ -530,21 +538,25 @@ class ActionSearchFaqByKeyword(Action):
         tracker: Tracker,
         domain: DomainDict,
     ) -> List[Dict[Text, Any]]:
+        
         keyword = tracker.get_slot("keyword") or tracker.latest_message.get("text", "")
-        keyword_lower = keyword.lower()
+        
+        if not ks:
+            dispatcher.utter_message(text="عذراً، نظام البحث غير متصل حالياً.")
+            return []
 
-        results = []
-        for faq in _FAQ_INDEX:
-            if any(k in keyword_lower for k in faq["keywords"]):
-                results.append(faq["answer"])
-
+        # Perform smart search
+        results = ks.search_items(keyword)
+        
         if results:
+            response = ks.format_results(results)
+            dispatcher.utter_message(text=response)
             return [
                 SlotSet("search_found", True),
-                SlotSet("results", "\n\n".join(f"• {r}" for r in results[:3])),
-                SlotSet("keyword", keyword),
+                SlotSet("keyword", keyword)
             ]
-        return [
-            SlotSet("search_found", False),
-            SlotSet("keyword", keyword),
-        ]
+        
+        # Fallback to general chitchat or help
+        dispatcher.utter_message(text="لم أجد تفاصيل محددة لهذا البند، لكن يمكنك التواصل مع فريقنا الفني للمساعدة المباشرة.")
+        return [SlotSet("search_found", False)]
+

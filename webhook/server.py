@@ -132,7 +132,8 @@ AUDIO_FILE_EXTENSIONS = {".mp3", ".wav", ".ogg", ".m4a", ".webm", ".aac", ".mp4"
 AUDIO_TRANSCRIPTION_MODEL = os.getenv("AUDIO_TRANSCRIPTION_MODEL", "gpt-4o-mini-transcribe")
 AUDIO_TTS_MODEL = os.getenv("AUDIO_TTS_MODEL", "gpt-4o-mini-tts")
 AUDIO_TTS_VOICE = os.getenv("AUDIO_TTS_VOICE", "nova")
-PIPER_PRONUNCIATION_LEXICON_FILE = ROOT_DIR / "piper" / "pronunciation_lexicon.yml"
+PIPER_DIR = ROOT_DIR / "piper"
+PIPER_PRONUNCIATION_LEXICON_FILE = PIPER_DIR / "pronunciation_lexicon.yml"
 
 BRAND_PATH_MAP = {
     "/": "alazab_construction",
@@ -280,6 +281,8 @@ if FRONTEND_ASSETS_DIR.exists():
     app.mount("/assets", StaticFiles(directory=str(FRONTEND_ASSETS_DIR)), name="frontend-assets")
 if FRONTEND_EMBED_DIR.exists():
     app.mount("/embed", StaticFiles(directory=str(FRONTEND_EMBED_DIR)), name="frontend-embed")
+if PIPER_DIR.exists():
+    app.mount("/piper", StaticFiles(directory=str(PIPER_DIR)), name="piper")
 
 # ══════════════════════════════════════════════════════════════
 #  Config
@@ -2829,6 +2832,29 @@ async def _deliver_integration_event(
                     auth=(account_sid, auth_token),
                 )
 
+        elif integration_type == "daftra":
+            api_key = str(config.get("api_key") or "").strip()
+            base_url = str(config.get("base_url") or "").strip()
+            if not api_key or not base_url:
+                raise ValueError("Daftra api_key and base_url are required")
+            async with httpx.AsyncClient(timeout=10) as client:
+                response = await client.get(f"{base_url}/clients", headers={"apikey": api_key})
+
+        elif integration_type == "openai":
+            api_key = str(config.get("api_key") or "").strip()
+            if not api_key:
+                raise ValueError("OpenAI api_key is required")
+            async with httpx.AsyncClient(timeout=10) as client:
+                response = await client.get("https://api.openai.com/v1/models", headers={"Authorization": f"Bearer {api_key}"})
+
+        elif integration_type == "supabase":
+            url = str(config.get("url") or "").strip()
+            anon_key = str(config.get("anon_key") or "").strip()
+            if not url or not anon_key:
+                raise ValueError("Supabase url and anon_key are required")
+            async with httpx.AsyncClient(timeout=10) as client:
+                response = await client.get(f"{url}/rest/v1/", headers={"apikey": anon_key, "Authorization": f"Bearer {anon_key}"})
+
         else:
             raise ValueError(f"Unsupported integration type: {integration_type}")
 
@@ -3198,12 +3224,16 @@ def _load_tts_pronunciation_rules() -> list[tuple[str, str]]:
         if not stripped or stripped.startswith("#"):
             continue
 
-        if stripped.startswith("- id:"):
-            current_matches = []
+        # دعم الصيغة البسيطة: - source: "..." و target: "..."
+        if stripped.startswith("- source:"):
+            current_written = _yaml_scalar(stripped.split(":", 1)[1].strip())
+            continue
+        if stripped.startswith("target:") and current_written:
+            rules.append((current_written, _yaml_scalar(stripped.split(":", 1)[1].strip())))
             current_written = None
-            in_match_block = False
             continue
 
+        # دعم الصيغة المعقدة: - written: "..." و preferred_spoken: "..."
         if stripped.startswith("- written:"):
             current_written = _yaml_scalar(stripped.split(":", 1)[1].strip())
             in_match_block = False

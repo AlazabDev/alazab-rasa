@@ -1,0 +1,39 @@
+version: "3.1"
+
+responses:
+  utter_top_faqs:
+    - text: |
+        أهم الأسئلة الشائعة حول مجموعة العزب وخدماتها:
+
+        - ما هي شركات مجموعة العزب ومجالاتها؟
+        - ما خدمات التنفيذ وإدارة المشروعات المعمارية؟ [alazab.com](https://alazab.com)
+        - ما هي التشطيبات الراقية من Luxury Finishing؟ [luxury-finishing.alazab.com](https://luxury-finishing.alazab.com)
+        - كيف أحصل على خدمات هوية العلامات التجارية؟ [brand-identity.alazab.com](https://brand-identity.alazab.com)
+        - ما هي منصة UberFix للصيانة الذكية؟ [uberfix.alazab.com](https://uberfix.alazab.com)
+        - كيف أطلب توريدات أو خامات معمارية؟ [laban-alasfour.alazab.com](https://laban-alasfour.alazab.com)
+        - كيف أطلب صيانة لفرعي؟
+        - ما هي أنواع الخدمات المتوفرة للصيانة؟
+        - كيف أستعلم عن حالة طلبي؟
+        - من هو الفني المسؤول عن الفرع؟
+        - كيف أتواصل مع الدعم البشري؟
+        ⚠️ [يرجى استكمال بيانات الفروع والفنيين من الإدارة]
+      metadata:
+        rephrase: True
+    - text: |
+        Top FAQs about Alazab Group and its brands:
+
+        - What are Alazab Group's companies and focus areas?
+        - What does Alazab Construction offer? [alazab.com](https://alazab.com)
+        - What is Luxury Finishing? [luxury-finishing.alazab.com](https://luxury-finishing.alazab.com)
+        - How can I get brand identity services? [brand-identity.alazab.com](https://brand-identity.alazab.com)
+        - What is UberFix smart maintenance platform? [uberfix.alazab.com](https://uberfix.alazab.com)
+        - How to order architectural supplies? [laban-alasfour.alazab.com](https://laban-alasfour.alazab.com)
+        - How do I request maintenance for my branch?
+        - What types of maintenance services are available?
+        - How do I check the status of my request?
+        - Who is the assigned technician for my branch?
+        - How can I contact human support?
+        ⚠️ [Please complete branch and technician data with management]
+      channel: "browser_audio"
+      metadata:
+        rephrase: True

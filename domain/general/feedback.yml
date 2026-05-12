@@ -1,0 +1,14 @@
+slots:
+  feedback_rating:
+    type: text
+    influence_conversation: true
+responses:
+  utter_feedback_intro:
+    - text: |
+        نود معرفة رأيك في تجربتك معنا. من فضلك قيّم جودة الخدمة أو المحادثة (من 1 إلى 5، أو تعليق نصي).
+  utter_ask_feedback_rating:
+    - text: |
+        كيف تقيم تجربتك معنا؟ يرجى إدخال رقم من 1 إلى 5 أو تعليق نصي.
+  utter_feedback_thanks:
+    - text: |
+        شكرًا لتقييمك! نأخذ ملاحظاتك على محمل الجد لتحسين خدماتنا باستمرار.

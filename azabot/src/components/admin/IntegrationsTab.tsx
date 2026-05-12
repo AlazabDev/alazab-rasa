@@ -14,7 +14,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import {
   Plus, Trash2, TestTube, Webhook, Send, MessageCircle, Phone,
-  Slack, Disc, Mail, Loader2, Zap, Settings, ExternalLink
+  Slack, Disc, Mail, Loader2, Zap, Settings, ExternalLink,
+  Building2, Cpu, Cloud
 } from "lucide-react";
 import { AdminIntegration, IntegrationType, errorMessage, getIntegrationTypeLabel } from "@/types/admin";
 
@@ -26,6 +27,9 @@ const TYPES: Array<{ id: IntegrationType; label: string; icon: React.ComponentTy
   { id: "slack", label: "Slack", icon: Slack, desc: "إرسال إلى قناة Slack" },
   { id: "discord", label: "Discord", icon: Disc, desc: "إرسال إلى خادم Discord" },
   { id: "email", label: "البريد الإلكتروني", icon: Mail, desc: "إرسال عبر SMTP" },
+  { id: "daftra", label: "دفترة (Daftra)", icon: Building2, desc: "إدارة العملاء والفواتير والمزامنة المالية" },
+  { id: "openai", label: "OpenAI", icon: Cpu, desc: "تفعيل قدرات الذكاء الاصطناعي (LLM, TTS, STT)" },
+  { id: "supabase", label: "Supabase", icon: Cloud, desc: "قاعدة بيانات سحابية وتخزين ملفات" },
 ];
 
 const EVENTS = [
@@ -52,6 +56,12 @@ const getDefaultConfig = (type: IntegrationType): Record<string, unknown> => {
       return { webhook_url: "", username: "AzaBot" };
     case "email":
       return { smtp_host: "smtp.gmail.com", smtp_port: 587, smtp_user: "", smtp_password: "", from_email: "", to_emails: [], use_tls: true };
+    case "daftra":
+      return { api_key: "", base_url: "https://yourdomain.daftra.com/api2" };
+    case "openai":
+      return { api_key: "", tts_model: "tts-1", stt_model: "whisper-1", llm_model: "gpt-4o" };
+    case "supabase":
+      return { url: "", anon_key: "", service_role_key: "" };
     default:
       return {};
   }
@@ -451,6 +461,83 @@ export default function IntegrationsTab() {
                         <Label>Use TLS</Label>
                         <Switch checked={getConfigValue("use_tls") !== "false"}
                           onCheckedChange={(v) => updateConfig("use_tls", v)} />
+                      </div>
+                    </>
+                  )}
+
+                  {/* Daftra Config */}
+                  {editing.type === "daftra" && (
+                    <>
+                      <div>
+                        <Label>API Key</Label>
+                        <Input dir="ltr" type="password" value={getConfigValue("api_key")}
+                          onChange={(e) => updateConfig("api_key", e.target.value)}
+                          className="mt-1.5" />
+                      </div>
+                      <div>
+                        <Label>Base URL</Label>
+                        <Input dir="ltr" value={getConfigValue("base_url")}
+                          onChange={(e) => updateConfig("base_url", e.target.value)}
+                          placeholder="https://domain.daftra.com/api2" className="mt-1.5" />
+                      </div>
+                    </>
+                  )}
+
+                  {/* OpenAI Config */}
+                  {editing.type === "openai" && (
+                    <>
+                      <div>
+                        <Label>API Key</Label>
+                        <Input dir="ltr" type="password" value={getConfigValue("api_key")}
+                          onChange={(e) => updateConfig("api_key", e.target.value)}
+                          className="mt-1.5" />
+                      </div>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <Label>LLM Model</Label>
+                          <Select value={getConfigValue("llm_model") || "gpt-4o"} onValueChange={(v) => updateConfig("llm_model", v)}>
+                            <SelectTrigger className="mt-1.5"><SelectValue /></SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="gpt-4o">gpt-4o</SelectItem>
+                              <SelectItem value="gpt-4o-mini">gpt-4o-mini</SelectItem>
+                              <SelectItem value="gpt-3.5-turbo">gpt-3.5-turbo</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div>
+                          <Label>TTS Model</Label>
+                          <Select value={getConfigValue("tts_model") || "tts-1"} onValueChange={(v) => updateConfig("tts_model", v)}>
+                            <SelectTrigger className="mt-1.5"><SelectValue /></SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="tts-1">tts-1</SelectItem>
+                              <SelectItem value="tts-1-hd">tts-1-hd</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+                    </>
+                  )}
+
+                  {/* Supabase Config */}
+                  {editing.type === "supabase" && (
+                    <>
+                      <div>
+                        <Label>Project URL</Label>
+                        <Input dir="ltr" value={getConfigValue("url")}
+                          onChange={(e) => updateConfig("url", e.target.value)}
+                          placeholder="https://xyz.supabase.co" className="mt-1.5" />
+                      </div>
+                      <div>
+                        <Label>Anon Key</Label>
+                        <Input dir="ltr" type="password" value={getConfigValue("anon_key")}
+                          onChange={(e) => updateConfig("anon_key", e.target.value)}
+                          className="mt-1.5" />
+                      </div>
+                      <div>
+                        <Label>Service Role Key (اختياري)</Label>
+                        <Input dir="ltr" type="password" value={getConfigValue("service_role_key")}
+                          onChange={(e) => updateConfig("service_role_key", e.target.value)}
+                          className="mt-1.5" />
                       </div>
                     </>
                   )}

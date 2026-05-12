@@ -1,0 +1,26 @@
+action_endpoint:
+  url: "${ACTION_SERVER_URL:http://127.0.0.1:5055/webhook}"
+
+tracker_store:
+  type: SQL
+  dialect: sqlite
+  db: "${SQLITE_TRACKER_DB:.runtime/tracker.db}"
+
+lock_store:
+  type: in_memory
+
+model_groups:
+  - id: openai-gpt-4o
+    models:
+      - provider: openai
+        model: gpt-4o
+        timeout: 20
+  - id: openai-gpt-4o-mini
+    models:
+      - provider: openai
+        model: gpt-4o-mini
+        timeout: 20
+  - id: openai-embeddings
+    models:
+      - provider: openai
+        model: text-embedding-3-large

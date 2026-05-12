@@ -7,3 +7,10 @@ flows:
       - intent: greet
     steps:
       - action: utter_greet
+
+  hello_goodbye:
+    description: "توديع المستخدم من سياق الترحيب"
+    nlu_trigger:
+      - intent: goodbye
+    steps:
+      - action: utter_goodbye

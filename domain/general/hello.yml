@@ -1,0 +1,11 @@
+version: "3.1"
+
+responses:
+  utter_hello:
+    - text: "مرحبًا بك في شبكة العزب لصيانة المحلات! كيف أقدر أخدمك اليوم؟"
+      metadata:
+        rephrase: True
+    - text: "Welcome to Alazab Maintenance Network! How can I help you today?"
+      channel: "browser_audio"
+      metadata:
+        rephrase: True

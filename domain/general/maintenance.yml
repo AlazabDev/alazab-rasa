@@ -1,0 +1,79 @@
+version: "3.1"
+
+slots:
+  maintenance_client_name:
+    type: text
+    mappings:
+      - type: controlled
+  maintenance_client_phone:
+    type: text
+    mappings:
+      - type: controlled
+  maintenance_service_type:
+    type: text
+    mappings:
+      - type: controlled
+  maintenance_description:
+    type: text
+    mappings:
+      - type: controlled
+  maintenance_priority:
+    type: text
+    mappings:
+      - type: controlled
+  maintenance_request_id:
+    type: text
+    mappings:
+      - type: controlled
+  maintenance_request_number:
+    type: text
+    mappings:
+      - type: controlled
+  maintenance_status:
+    type: text
+    mappings:
+      - type: controlled
+  maintenance_stage:
+    type: text
+    mappings:
+      - type: controlled
+
+responses:
+  utter_ask_maintenance_client_name:
+    - text: "ما اسم العميل/الفرع؟ \n ⚠️ [يرجى تحديث قائمة الفروع من الإدارة]"
+    - text: "What is the client/branch name? \n ⚠️ [Please update branch list with management]"
+  utter_ask_maintenance_client_phone:
+    - text: "ما رقم هاتف العميل أو إدارة الفرع؟"
+    - text: "What is the client or branch management phone number?"
+  utter_ask_maintenance_service_type:
+    - text: "ما نوع خدمة الصيانة المطلوبة؟ (مثال: كهرباء، سباكة، تكييف...)
+        ⚠️ [يرجى تحديث أنواع الخدمات بالتنسيق مع الإدارة]"
+    - text: "What type of maintenance service is required? (e.g. electrical, plumbing, HVAC...)
+        ⚠️ [Please update service types with management]"
+  utter_ask_maintenance_description:
+    - text: "يرجى وصف المشكلة أو طلب الصيانة بالتفصيل.\n ⚠️ [الوصف يساعد في سرعة الاستجابة]"
+    - text: "Please describe the issue or maintenance request in detail.\n ⚠️ [Description helps in fast response]"
+  utter_ask_maintenance_priority:
+    - text: "ما أولوية الطلب؟ (عالية، متوسطة، منخفضة)\n ⚠️ [تحديد الأولوية يسهل جدولة الفنيين]"
+    - text: "What is the priority of the request? (high, medium, low)\n ⚠️ [Priority helps schedule technicians]"
+  utter_ask_maintenance_request_id:
+    - text: "ما رقم الطلب أو المعرف؟ \n ⚠️ [يرجى ربط الطلبات بلوحة المتابعة في الإدارة]"
+    - text: "What is the request number or ID? \n ⚠️ [Please link requests with tracking dashboard]"
+  utter_maintenance_request_created:
+    - text: "تم إنشاء طلب الصيانة بنجاح. رقم الطلب: {maintenance_request_number} \n ⚠️ [راجع لوحة متابعة الطلبات لمزيد من التفاصيل]"
+    - text: "Maintenance request created successfully. Request number: {maintenance_request_number} \n ⚠️ [Check the request tracking dashboard for more details]"
+  utter_maintenance_status:
+    - text: "حالة الطلب الحالية: {maintenance_status} \n ⚠️ [للاستفسار عن الفني المسؤول، اتصل بالدعم]"
+    - text: "Current request status: {maintenance_status} \n ⚠️ [For technician info, contact support]"
+  utter_maintenance_triaged:
+    - text: "تمت مراجعة طلبك وسيتم تعيين فني قريباً. \n ⚠️ [المتابعة متاحة عبر لوحة الإدارة]"
+    - text: "Request triaged. A technician will be assigned soon. \n ⚠️ [Follow-up available via admin dashboard]"
+  utter_maintenance_assigned:
+    - text: "تم تعيين الفني، وسيتم التواصل معك قريباً. \n ⚠️ [يرجى تحديث بيانات الفنيين من الإدارة]"
+    - text: "Technician assigned. You will be contacted soon. \n ⚠️ [Please update technician data with management]"
+
+actions:
+  - action_create_maintenance_request
+  - action_get_maintenance_status
+  - action_triage_maintenance_request
+  - action_assign_maintenance_request

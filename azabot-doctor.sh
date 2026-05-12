@@ -365,8 +365,8 @@ check_paths() {
     ["data/general/rules.yml"]="Rules عامة"
     ["data/general/collect_lead.yml"]="Flow جمع البيانات"
     ["data/brands/uberfix.yml"]="UberFix flows"
-    ["data/brands/uberfix/nlu.yml"]="UberFix NLU"
-    ["data/brands/uberfix/stories.yml"]="UberFix stories"
+    ["data/brands/nlu.yml"]="UberFix NLU"
+    ["data/brands/stories.yml"]="UberFix stories"
     ["data/system/patterns/patterns.yml"]="CALM patterns"
     # Domain
     ["domain/general.yml"]="domain عام"

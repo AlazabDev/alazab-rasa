@@ -7,9 +7,10 @@ ROOT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT_DIR"
 
 ENV_FILE="${ENV_FILE:-.env}"
-ENDPOINTS_FILE="${ENDPOINTS_FILE:-endpoints.nodocker.yml}"
 VENV_DIR="${VENV_DIR:-.venv}"
 RUNTIME_DIR="${RUNTIME_DIR:-.runtime}"
+ENDPOINTS_FILE="${ENDPOINTS_FILE:-$RUNTIME_DIR/endpoints.generated.yml}"
+RUNTIME_DOMAIN_FILE="${RUNTIME_DOMAIN_FILE:-$RUNTIME_DIR/domain.generated.yml}"
 LOG_DIR="${LOG_DIR:-logs}"
 PID_DIR="$RUNTIME_DIR/pids"
 
@@ -25,12 +26,14 @@ BLUE=$'\033[1;34m'
 GREEN=$'\033[1;32m'
 YELLOW=$'\033[1;33m'
 RED=$'\033[1;31m'
+PURPLE=$'\033[1;35m'
 NC=$'\033[0m'
 
-log() { printf '%s[botctl]%s %s\n' "$BLUE" "$NC" "$*"; }
-ok() { printf '%s[ok]%s %s\n' "$GREEN" "$NC" "$*"; }
-warn() { printf '%s[warn]%s %s\n' "$YELLOW" "$NC" "$*"; }
-fail() { printf '%s[fail]%s %s\n' "$RED" "$NC" "$*" >&2; exit 1; }
+log() { printf '%s🔵 [info]%s %s\n' "$BLUE" "$NC" "$*"; }
+ok() { printf '%s🟢 [ok]%s %s\n' "$GREEN" "$NC" "$*"; }
+warn() { printf '%s🟡 [warn]%s %s\n' "$YELLOW" "$NC" "$*"; }
+work() { printf '%s🟣 [work]%s %s\n' "$PURPLE" "$NC" "$*"; }
+fail() { printf '%s🔴 [fail]%s %s\n' "$RED" "$NC" "$*" >&2; exit 1; }
 
 usage() {
   cat <<'USAGE'
@@ -45,12 +48,13 @@ Commands:
   test                Run Rasa E2E tests.
   preflight           Run doctor + validate + Python syntax check.
   dev                 Start everything: backend + frontend dev server (single command).
-  start               Start actions, rasa, and webhook as background processes.
+  start [--force]     Start actions, rasa, and webhook. --force frees ports first.
   stop                Stop background processes started by this script.
-  restart             Stop then start.
-  status              Show process and HTTP health status.
-  logs [service]      Tail logs. service: actions, rasa, webhook, or all.
+  restart [--heal]    Stop then start. --heal runs automatic repair first.
+  status [--verbose]  Show process and HTTP health status; verbose adds ports/resources.
+  logs [--errors] [service]  Tail logs, optionally only important errors.
   smoke               Hit health, brands, and chat endpoints.
+  heal                Render endpoints fallback, validate YAML, and clear stale ports.
   docker-up           Start docker/docker-compose.yaml.
   docker-down         Stop docker/docker-compose.yaml.
   prod-preflight      Validate production compose and required env values.
@@ -260,25 +264,31 @@ cmd_frontend() {
 }
 
 cmd_validate() {
+  ensure_dirs
   load_env
+  python3 scripts/render_runtime_domain.py >/dev/null
   activate_venv
   require_env RASA_PRO_LICENSE OPENAI_API_KEY
-  run_checked rasa data validate
+  run_checked rasa data validate --domain "$RUNTIME_DOMAIN_FILE"
 }
 
 cmd_train() {
+  ensure_dirs
   load_env
+  python3 scripts/render_runtime_domain.py >/dev/null
   activate_venv
   require_env RASA_PRO_LICENSE OPENAI_API_KEY
-  run_checked rasa train --force
+  run_checked rasa train --domain "$RUNTIME_DOMAIN_FILE" --force
   ok "Rasa model trained."
 }
 
 cmd_test() {
+  ensure_dirs
   load_env
+  python3 scripts/render_runtime_domain.py >/dev/null
   activate_venv
   require_env RASA_PRO_LICENSE OPENAI_API_KEY
-  run_checked rasa test e2e tests/e2e_test_cases/
+  run_checked rasa test e2e tests/e2e_test_cases/ --domain "$RUNTIME_DOMAIN_FILE"
 }
 
 cmd_preflight() {
@@ -304,16 +314,75 @@ start_one() {
   ok "$service started: $!"
 }
 
+
+# ── تحرير المنافذ بالقوة ─────────────────────────────────────────
+force_free_port() {
+  local port="$1"
+  local pid
+  pid=$(lsof -ti ":$port" 2>/dev/null | head -1 || true)
+  if [[ -n "$pid" ]]; then
+    local pname; pname=$(ps -p "$pid" -o comm= 2>/dev/null || echo "?")
+    warn "Port $port مشغول بـ $pname (PID $pid) — إيقاف..."
+    kill -TERM "$pid" 2>/dev/null || true
+    sleep 2; kill -KILL "$pid" 2>/dev/null || true
+    ok "Port $port محرر"
+  fi
+}
+redis_available() {
+  local host="${REDIS_HOST:-127.0.0.1}" port="${REDIS_PORT:-6379}"
+  if command -v redis-cli >/dev/null 2>&1; then
+    redis-cli -h "$host" -p "$port" ${REDIS_PASSWORD:+-a "$REDIS_PASSWORD"} ping 2>/dev/null | grep -qi PONG
+    return
+  fi
+  timeout 1 bash -c "</dev/tcp/$host/$port" >/dev/null 2>&1
+}
+
+render_runtime_endpoints() {
+  ensure_dirs
+  if redis_available; then
+    cp endpoints.yml "$ENDPOINTS_FILE"
+    ok "Redis tracker/lock store selected: $ENDPOINTS_FILE"
+  else
+    cp endpoints.sqlite.yml "$ENDPOINTS_FILE"
+    warn "Redis unavailable; using SQLite fallback: $ENDPOINTS_FILE"
+  fi
+}
+
+cmd_heal() {
+  ensure_dirs
+  work "Running auto-heal checks"
+  for port in "$ACTIONS_PORT" "$RASA_PORT" "$WEBHOOK_PORT" "$FRONTEND_PORT"; do
+    force_free_port "$port" 2>/dev/null || true
+  done
+  load_env
+  render_runtime_endpoints
+  python3 scripts/render_runtime_domain.py >/dev/null
+  python3 scripts/deep_clean.py --validate-only || fail "YAML/domain validation failed"
+  ok "Auto-heal completed"
+}
+
 cmd_start() {
   ensure_dirs
+  local force=false
+  if [[ "${1:-}" == "--force" ]]; then
+    force=true
+    shift || true
+  fi
   load_env
+  if $force; then
+    work "Freeing service ports before start"
+    for _port in "${ACTIONS_PORT}" "${RASA_PORT}" "${WEBHOOK_PORT}" "${FRONTEND_PORT}"; do
+      force_free_port "$_port" 2>/dev/null || true
+    done
+  fi
+  render_runtime_endpoints
   activate_venv
   require_env RASA_PRO_LICENSE OPENAI_API_KEY
   [[ -f "$ENDPOINTS_FILE" ]] || fail "Missing endpoints file: $ENDPOINTS_FILE"
 
   for port in "$ACTIONS_PORT" "$RASA_PORT" "$WEBHOOK_PORT"; do
     if port_busy "$port"; then
-      fail "Port $port is already in use. Run status/stop or free the port."
+      fail "Port $port is already in use. Run: bash scripts/botctl.sh start --force"
     fi
   done
 
@@ -402,12 +471,11 @@ cmd_stop() {
 
 cmd_status() {
   ensure_dirs
-  local FRONTEND_PORT="${FRONTEND_PORT:-8080}"
+  local verbose=false
+  if [[ "${1:-}" == "--verbose" ]]; then verbose=true; fi
   echo ""
-  printf "%-20s %-10s %-8s %s
-" "الخدمة" "PID" "Process" "HTTP"
-  printf "%-20s %-10s %-8s %s
-" "────────────────" "────────" "───────" "────────────────────────────"
+  printf "%-20s %-10s %-12s %s\n" "الخدمة" "PID" "Process" "HTTP"
+  printf "%-20s %-10s %-12s %s\n" "────────────────" "────────" "────────" "────────────────────────────"
 
   for service in actions rasa webhook frontend; do
     local pid url label
@@ -418,40 +486,45 @@ cmd_status() {
       webhook)  url="http://127.0.0.1:${WEBHOOK_PORT}/health"; label="Webhook  :${WEBHOOK_PORT}" ;;
       frontend) url="http://127.0.0.1:${FRONTEND_PORT}";       label="Frontend :${FRONTEND_PORT}" ;;
     esac
-
     local proc_status http_status
-    if is_running "$pid"; then
-      proc_status="${GREEN}● running${NC}  (PID $pid)"
-    else
-      proc_status="${RED}○ stopped${NC}"
-      pid="—"
+    if is_running "$pid"; then proc_status="${GREEN}● running${NC}"; else proc_status="${RED}○ stopped${NC}"; pid="-"; fi
+    if curl -fsS "$url" >/dev/null 2>&1; then http_status="${GREEN}🟢 healthy${NC}"; else http_status="${YELLOW}🟡 offline${NC}"; fi
+    printf "%-20s %-10s " "$label" "$pid"
+    printf "$proc_status"
+    printf "  "
+    printf "$http_status\n"
+    if $verbose && [[ "$pid" != "-" ]]; then
+      ps -p "$pid" -o pid,ppid,%cpu,%mem,etime,cmd --no-headers 2>/dev/null || true
     fi
-
-    if curl -fsS "$url" >/dev/null 2>&1; then
-      http_status="${GREEN}✅ healthy${NC}"
-    else
-      http_status="${YELLOW}⚠️  offline${NC}"
-    fi
-
-    printf "%-20s " "$label"
-    printf "proc: "; printf "$proc_status"
-    printf "  http: "; printf "$http_status
-"
   done
-
-  echo ""
-  curl -fsS "http://127.0.0.1:${WEBHOOK_PORT}/health" >/dev/null 2>&1 &&     ok "🌐 الواجهة: http://localhost:${FRONTEND_PORT:-8080}" ||     warn "الباك اند غير متاح"
+  if $verbose; then
+    echo ""
+    log "Runtime endpoints: $ENDPOINTS_FILE"
+    log "Runtime domain: $RUNTIME_DOMAIN_FILE"
+    for port in "$RASA_PORT" "$ACTIONS_PORT" "$WEBHOOK_PORT" "$FRONTEND_PORT"; do
+      if port_busy "$port"; then ok "Port $port is listening"; else warn "Port $port is not listening"; fi
+    done
+    free -h 2>/dev/null || true
+  fi
   echo ""
 }
 
 cmd_logs() {
   ensure_dirs
-  local service="${1:-all}"
+  local errors_only=false service="all"
+  if [[ "${1:-}" == "--errors" ]]; then errors_only=true; shift || true; fi
+  service="${1:-all}"
+  local files=()
   case "$service" in
-    actions|rasa|webhook|frontend) tail -n 120 -f "$LOG_DIR/$service.out.log" ;;
-    all) tail -n 80 -f "$LOG_DIR/actions.out.log" "$LOG_DIR/rasa.out.log" "$LOG_DIR/webhook.out.log" "$LOG_DIR/frontend.out.log" 2>/dev/null ;;
+    actions|rasa|webhook|frontend) files=("$LOG_DIR/$service.out.log") ;;
+    all) files=("$LOG_DIR/actions.out.log" "$LOG_DIR/rasa.out.log" "$LOG_DIR/webhook.out.log" "$LOG_DIR/frontend.out.log") ;;
     *) fail "Unknown log service: $service" ;;
   esac
+  if $errors_only; then
+    grep -Eih "(error|exception|traceback|failed|critical|fatal|connection refused|timeout)" "${files[@]}" 2>/dev/null | tail -n 200 || true
+  else
+    tail -n 120 -f "${files[@]}" 2>/dev/null
+  fi
 }
 
 cmd_smoke() {
@@ -509,10 +582,11 @@ case "$cmd" in
   start) cmd_start "$@" ;;
   dev) cmd_dev "$@" ;;
   stop) cmd_stop "$@" ;;
-  restart) cmd_stop; cmd_start "$@" ;;
+  restart) if [[ "${1:-}" == "--heal" ]]; then cmd_heal; shift || true; fi; cmd_stop; cmd_start "$@" ;;
   status) cmd_status "$@" ;;
   logs) cmd_logs "$@" ;;
   smoke) cmd_smoke "$@" ;;
+  heal) cmd_heal "$@" ;;
   docker-up) cmd_docker_up "$@" ;;
   docker-down) cmd_docker_down "$@" ;;
   prod-preflight) cmd_prod_preflight "$@" ;;

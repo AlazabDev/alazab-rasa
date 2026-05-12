@@ -24,9 +24,9 @@ flows:
       - id: offer_handoff
         action: utter_offer_human_handoff
         next:
-          - if: context.intent.name = "affirm"
+          - if: intent = "affirm"
             then: initiate_handoff
-          - if: context.intent.name = "deny"
+          - if: intent = "deny"
             then: cancel_handoff
           - else: offer_handoff
 
@@ -68,7 +68,7 @@ flows:
       - id: offer_alternative
         action: utter_offer_alternative_contact
         next:
-          - if: context.intent.name = "affirm"
+          - if: intent = "affirm"
             then: provide_whatsapp
           - else: END
 

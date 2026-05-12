@@ -1,0 +1,80 @@
+version: "3.1"
+
+slots:
+  example_questions:
+    type: text
+    initial_value: |
+      - كيف أطلب صيانة لفرعي؟
+      - ما هي أنواع خدمات الصيانة التي تقدمونها؟
+      - كيف أستعلم عن حالة طلب صيانة؟
+      - أريد التواصل مع فني أو الدعم البشري
+      - ما هي شركات مجموعة العزب؟
+      - ما هي منصة UberFix؟
+      - ما التشطيبات الراقية في Luxury Finishing؟
+      ⚠️ [يرجى تحديث قائمة الفروع والخدمات من الإدارة]
+    mappings:
+      - type: controlled
+
+responses:
+  utter_what_can_you_do:
+    - text: |
+        يمكنني مساعدتك في:
+        - تقديم أو متابعة طلب صيانة لأي من محلات شبكة العزب (700 فرع)
+        - الإجابة عن استفساراتك حول أنواع الخدمات أو حالة الطلبات
+        - ربطك مع فني أو فريق الدعم البشري
+        - عرض الأسئلة الشائعة
+        - تعريفك بعلامات وخدمات مجموعة العزب:
+          • [alazab.com](https://alazab.com) تنفيذ وإدارة المشروعات
+          • [luxury-finishing.alazab.com](https://luxury-finishing.alazab.com) التشطيبات الراقية
+          • [brand-identity.alazab.com](https://brand-identity.alazab.com) هوية العلامات التجارية
+          • [uberfix.alazab.com](https://uberfix.alazab.com) منصة الصيانة الذكية
+          • [laban-alasfour.alazab.com](https://laban-alasfour.alazab.com) التوريدات والخامات المعمارية
+        ⚠️ [يرجى تحديث قائمة الفروع والفنيين من الإدارة]
+      metadata:
+        rephrase: True
+    - text: |
+        I can help you with:
+        - Creating or following up a maintenance request for any of Alazab's 700 branches
+        - Answering your questions about service types or request status
+        - Connecting you with a technician or human support team
+        - Showing frequently asked questions
+        - Introducing Alazab Group brands and services:
+          • [alazab.com](https://alazab.com) Construction & Project Management
+          • [luxury-finishing.alazab.com](https://luxury-finishing.alazab.com) High-End Finishing
+          • [brand-identity.alazab.com](https://brand-identity.alazab.com) Brand Identity
+          • [uberfix.alazab.com](https://uberfix.alazab.com) Smart Maintenance Platform
+          • [laban-alasfour.alazab.com](https://laban-alasfour.alazab.com) Supplies
+        ⚠️ [Please update branch and technician lists with management]
+      channel: "browser_audio"
+      metadata:
+        rephrase: True
+  utter_inform_services:
+    - text: |
+        تقدم مجموعة العزب خدمات صيانة شاملة لجميع المحلات التجارية التابعة لنا:
+        - الكهرباء، السباكة، التكييف، التشطيبات، الأنظمة الأمنية
+        - صيانة طارئة ودورية
+        - تقارير متابعة دورية
+        - إدارة بيانات الفروع والفنيين
+        [يرجى تحديث قائمة الخدمات والفنيين بالتنسيق مع الإدارة]
+    - text: |
+        Alazab Group provides comprehensive maintenance services for all commercial stores:
+        - Electrical, plumbing, HVAC, finishing, security systems
+        - Emergency and scheduled maintenance
+        - Regular follow-up reports
+        - Management of branch and technician data
+        [Please update services and technician list with management]
+      channel: "browser_audio"
+  utter_request_consultation_info:
+    - text: |
+        يرجى تزويدنا باسمك، رقم هاتفك، اسم الفرع، ونوع المشكلة لنساعدك بأسرع وقت.
+        ⚠️ [بيانات الفروع/الخدمات قابلة للتوسعة]
+    - text: |
+        Please provide your name, phone number, branch name, and problem type so we can assist you quickly.
+        ⚠️ [Branch/service data is extensible]
+      channel: "browser_audio"
+  utter_human_handoff_prompt:
+    - text: |
+        سيتم تحويلك الآن إلى فريق الدعم البشري لاستكمال الطلب أو الاستفسار.
+    - text: |
+        You will now be transferred to our human support team to complete your request or inquiry.
+      channel: "browser_audio"

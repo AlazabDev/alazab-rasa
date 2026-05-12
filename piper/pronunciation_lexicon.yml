@@ -92,6 +92,33 @@
 - source: "بورسلان"
   target: "بورسيلان"
 
+- source: "GypBoard"
+  target: "جبسون بورد"
+
+- source: "جبسون بورد"
+  target: "جِبْسُون بُورْد"
+
+- source: "Knauf"
+  target: "كناوف"
+
+- source: "HDF"
+  target: "إتش دي إف"
+
+- source: "LED"
+  target: "ليد"
+
+- source: "PVC"
+  target: "بي في سي"
+
+- source: "Smart Home"
+  target: "سمارت هوم"
+
+- source: "بيوت ذكية"
+  target: "بُيُوت ذَكِيَّة"
+
+- source: "ديكور"
+  target: "دِيكُور"
+
 # ── تحيات وعبارات متكررة ────────────────────────────────────
 - source: "مجموعة العزب"
   target: "مَجْمُوعَة الْعَزَب"

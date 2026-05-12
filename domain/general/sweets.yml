@@ -1,0 +1,25 @@
+version: "3.1"
+
+responses:
+  utter_ask_sweets:
+    - text: |
+        ما هي المحلويات المتوفرة لديكم؟
+        ⚠️ سيتم تحديث القائمة بالبيانات الفعلية لاحقاً.
+    - text: |
+        What sweets do you have?
+        ⚠️ The actual list will be updated later.
+  utter_sweets_info:
+    - text: |
+        هذه قائمة محلويات تجريبية فقط:
+        - كنافة نابلسية (50 جنيه)
+        - بسبوسة بالمكسرات (40 جنيه)
+        - بلح الشام (35 جنيه)
+        ⚠️ سيتم تحديث البيانات لاحقاً بمحتوى حقيقي.
+    - text: |
+        This is a sample sweets list only:
+        - Kunafa Nabulsia (EGP 50)
+        - Basbousa with nuts (EGP 40)
+        - Balah El Sham (EGP 35)
+        ⚠️ Real data will be updated soon.
+actions:
+  - action_send_sweets_info
