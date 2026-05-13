@@ -56,6 +56,19 @@ function run(command, args, options = {}) {
   };
 }
 
+function escapeRegex(value) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function containsTerm(text, term) {
+  const normalized = text.toLowerCase();
+  const escaped = escapeRegex(term.toLowerCase());
+  const asciiOnly = /^[a-z0-9 ]+$/i.test(term);
+  const boundary = asciiOnly ? "\\b" : "(?<![\\p{L}\\p{N}_])";
+  const endBoundary = asciiOnly ? "\\b" : "(?![\\p{L}\\p{N}_])";
+  return new RegExp(`${boundary}${escaped}${endBoundary}`, "iu").test(normalized);
+}
+
 function checkRequiredFiles() {
   const files = [
     "config.yml",
@@ -242,7 +255,7 @@ function checkBackendSafety() {
     "cheese",
   ];
   const backendBrandText = [domain, labanAction, webhook].join("\n");
-  const foundForbidden = forbiddenBrandWords.filter((word) => backendBrandText.toLowerCase().includes(word.toLowerCase()));
+  const foundForbidden = forbiddenBrandWords.filter((word) => containsTerm(backendBrandText, word));
   if (foundForbidden.length) {
     fail(`محتوى الباك اند يحتوي وصف لبن العصفور كمنتجات غذائية: ${foundForbidden.join(", ")}`);
   } else {

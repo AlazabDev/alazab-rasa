@@ -1,0 +1,197 @@
+version: '3.1'
+flows:
+  alazab_services:
+    description: يعرض خدمات Alazab Construction في تنفيذ المشروعات المعمارية السكنية
+      والتجارية والخدمية
+    name: alazab services
+    steps:
+    - action: utter_alazab_services
+      next: END
+  alazab_projects:
+    description: يعرض أبرز المشاريع المنجزة والبورتفوليو لشركة Alazab Construction
+    name: alazab projects
+    steps:
+    - action: action_alazab_show_projects
+      next: END
+  alazab_contact:
+    description: يقدم معلومات التواصل مع شركة Alazab Construction مثل الهاتف والواتساب
+      والبريد
+    name: alazab contact
+    steps:
+    - action: utter_alazab_contact
+      next: END
+  alazab_about:
+    description: يقدم تعريفًا بشركة Alazab Construction ورسالتها وتاريخها
+    name: alazab about
+    steps:
+    - action: utter_alazab_about
+      next: END
+  alazab_get_quote:
+    description: يطلب عرض سعر أو تسعير لمشروع بناء أو مقاولات من Alazab Construction
+    name: alazab get quote
+    steps:
+    - action: action_alazab_get_quote
+    - link: collect_lead
+  uberfix_services:
+    description: يعرض خدمات UberFix في الصيانة الذكية
+    name: uberfix services
+    steps:
+    - action: utter_uberfix_services
+      next: END
+  uberfix_request:
+    description: 'يسجل طلب صيانة جديد عبر UberFix. يستوعب أن المستخدم قد يذكر الموقع
+      والمشكلة في رسائل مختلفة، ويربط السياق تلقائياً دون أن يطلب تكرار المعلومات.
+
+      '
+    name: uberfix request maintenance
+    steps:
+    - action: action_accumulate_context
+    - collect: user_name
+      description: 'اسم العميل أو الشركة صاحبة الطلب. إذا كان ذُكر مسبقاً في المحادثة،
+        لا تسأل مجدداً.
+
+        '
+      ask_before_filling: false
+      reset_after_flow_ends: false
+    - collect: user_phone
+      description: 'رقم هاتف للتواصل. قبل السؤال تحقق من context_memory.
+
+        '
+      ask_before_filling: false
+      reset_after_flow_ends: false
+    - action: action_build_full_request
+    - collect: user_message
+      description: 'وصف العطل أو طلب الصيانة بالتفصيل. يجمع من كل رسائل المستخدم:
+        الموقع + المشكلة + الفرع. إذا قال "التكيف عطلان في الفرع" بعد ذكر الفرع سابقاً،
+        فالفرع السابق يُضاف تلقائياً للوصف.
+
+        '
+      ask_before_filling: false
+      reset_after_flow_ends: false
+    - action: action_confirm_understanding
+    - action: action_uberfix_create_request
+      next: END
+  uberfix_track:
+    description: يتتبع حالة طلب صيانة قائم
+    name: uberfix track request
+    steps:
+    - action: action_accumulate_context
+    - action: action_uberfix_track_request
+      next: END
+  uberfix_subscriptions:
+    description: يعرض باقات الاشتراك السنوية
+    name: uberfix subscriptions
+    steps:
+    - action: action_uberfix_show_subscriptions
+      next: END
+  uberfix_emergency:
+    description: حالة طوارئ — توجيه للتواصل الفوري
+    name: uberfix emergency
+    steps:
+    - action: action_accumulate_context
+    - collect: user_name
+      ask_before_filling: false
+      reset_after_flow_ends: false
+    - collect: user_phone
+      ask_before_filling: false
+      reset_after_flow_ends: false
+    - action: action_build_full_request
+    - collect: user_message
+      ask_before_filling: false
+      reset_after_flow_ends: false
+    - action: action_uberfix_create_request
+      next: END
+  luxury_services:
+    description: يعرض خدمات Luxury Finishing في التشطيبات الراقية للوحدات السكنية
+      والتجارية
+    name: luxury services
+    steps:
+    - action: utter_luxury_services
+      next: END
+  luxury_materials:
+    description: يعرض الخامات والمواد الفاخرة التي تستخدمها Luxury Finishing مثل الرخام
+      والبورسلان والخشب والدهانات
+    name: luxury materials
+    steps:
+    - action: action_luxury_show_materials
+      next: END
+  luxury_portfolio:
+    description: يعرض أعمال وبورتفوليو Luxury Finishing للاطلاع على نماذج التشطيبات
+    name: luxury portfolio
+    steps:
+    - action: utter_luxury_portfolio
+      next: END
+  luxury_timeline:
+    description: يوضح المدة الزمنية المتوقعة لإنجاز مشروع التشطيب
+    name: luxury timeline
+    steps:
+    - action: utter_luxury_timeline
+      next: END
+  luxury_get_quote:
+    description: يطلب عرض سعر لمشروع تشطيب فاخر من Luxury Finishing
+    name: luxury get quote
+    steps:
+    - action: action_luxury_get_quote
+    - link: collect_lead
+  brand_services:
+    description: يعرض خدمات Brand Identity في تصميم وتنفيذ الهويات التجارية وتجهيز
+      المساحات التجارية
+    name: brand services
+    steps:
+    - action: utter_brand_services
+      next: END
+  brand_process:
+    description: يشرح مراحل عمل Brand Identity من الاستشارة حتى التسليم الكامل
+    name: brand process
+    steps:
+    - action: action_brand_show_process
+      next: END
+  brand_portfolio:
+    description: يعرض أعمال ومشاريع Brand Identity السابقة في مختلف القطاعات
+    name: brand portfolio
+    steps:
+    - action: utter_brand_portfolio
+      next: END
+  brand_industries:
+    description: يعرض القطاعات التي تخدمها Brand Identity مثل المطاعم والصيدليات والمحلات
+      والمكاتب
+    name: brand industries
+    steps:
+    - action: action_brand_show_industries
+      next: END
+  brand_get_quote:
+    description: يطلب عرض سعر لتصميم أو تنفيذ هوية تجارية من Brand Identity
+    name: brand get quote
+    steps:
+    - action: action_brand_get_quote
+    - link: collect_lead
+  laban_products:
+    description: يعرض منتجات وخامات Laban Alasfour من مواد البناء والتشطيب والصيانة
+    name: laban products
+    steps:
+    - action: utter_laban_products
+      next: END
+  laban_catalog:
+    description: يعرض كتالوج Laban Alasfour التفصيلي بجميع المنتجات والفئات المتاحة
+    name: laban catalog
+    steps:
+    - action: action_laban_show_catalog
+      next: END
+  laban_delivery:
+    description: يوضح تفاصيل خدمة التوصيل والشحن لمنتجات Laban Alasfour
+    name: laban delivery
+    steps:
+    - action: action_laban_check_delivery
+      next: END
+  laban_bulk_order:
+    description: يقدم عروضًا وأسعارًا خاصة للطلبات بالجملة من Laban Alasfour
+    name: laban bulk order
+    steps:
+    - action: action_laban_bulk_quote
+    - link: collect_lead
+  laban_contact:
+    description: يقدم معلومات التواصل مع Laban Alasfour لطلب الخامات والتوريدات
+    name: laban contact
+    steps:
+    - action: utter_laban_contact
+      next: END

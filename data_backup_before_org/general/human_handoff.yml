@@ -1,0 +1,87 @@
+version: "3.1"
+flows:
+  human_handoff:
+    description: "يحول المحادثة إلى مندوب بشري"
+    name: "human_handoff"
+    steps:
+      - id: ask_reason
+        action: utter_ask_reason_for_handoff
+        next: receive_reason
+      - id: receive_reason
+        action: action_receive_handoff_reason
+        next: check_availability
+      - id: check_availability
+        action: action_check_human_availability
+        next:
+          - if: slots.is_available = true
+            then: offer_handoff
+          - else: offline_handoff
+      - id: offer_handoff
+        action: utter_offer_human_handoff
+        next:
+          - if: intent = "affirm"
+            then: initiate_handoff
+          - if: intent = "deny"
+            then: cancel_handoff
+          - else: offer_handoff
+      - id: initiate_handoff
+        action: action_initiate_human_handoff
+        next: check_queue
+      - id: check_queue
+        action: action_check_queue_position
+        next:
+          - if: slots.queue_position <= 1
+            then: immediate_handoff
+          - else: queue_handoff
+      - id: immediate_handoff
+        action: utter_human_handoff_immediate
+        next: notify_team
+      - id: queue_handoff
+        action: utter_human_handoff_queue
+        next: wait_for_agent
+      - id: wait_for_agent
+        action: action_wait_for_agent
+        next: agent_connected
+      - id: agent_connected
+        action: utter_agent_connected
+        next: transfer_to_agent
+      - id: transfer_to_agent
+        action: action_transfer_to_agent
+        next: END
+      - id: offline_handoff
+        action: utter_human_handoff_offline
+        next: offer_alternative
+      - id: offer_alternative
+        action: utter_offer_alternative_contact
+        next:
+          - if: intent = "affirm"
+            then: provide_whatsapp
+          - else: END
+      - id: provide_whatsapp
+        action: utter_provide_whatsapp
+        next: END
+      - id: cancel_handoff
+        action: utter_handoff_cancelled
+        next: END
+      - id: notify_team
+        action: action_notify_team_via_whatsapp
+        next: END
+  escalate_to_manager:
+    description: "يرفع المشكلة إلى المدير المسؤول"
+    name: "escalate_to_manager"
+    steps:
+      - id: receive_escalation
+        action: utter_receive_escalation
+        next: collect_escalation_details
+      - id: collect_escalation_details
+        action: action_collect_escalation_details
+        next: create_ticket
+      - id: create_ticket
+        action: action_create_escalation_ticket
+        next: notify_manager
+      - id: notify_manager
+        action: action_notify_manager
+        next: send_escalation_confirmation
+      - id: send_escalation_confirmation
+        action: utter_escalate_to_manager
+        next: END

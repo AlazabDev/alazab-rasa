@@ -1,0 +1,134 @@
+version: '3.1'
+rules:
+- rule: منتجات Laban Alasfour
+  steps:
+  - intent: ask_laban_products
+  - action: utter_laban_products
+- rule: توصيل Laban Alasfour
+  steps:
+  - intent: ask_laban_delivery
+  - action: action_laban_check_delivery
+- rule: طلب جملة Laban Alasfour
+  steps:
+  - intent: ask_laban_bulk_order
+  - action: action_laban_bulk_quote
+- rule: كتالوج Laban Alasfour
+  steps:
+  - intent: ask_laban_catalog
+  - action: action_laban_show_catalog
+- rule: تواصل Laban Alasfour
+  steps:
+  - intent: ask_laban_contact
+  - action: utter_laban_contact
+- rule: خدمات Luxury Finishing
+  steps:
+  - intent: ask_luxury_services
+  - action: utter_luxury_services
+- rule: خامات Luxury Finishing
+  steps:
+  - intent: ask_luxury_materials
+  - action: utter_luxury_materials
+- rule: بورتفوليو Luxury Finishing
+  steps:
+  - intent: ask_luxury_portfolio
+  - action: utter_luxury_portfolio
+- rule: عرض سعر Luxury Finishing
+  steps:
+  - intent: ask_luxury_quote
+  - action: utter_luxury_quote
+- rule: مدة تشطيب Luxury Finishing
+  steps:
+  - intent: ask_luxury_timeline
+  - action: utter_luxury_timeline
+- rule: خدمات UberFix
+  steps:
+  - intent: ask_uberfix_services
+  - action: utter_uberfix_services
+- rule: تتبع طلب UberFix
+  steps:
+  - intent: ask_uberfix_tracking
+  - action: action_uberfix_track_request
+- rule: باقات UberFix
+  steps:
+  - intent: ask_uberfix_subscription
+  - action: action_uberfix_show_subscriptions
+- rule: طوارئ UberFix
+  steps:
+  - intent: ask_uberfix_emergency
+  - action: utter_uberfix_emergency
+- rule: خدمات Brand Identity
+  steps:
+  - intent: ask_brand_services
+  - action: utter_brand_services
+- rule: عملية Brand Identity
+  steps:
+  - intent: ask_brand_process
+  - action: utter_brand_process
+- rule: بورتفوليو Brand Identity
+  steps:
+  - intent: ask_brand_portfolio
+  - action: utter_brand_portfolio
+- rule: عرض سعر Brand Identity
+  steps:
+  - intent: ask_brand_quote
+  - action: utter_brand_quote
+- rule: قطاعات Brand Identity
+  steps:
+  - intent: ask_brand_industries
+  - action: utter_brand_industries
+- rule: رد على التحية
+  steps:
+  - intent: greet
+  - action: utter_greet
+- rule: رد على الوداع
+  steps:
+  - intent: goodbye
+  - action: utter_goodbye
+- rule: رد على الشكر
+  steps:
+  - intent: thanks
+  - action: utter_thanks
+- rule: تحدي البوت
+  steps:
+  - intent: bot_challenge
+  - action: utter_bot_challenge
+- rule: خارج النطاق
+  steps:
+  - intent: out_of_scope
+  - action: utter_out_of_scope
+- rule: سؤال عن خدمات Alazab Construction
+  steps:
+  - intent: ask_alazab_services
+  - action: utter_alazab_services
+- rule: سؤال عن مشاريع Alazab
+  steps:
+  - intent: ask_alazab_projects
+  - action: utter_alazab_projects
+- rule: سؤال عن التواصل مع Alazab
+  steps:
+  - intent: ask_alazab_contact
+  - action: utter_alazab_contact
+- rule: سؤال عن Alazab Construction
+  steps:
+  - intent: ask_alazab_about
+  - action: utter_alazab_about
+- rule: منتجات Laban Alasfour
+  steps:
+  - intent: ask_laban_products
+  - action: utter_laban_products
+- rule: توصيل Laban Alasfour
+  steps:
+  - intent: ask_laban_delivery
+  - action: action_laban_check_delivery
+- rule: طلب جملة Laban Alasfour
+  steps:
+  - intent: ask_laban_bulk_order
+  - action: action_laban_bulk_quote
+- rule: كتالوج Laban Alasfour
+  steps:
+  - intent: ask_laban_catalog
+  - action: action_laban_show_catalog
+- rule: تواصل Laban Alasfour
+  steps:
+  - intent: ask_laban_contact
+  - action: utter_laban_contact

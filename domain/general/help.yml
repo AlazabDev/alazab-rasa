@@ -1,5 +1,4 @@
 version: "3.1"
-
 slots:
   example_questions:
     type: text
@@ -14,7 +13,6 @@ slots:
       ⚠️ [يرجى تحديث قائمة الفروع والخدمات من الإدارة]
     mappings:
       - type: controlled
-
 responses:
   utter_what_can_you_do:
     - text: |

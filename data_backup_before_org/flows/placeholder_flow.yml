@@ -1,0 +1,8 @@
+version: "3.0"
+flows:
+  placeholder_flow:
+    name: placeholder_flow
+    description: "تدفق تجريبي مؤقت — استبدله لاحقًا بتدفق العمل الفعلي."
+    steps:
+      # ⚠️ أضف خطوات العمل الفعلية هنا مثل collect, action, link, ...
+      - action: utter_placeholder

@@ -39,6 +39,7 @@ azabot/node_modules/
 azabot/dist/
 azabot/.pnpm-store/
 azabot/tsconfig.*.tsbuildinfo
+azabot/supabase/.temp/
 
 # Uploads
 webhook/static/uploads/
@@ -51,6 +52,7 @@ piper/voice/samples/
 .DS_Store
 Thumbs.db
 *.swp
+*:Zone.Identifier
 
 # SSL (never commit real certs)
 ssl/fullchain.pem

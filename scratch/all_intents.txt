@@ -1,0 +1,136 @@
+      - intent: ask_alazab_about
+      - intent: ask_alazab_contact
+      - intent: ask_alazab_projects
+      - intent: ask_alazab_quote
+      - intent: ask_alazab_services
+      - intent: ask_brand_industries
+      - intent: ask_brand_portfolio
+      - intent: ask_brand_process
+      - intent: ask_brand_quote
+      - intent: ask_brand_services
+      - intent: ask_brand_sites
+      - intent: ask_faq_location
+      - intent: ask_faq_payment
+      - intent: ask_faq_prices
+      - intent: ask_faq_timing
+      - intent: ask_faq_warranty
+      - intent: ask_help
+      - intent: ask_laban_bulk_order
+      - intent: ask_laban_catalog
+      - intent: ask_laban_contact
+      - intent: ask_laban_delivery
+      - intent: ask_laban_products
+      - intent: ask_luxury_materials
+      - intent: ask_luxury_portfolio
+      - intent: ask_luxury_quote
+      - intent: ask_luxury_services
+      - intent: ask_luxury_timeline
+      - intent: ask_uberfix_emergency
+      - intent: ask_uberfix_order_status
+      - intent: ask_uberfix_request
+      - intent: ask_uberfix_services
+      - intent: ask_uberfix_subscription
+      - intent: ask_uberfix_tracking
+      - intent: bot_challenge
+      - intent: give_feedback
+      - intent: goodbye
+      - intent: greet
+      - intent: out_of_scope
+      - intent: thanks
+  - intent: affirm
+  - intent: ask_alazab_about
+  - intent: ask_alazab_contact
+  - intent: ask_alazab_projects
+  - intent: ask_alazab_quote
+  - intent: ask_alazab_services
+  - intent: ask_alazab_technical_specs
+  - intent: ask_brand_industries
+  - intent: ask_brand_portfolio
+  - intent: ask_brand_process
+  - intent: ask_brand_quote
+  - intent: ask_brand_services
+  - intent: ask_faq_location
+  - intent: ask_faq_payment
+  - intent: ask_faq_prices
+  - intent: ask_faq_timing
+  - intent: ask_faq_warranty
+  - intent: ask_help
+  - intent: ask_laban_bulk_order
+  - intent: ask_laban_catalog
+  - intent: ask_laban_contact
+  - intent: ask_laban_delivery
+  - intent: ask_laban_products
+  - intent: ask_luxury_materials
+  - intent: ask_luxury_portfolio
+  - intent: ask_luxury_quote
+  - intent: ask_luxury_services
+  - intent: ask_luxury_timeline
+  - intent: ask_uberfix_emergency
+  - intent: ask_uberfix_order_status
+  - intent: ask_uberfix_request
+  - intent: ask_uberfix_subscription
+  - intent: bot_challenge
+  - intent: deny
+  - intent: give_feedback
+  - intent: goodbye
+  - intent: greet
+  - intent: out_of_scope
+  - intent: provide_rating
+  - intent: provide_suggestion
+  - intent: thanks
+- intent: ask_alazab_quote
+- intent: ask_alazab_technical_specs
+- intent: ask_brand_complete_identity
+- intent: ask_brand_industries
+- intent: ask_brand_portfolio
+- intent: ask_brand_process
+- intent: ask_brand_quote
+- intent: ask_brand_services
+- intent: ask_brand_shop_fitting
+- intent: ask_brand_sites
+- intent: ask_faq_location
+- intent: ask_faq_payment
+- intent: ask_faq_prices
+- intent: ask_faq_timing
+- intent: ask_faq_warranty
+- intent: ask_help
+- intent: ask_uberfix_about
+- intent: ask_uberfix_contact
+- intent: ask_uberfix_emergency
+- intent: ask_uberfix_emergency_contact
+- intent: ask_uberfix_features
+- intent: ask_uberfix_feedback
+- intent: ask_uberfix_fire_safety
+- intent: ask_uberfix_masonry_painting
+- intent: ask_uberfix_new_request
+- intent: ask_uberfix_order_number
+- intent: ask_uberfix_order_status
+- intent: ask_uberfix_price
+- intent: ask_uberfix_price_warranty
+- intent: ask_uberfix_report_problem
+- intent: ask_uberfix_request
+- intent: ask_uberfix_request_ac
+- intent: ask_uberfix_request_electric
+- intent: ask_uberfix_request_plumbing
+- intent: ask_uberfix_reschedule
+- intent: ask_uberfix_schedule
+- intent: ask_uberfix_services
+- intent: ask_uberfix_subscribe
+- intent: ask_uberfix_subscription
+- intent: ask_uberfix_subscription_advanced
+- intent: ask_uberfix_subscription_basic
+- intent: ask_uberfix_subscription_plans
+- intent: ask_uberfix_subscription_premium
+- intent: ask_uberfix_supplies
+- intent: ask_uberfix_track
+- intent: ask_uberfix_tracking
+- intent: ask_uberfix_working_hours
+- intent: bot_challenge
+- intent: give_feedback
+- intent: goodbye
+- intent: greet
+- intent: out_of_scope
+- intent: provide_rating
+- intent: provide_suggestion
+- intent: thanks
+- intent: uberfix_specific_repair

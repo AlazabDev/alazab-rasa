@@ -1,8 +1,21 @@
 ## 📂 `data/` – The Agent's Business Logic
 
-This folder holds files that define your agent’s skills using "flows". [1](https://rasa.com/docs/pro/build/writing-flows) Each flow is a step-by-step conversation pattern (like a recipe) for handling a user goal (e.g., checking a balance, updating an address).
+This folder holds files that define your agent’s skills, training data, and integrations.
 
-**What you'll find:**
-- **general/**: Basic conversational flows (greetings, help, feedback, human handoff)
+### 📁 Directory Structure:
 
-**Edit YAML files in this folder** to add new skills, change existing flows, or adjust what the agent asks.
+- **`flows/`**: Rasa CALM flow definitions (step-by-step conversation patterns).
+  - `brands_flows.yml`: Business logic for Alazab brands.
+  - `general_flows.yml`: Standard conversational patterns (greetings, help).
+- **`nlu/`**: Natural Language Understanding data (intents and examples).
+  - `brands_nlu.yml`: Intent data for Alazab brands.
+  - `general_nlu.yml`: Standard intent data.
+  - `generated_refined.yml`: Large-scale generated/refined NLU examples.
+- **`rules/`**: Rasa Classic rules (conditional logic).
+- **`stories/`**: Rasa Classic stories (example conversation paths).
+- **`kb/`**: Knowledge base raw content and services documentation.
+- **`integrations/`**: Metadata and scripts for external integrations (e.g., WhatsApp).
+- **`prompts/`**: LLM prompts used for command generation and RAG.
+- **`system/`**: System-level patterns and configurations.
+
+**Archive**: Outdated or legacy files are stored in the `data/archive/` directory for reference.

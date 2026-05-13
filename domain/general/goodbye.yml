@@ -1,5 +1,4 @@
 version: "3.1"
-
 responses:
   utter_goodbye:
     - text: "Thanks for stopping by — take care!"

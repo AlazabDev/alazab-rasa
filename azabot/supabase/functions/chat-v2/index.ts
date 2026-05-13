@@ -91,7 +91,7 @@ Respond in Arabic by default. English if user writes in English.`,
     allowedOrigins: [
       "https://alazab.com",
       "https://www.alazab.com",
-      "https://chat.alazab.com",
+      "https://bot.alazab.com",
     ],
     systemPrompt: `أنت "عزبوت"، المساعد الذكي لمجموعة العزب — مجموعة شركات متنوعة.
 شركاتنا:

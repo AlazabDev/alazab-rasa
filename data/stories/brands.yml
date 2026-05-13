@@ -1,0 +1,119 @@
+version: '3.1'
+stories:
+- story: استفسار عن التشطيب الفاخر وعرض سعر
+  steps:
+  - intent: greet
+  - action: utter_greet
+  - intent: ask_luxury_services
+  - action: utter_luxury_services
+  - intent: ask_luxury_materials
+  - action: utter_luxury_materials
+  - intent: ask_luxury_quote
+  - action: utter_luxury_quote
+- story: مشاهدة بورتفوليو ثم التواصل
+  steps:
+  - intent: ask_luxury_portfolio
+  - action: utter_luxury_portfolio
+  - intent: ask_luxury_timeline
+  - action: utter_luxury_timeline
+- story: طلب صيانة UberFix كامل (مع المحاسبة)
+  steps:
+  - intent: ask_uberfix_request
+  - action: maintenance_form
+  - active_loop: maintenance_form
+  - slot_was_set:
+    - requested_slot: branch_name
+  - slot_was_set:
+    - requested_slot: service_item
+  - slot_was_set:
+    - requested_slot: user_name
+  - slot_was_set:
+    - requested_slot: user_phone
+  - active_loop: null
+  - action: action_uberfix_create_request
+  - action: action_daftra_sync_client
+  - action: action_daftra_create_invoice
+- story: تتبع حالة طلب الصيانة
+  steps:
+  - intent: ask_uberfix_order_status
+  - action: action_uberfix_track_request
+- story: استفسار عن اشتراك UberFix
+  steps:
+  - intent: ask_uberfix_subscription
+  - action: action_uberfix_show_subscriptions
+- story: زيارة مواقع مجموعة آل عزب
+  steps:
+  - intent: ask_brand_sites
+  - action: action_brand_navigator
+- story: استفسار عن Brand Identity وطلب عرض سعر
+  steps:
+  - intent: greet
+  - action: utter_greet
+  - intent: ask_brand_services
+  - action: utter_brand_services
+  - intent: ask_brand_process
+  - action: utter_brand_process
+  - intent: ask_brand_quote
+  - action: utter_brand_quote
+- story: استعراض قطاعات Brand Identity
+  steps:
+  - intent: ask_brand_industries
+  - action: utter_brand_industries
+  - intent: ask_brand_portfolio
+  - action: utter_brand_portfolio
+- story: استفسار عن خدمات Alazab Construction ثم طلب عرض سعر
+  steps:
+  - intent: greet
+  - action: utter_greet
+  - intent: ask_alazab_services
+  - action: utter_alazab_services
+  - intent: ask_alazab_quote
+  - action: utter_alazab_quote
+- story: سؤال عن Alazab ثم التواصل
+  steps:
+  - intent: ask_alazab_about
+  - action: utter_alazab_about
+  - intent: ask_alazab_contact
+  - action: utter_alazab_contact
+  - intent: thanks
+  - action: utter_thanks
+- story: عرض مشاريع Alazab ثم عرض سعر
+  steps:
+  - intent: ask_alazab_projects
+  - action: utter_alazab_projects
+  - intent: ask_alazab_quote
+  - action: utter_alazab_quote
+- story: محادثة قصيرة - تحية ووداع
+  steps:
+  - intent: greet
+  - action: utter_greet
+  - intent: goodbye
+  - action: utter_goodbye
+- story: سؤال عن الخدمات ثم وداع
+  steps:
+  - intent: ask_help
+  - action: utter_ask_help
+  - intent: thanks
+  - action: utter_thanks
+  - intent: goodbye
+  - action: utter_goodbye
+- story: سؤال عن منتجات Laban Alasfour
+  steps:
+  - intent: greet
+  - action: utter_greet
+  - intent: ask_laban_products
+  - action: utter_laban_products
+  - intent: ask_laban_catalog
+  - action: action_laban_show_catalog
+- story: طلب خامات بالجملة من Laban Alasfour
+  steps:
+  - intent: ask_laban_bulk_order
+  - action: action_laban_bulk_quote
+  - intent: ask_laban_delivery
+  - action: action_laban_check_delivery
+- story: تواصل مع Laban Alasfour
+  steps:
+  - intent: ask_laban_contact
+  - action: utter_laban_contact
+  - intent: thanks
+  - action: utter_thanks

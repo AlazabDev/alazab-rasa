@@ -1,0 +1,170 @@
+version: '3.1'
+flows:
+  خدمات_luxury_finishing:
+    description: خدمات Luxury Finishing
+    nlu_trigger:
+    - intent: ask_luxury_services
+    steps:
+    - action: utter_luxury_services
+  خامات_luxury_finishing:
+    description: خامات Luxury Finishing
+    nlu_trigger:
+    - intent: ask_luxury_materials
+    steps:
+    - action: utter_luxury_materials
+  بورتفوليو_luxury_finishing:
+    description: بورتفوليو Luxury Finishing
+    nlu_trigger:
+    - intent: ask_luxury_portfolio
+    steps:
+    - action: utter_luxury_portfolio
+  عرض_سعر_luxury_finishing:
+    description: عرض سعر Luxury Finishing
+    nlu_trigger:
+    - intent: ask_luxury_quote
+    steps:
+    - action: utter_luxury_quote
+  مدة_تشطيب_luxury_finishing:
+    description: مدة تشطيب Luxury Finishing
+    nlu_trigger:
+    - intent: ask_luxury_timeline
+    steps:
+    - action: utter_luxury_timeline
+  خدمات_uberfix:
+    description: خدمات UberFix
+    nlu_trigger:
+    - intent: ask_uberfix_services
+    steps:
+    - action: utter_uberfix_services
+  تتبع_طلب_uberfix:
+    description: تتبع طلب UberFix
+    nlu_trigger:
+    - intent: ask_uberfix_tracking
+    steps:
+    - action: action_uberfix_track_request
+  باقات_uberfix:
+    description: باقات UberFix
+    nlu_trigger:
+    - intent: ask_uberfix_subscription
+    steps:
+    - action: action_uberfix_show_subscriptions
+  طوارئ_uberfix:
+    description: طوارئ UberFix
+    nlu_trigger:
+    - intent: ask_uberfix_emergency
+    steps:
+    - action: utter_uberfix_emergency
+  خدمات_brand_identity:
+    description: خدمات Brand Identity
+    nlu_trigger:
+    - intent: ask_brand_services
+    steps:
+    - action: utter_brand_services
+  عملية_brand_identity:
+    description: عملية Brand Identity
+    nlu_trigger:
+    - intent: ask_brand_process
+    steps:
+    - action: utter_brand_process
+  بورتفوليو_brand_identity:
+    description: بورتفوليو Brand Identity
+    nlu_trigger:
+    - intent: ask_brand_portfolio
+    steps:
+    - action: utter_brand_portfolio
+  عرض_سعر_brand_identity:
+    description: عرض سعر Brand Identity
+    nlu_trigger:
+    - intent: ask_brand_quote
+    steps:
+    - action: utter_brand_quote
+  قطاعات_brand_identity:
+    description: قطاعات Brand Identity
+    nlu_trigger:
+    - intent: ask_brand_industries
+    steps:
+    - action: utter_brand_industries
+  رد_على_التحية:
+    description: رد على التحية
+    nlu_trigger:
+    - intent: greet
+    steps:
+    - action: utter_greet
+  رد_على_الوداع:
+    description: رد على الوداع
+    nlu_trigger:
+    - intent: goodbye
+    steps:
+    - action: utter_goodbye
+  رد_على_الشكر:
+    description: رد على الشكر
+    nlu_trigger:
+    - intent: thanks
+    steps:
+    - action: utter_thanks
+  تحدي_البوت:
+    description: تحدي البوت
+    nlu_trigger:
+    - intent: bot_challenge
+    steps:
+    - action: utter_bot_challenge
+  خارج_النطاق:
+    description: خارج النطاق
+    nlu_trigger:
+    - intent: out_of_scope
+    steps:
+    - action: utter_out_of_scope
+  سؤال_عن_خدمات_alazab_construction:
+    description: سؤال عن خدمات Alazab Construction
+    nlu_trigger:
+    - intent: ask_alazab_services
+    steps:
+    - action: utter_alazab_services
+  سؤال_عن_مشاريع_alazab:
+    description: سؤال عن مشاريع Alazab
+    nlu_trigger:
+    - intent: ask_alazab_projects
+    steps:
+    - action: utter_alazab_projects
+  سؤال_عن_التواصل_مع_alazab:
+    description: سؤال عن التواصل مع Alazab
+    nlu_trigger:
+    - intent: ask_alazab_contact
+    steps:
+    - action: utter_alazab_contact
+  سؤال_عن_alazab_construction:
+    description: سؤال عن Alazab Construction
+    nlu_trigger:
+    - intent: ask_alazab_about
+    steps:
+    - action: utter_alazab_about
+  منتجات_laban_alasfour:
+    description: منتجات Laban Alasfour
+    nlu_trigger:
+    - intent: ask_laban_products
+    steps:
+    - action: utter_laban_products
+  توصيل_laban_alasfour:
+    description: توصيل Laban Alasfour
+    nlu_trigger:
+    - intent: ask_laban_delivery
+    steps:
+    - action: action_laban_check_delivery
+  طلب_جملة_laban_alasfour:
+    description: طلب جملة Laban Alasfour
+    nlu_trigger:
+    - intent: ask_laban_bulk_order
+    steps:
+    - action: action_laban_bulk_quote
+  كتالوج_laban_alasfour:
+    description: كتالوج Laban Alasfour
+    nlu_trigger:
+    - intent: ask_laban_catalog
+    steps:
+    - action: action_laban_show_catalog
+  تواصل_laban_alasfour:
+    description: تواصل Laban Alasfour
+    nlu_trigger:
+    - intent: ask_laban_contact
+    steps:
+    - action: utter_laban_contact

@@ -1,17 +1,19 @@
 version: "3.1"
 actions:
   - "action_human_handoff"
-
-slots: 
+slots:
   confirm_human_handoff:
     type: "categorical"
     mappings:
-      - type: "from_llm"
+      - type: "custom"
     values:
       - "Yes"
       - "No"
-
 responses:
+  utter_offer_human_handoff:
+    - text: "هل ترغب في التحدث مع أحد أفراد فريقنا البشري؟"
+    - text: "Would you like to be connected to a human agent?"
+      channel: "browser_audio"
   utter_ask_confirm_human_handoff:
     - text: "هل ترغب في التحدث مع أحد أفراد فريقنا البشري؟"
       buttons:
@@ -36,4 +38,8 @@ responses:
   utter_transfer_to_manager:
     - text: "سيتم إرسال ملخص محادثتنا إلى مدير المتابعة:\n{summary}"
     - text: "I will transfer the following summary of our conversation to the Callback Manager:\n{summary}"
+      channel: "browser_audio"
+  utter_offer_alternative_contact:
+    - text: "عفواً، الفريق غير متاح حالياً. يمكنك التواصل معنا عبر واتساب: +201000000000"
+    - text: "I'm sorry, our team is currently unavailable. You can reach us on WhatsApp: +201000000000"
       channel: "browser_audio"

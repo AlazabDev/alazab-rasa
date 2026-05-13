@@ -1,0 +1,281 @@
+version: '3.1'
+flows:
+  human_handoff:
+    description: يحول المحادثة إلى مندوب بشري
+    name: human_handoff
+    steps:
+    - id: ask_reason
+      action: utter_ask_reason_for_handoff
+      next: receive_reason
+    - id: receive_reason
+      action: action_receive_handoff_reason
+      next: check_availability
+    - id: check_availability
+      action: action_check_human_availability
+      next:
+      - if: slots.is_available = true
+        then: offer_handoff
+      - else: offline_handoff
+    - id: offer_handoff
+      action: utter_offer_human_handoff
+      next:
+      - if: intent = "affirm"
+        then: initiate_handoff
+      - if: intent = "deny"
+        then: cancel_handoff
+      - else: offer_handoff
+    - id: initiate_handoff
+      action: action_initiate_human_handoff
+      next: check_queue
+    - id: check_queue
+      action: action_check_queue_position
+      next:
+      - if: slots.queue_position <= 1
+        then: immediate_handoff
+      - else: queue_handoff
+    - id: immediate_handoff
+      action: utter_human_handoff_immediate
+      next: notify_team
+    - id: queue_handoff
+      action: utter_human_handoff_queue
+      next: wait_for_agent
+    - id: wait_for_agent
+      action: action_wait_for_agent
+      next: agent_connected
+    - id: agent_connected
+      action: utter_agent_connected
+      next: transfer_to_agent
+    - id: transfer_to_agent
+      action: action_transfer_to_agent
+      next: END
+    - id: offline_handoff
+      action: utter_human_handoff_offline
+      next: offer_alternative
+    - id: offer_alternative
+      action: utter_offer_alternative_contact
+      next:
+      - if: intent = "affirm"
+        then: provide_whatsapp
+      - else: END
+    - id: provide_whatsapp
+      action: utter_provide_whatsapp
+      next: END
+    - id: cancel_handoff
+      action: utter_handoff_cancelled
+      next: END
+    - id: notify_team
+      action: action_notify_team_via_whatsapp
+      next: END
+  escalate_to_manager:
+    description: يرفع المشكلة إلى المدير المسؤول
+    name: escalate_to_manager
+    steps:
+    - id: receive_escalation
+      action: utter_receive_escalation
+      next: collect_escalation_details
+    - id: collect_escalation_details
+      action: action_collect_escalation_details
+      next: create_ticket
+    - id: create_ticket
+      action: action_create_escalation_ticket
+      next: notify_manager
+    - id: notify_manager
+      action: action_notify_manager
+      next: send_escalation_confirmation
+    - id: send_escalation_confirmation
+      action: utter_escalate_to_manager
+      next: END
+  hello:
+    description: الترحيب العام بالمستخدم
+    nlu_trigger:
+    - intent: greet
+    steps:
+    - action: utter_greet
+  hello_goodbye:
+    description: توديع المستخدم من سياق الترحيب
+    nlu_trigger:
+    - intent: goodbye
+    steps:
+    - action: utter_goodbye
+  show_faqs:
+    description: يعرض للمستخدم أمثلة على الأسئلة الشائعة التي يمكن طرحها على المساعد
+    name: show_faqs
+    steps:
+    - id: show_top_faqs
+      action: utter_top_faqs
+      next: ask_user_selection
+    - id: ask_user_selection
+      action: utter_ask_faq_topic
+      next:
+      - if: intent = "ask_faq_prices"
+        then: show_prices
+      - if: intent = "ask_faq_timing"
+        then: show_timing
+      - if: intent = "ask_faq_warranty"
+        then: show_warranty
+      - if: intent = "ask_faq_payment"
+        then: show_payment
+      - if: intent = "ask_faq_location"
+        then: show_location
+      - else: show_faqs_menu
+    - id: show_prices
+      action: utter_faq_prices
+      next: ask_if_more_faqs
+    - id: show_timing
+      action: utter_faq_timing
+      next: ask_if_more_faqs
+    - id: show_warranty
+      action: utter_faq_warranty
+      next: ask_if_more_faqs
+    - id: show_payment
+      action: utter_faq_payment
+      next: ask_if_more_faqs
+    - id: show_location
+      action: utter_faq_location
+      next: ask_if_more_faqs
+    - id: show_faqs_menu
+      action: utter_faqs_menu
+      next: ask_user_selection
+    - id: ask_if_more_faqs
+      action: utter_ask_more_faqs
+      next:
+      - if: intent = "affirm"
+        then: show_faqs_menu
+      - else: end
+    - id: end
+      action: utter_thanks_for_faq
+      next: END
+  search_faq_by_keyword:
+    description: يبحث في الأسئلة الشائعة بناءً على كلمة مفتاحية
+    name: search_faq_by_keyword
+    steps:
+    - id: ask_keyword
+      action: utter_ask_faq_keyword
+      next: process_keyword
+    - id: process_keyword
+      action: action_search_faq_by_keyword
+      next:
+      - if: slots.search_found = true
+        then: show_search_results
+      - else: no_results_found
+    - id: show_search_results
+      action: utter_search_results
+      next: ask_if_more_faqs
+    - id: no_results_found
+      action: utter_no_faq_results
+      next: ask_user_selection
+  show_help:
+    description: يعرض خيارات المساعدة وكيفية استخدام البوت
+    nlu_trigger:
+    - intent: ask_help
+    steps:
+    - action: utter_help_menu
+      next: END
+  goodbye:
+    description: توديع المستخدم وإنهاء المحادثة
+    nlu_trigger:
+    - intent: goodbye
+    steps:
+    - action: utter_goodbye
+  give_feedback:
+    description: يجمع تقييم المستخدم واقتراحاته
+    name: give_feedback
+    steps:
+    - id: welcome_feedback
+      action: utter_ask_feedback
+      next:
+      - if: intent = "provide_rating"
+        then: ask_service
+      - if: intent = "provide_suggestion"
+        then: ask_suggestion
+      - if: intent = "give_feedback"
+        then: ask_feedback_text
+      - else: welcome_feedback
+    - id: ask_service
+      action: utter_ask_which_service
+      next: receive_service
+    - id: receive_service
+      action: action_receive_feedback_service
+      next: ask_rating
+    - id: ask_rating
+      action: utter_ask_rating
+      next: receive_rating
+    - id: receive_rating
+      action: action_receive_rating
+      next: ask_feedback_text
+    - id: ask_feedback_text
+      action: utter_ask_feedback_details
+      next: receive_feedback_text
+    - id: receive_feedback_text
+      action: action_receive_feedback_text
+      next:
+      - if: slots.rating >= 4
+        then: positive_feedback
+      - if: slots.rating <= 2
+        then: negative_feedback
+      - else: neutral_feedback
+    - id: ask_suggestion
+      action: utter_ask_suggestion_details
+      next: receive_suggestion
+    - id: receive_suggestion
+      action: action_receive_suggestion
+      next: save_suggestion
+    - id: positive_feedback
+      action: utter_positive_feedback
+      next: save_feedback
+    - id: negative_feedback
+      action: utter_negative_apology
+      next: ask_follow_up
+    - id: neutral_feedback
+      action: utter_neutral_feedback
+      next: save_feedback
+    - id: ask_follow_up
+      action: utter_ask_follow_up_contact
+      next:
+      - if: intent = "affirm"
+        then: collect_lead_info
+      - else: save_feedback
+    - id: collect_lead_info
+      action: action_collect_follow_up_contact
+      next: save_feedback
+    - id: save_feedback
+      action: action_save_feedback
+      next: thank_user
+    - id: save_suggestion
+      action: action_save_suggestion
+      next: thank_suggestion
+    - id: thank_user
+      action: utter_thanks_for_feedback
+      next: END
+    - id: thank_suggestion
+      action: utter_thanks_for_suggestion
+      next: END
+  collect_lead:
+    description: 'جمع بيانات العميل المحتمل (lead) لأي براند. يستوعب أن المستخدم قد
+      يذكر معلوماته في رسائل مختلفة ويبني صورة كاملة تلقائياً دون تكرار الأسئلة.
+
+      '
+    name: collect lead
+    steps:
+    - action: action_accumulate_context
+    - collect: user_name
+      description: 'اسم العميل. إذا ذُكر في أي رسالة سابقة لا تسأل مجدداً.
+
+        '
+      ask_before_filling: false
+      reset_after_flow_ends: false
+    - collect: user_phone
+      description: 'رقم هاتف التواصل. إذا ذُكر سابقاً لا تسأل.
+
+        '
+      ask_before_filling: false
+      reset_after_flow_ends: false
+    - action: action_build_full_request
+    - collect: user_message
+      description: 'وصف الطلب أو الخدمة المطلوبة. يجمع تلقائياً من كل ما قاله المستخدم.
+
+        '
+      ask_before_filling: false
+      reset_after_flow_ends: false
+    - action: action_submit_lead
+      next: END

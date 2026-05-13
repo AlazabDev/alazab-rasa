@@ -1,0 +1,75 @@
+version: '3.1'
+flows:
+  alazab_maintenance_request:
+    description: طلب صيانة UberFix — يجمع بيانات الفرع والعطل ويفتح تذكرة
+    nlu_trigger:
+    - intent: ask_uberfix_services
+    - intent: start_maintenance_request
+    - intent: uberfix_specific_repair
+    steps:
+    - collect: branch_name
+      description: اسم الفرع أو الموقع المطلوب الصيانة فيه
+      ask_before_filling: true
+    - collect: service_item
+      description: وصف العطل أو البند المطلوب
+      ask_before_filling: true
+    - collect: user_name
+      description: اسم المسؤول عن الفرع
+      ask_before_filling: true
+    - collect: user_phone
+      description: رقم التواصل
+      ask_before_filling: true
+    - action: alazab_action_create_maintenance_request
+  alazab_kb_search:
+    description: بحث في قاعدة معرفة مجموعة العزب عن خدمات، أسعار، أو مواصفات
+    nlu_trigger:
+    - intent: faq_search
+    - intent: request_quote
+    steps:
+    - collect: keyword
+      description: كلمة البحث أو الخدمة المطلوبة
+      ask_before_filling: true
+    - action: action_trigger_search
+  alazab_brand_identity:
+    description: استفسارات Brand Identity — تجهيز فروع وهوية تجارية
+    nlu_trigger:
+    - intent: ask_brand_services
+    - intent: ask_brand_shop_fitting
+    - intent: ask_brand_complete_identity
+    - intent: ask_brand_quote
+    steps:
+    - action: utter_brand_services
+  alazab_luxury_finishing:
+    description: استفسارات Luxury Finishing — تشطيبات فاخرة
+    nlu_trigger:
+    - intent: ask_luxury_services
+    steps:
+    - action: utter_luxury_services
+  alazab_human_handoff:
+    description: تحويل المحادثة لممثل بشري
+    nlu_trigger:
+    - intent: request_human_handoff
+    steps:
+    - collect: handoff_reason
+      description: سبب طلب التواصل مع الفريق
+      ask_before_filling: true
+    - action: alazab_action_human_handoff
+  alazab_lead_capture:
+    description: تسجيل بيانات عميل جديد وإرسالها لفريق المبيعات
+    nlu_trigger:
+    - intent: ask_alazab_quote
+    - intent: ask_alazab_contact
+    steps:
+    - collect: user_name
+      description: اسم العميل
+      ask_before_filling: true
+    - collect: user_phone
+      description: رقم التواصل
+      ask_before_filling: true
+    - collect: location
+      description: المنطقة أو المحافظة
+      ask_before_filling: true
+    - collect: service_type
+      description: نوع الخدمة المطلوبة
+      ask_before_filling: true
+    - action: alazab_action_submit_lead

@@ -1,10 +1,8 @@
 version: "3.1"
-
 responses:
   utter_top_faqs:
     - text: |
         أهم الأسئلة الشائعة حول مجموعة العزب وخدماتها:
-
         - ما هي شركات مجموعة العزب ومجالاتها؟
         - ما خدمات التنفيذ وإدارة المشروعات المعمارية؟ [alazab.com](https://alazab.com)
         - ما هي التشطيبات الراقية من Luxury Finishing؟ [luxury-finishing.alazab.com](https://luxury-finishing.alazab.com)
@@ -21,7 +19,6 @@ responses:
         rephrase: True
     - text: |
         Top FAQs about Alazab Group and its brands:
-
         - What are Alazab Group's companies and focus areas?
         - What does Alazab Construction offer? [alazab.com](https://alazab.com)
         - What is Luxury Finishing? [luxury-finishing.alazab.com](https://luxury-finishing.alazab.com)

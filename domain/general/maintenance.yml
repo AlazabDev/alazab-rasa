@@ -1,5 +1,4 @@
 version: "3.1"
-
 slots:
   maintenance_client_name:
     type: text
@@ -37,7 +36,6 @@ slots:
     type: text
     mappings:
       - type: controlled
-
 responses:
   utter_ask_maintenance_client_name:
     - text: "ما اسم العميل/الفرع؟ \n ⚠️ [يرجى تحديث قائمة الفروع من الإدارة]"
@@ -71,7 +69,6 @@ responses:
   utter_maintenance_assigned:
     - text: "تم تعيين الفني، وسيتم التواصل معك قريباً. \n ⚠️ [يرجى تحديث بيانات الفنيين من الإدارة]"
     - text: "Technician assigned. You will be contacted soon. \n ⚠️ [Please update technician data with management]"
-
 actions:
   - action_create_maintenance_request
   - action_get_maintenance_status

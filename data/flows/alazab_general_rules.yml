@@ -1,0 +1,78 @@
+version: '3.1'
+flows:
+  مساعدة_عامة:
+    description: مساعدة عامة
+    nlu_trigger:
+    - intent: ask_help
+    steps:
+    - action: utter_ask_help
+  تحدي_البوت:
+    description: تحدي البوت
+    nlu_trigger:
+    - intent: bot_challenge
+    steps:
+    - action: utter_bot_challenge
+  خارج_النطاق:
+    description: خارج النطاق
+    nlu_trigger:
+    - intent: out_of_scope
+    steps:
+    - action: utter_out_of_scope
+  تقييم_الخدمة:
+    description: تقييم الخدمة
+    nlu_trigger:
+    - intent: give_feedback
+    steps:
+    - action: utter_ask_feedback
+  faqs_عامة:
+    description: FAQs عامة
+    nlu_trigger:
+    - intent: ask_faq_prices
+    steps:
+    - action: utter_faq_prices
+  faqs_المدة_الزمنية:
+    description: FAQs المدة الزمنية
+    nlu_trigger:
+    - intent: ask_faq_timing
+    steps:
+    - action: utter_faq_timing
+  faqs_الضمان:
+    description: FAQs الضمان
+    nlu_trigger:
+    - intent: ask_faq_warranty
+    steps:
+    - action: utter_faq_warranty
+  faqs_الدفع:
+    description: FAQs الدفع
+    nlu_trigger:
+    - intent: ask_faq_payment
+    steps:
+    - action: utter_faq_payment
+  faqs_الموقع:
+    description: FAQs الموقع
+    nlu_trigger:
+    - intent: ask_faq_location
+    steps:
+    - action: utter_faq_location
+  تفعيل_استمارة_الصيانة:
+    description: تفعيل استمارة الصيانة
+    nlu_trigger:
+    - intent: ask_uberfix_request
+    steps:
+    - collect: maintenance
+      description: Collect data for maintenance_form
+  تنفيذ_طلب_الصيانة_والحسابات:
+    description: تنفيذ طلب الصيانة والحسابات
+    nlu_trigger: []
+    steps:
+    - collect: maintenance
+      description: Collect data for maintenance_form
+    - action: action_uberfix_create_request
+    - action: action_daftra_sync_client
+    - action: action_daftra_create_invoice
+  التوجيه_لمواقع_المجموعة:
+    description: التوجيه لمواقع المجموعة
+    nlu_trigger:
+    - intent: ask_brand_sites
+    steps:
+    - action: action_brand_navigator

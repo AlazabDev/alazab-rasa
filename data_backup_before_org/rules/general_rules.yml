@@ -1,0 +1,58 @@
+version: "3.1"
+rules:
+  - rule: مساعدة عامة
+    steps:
+      - intent: ask_help
+      - action: utter_ask_help
+  - rule: تحدي البوت
+    steps:
+      - intent: bot_challenge
+      - action: utter_bot_challenge
+  - rule: خارج النطاق
+    steps:
+      - intent: out_of_scope
+      - action: utter_out_of_scope
+  - rule: تقييم الخدمة
+    steps:
+      - intent: give_feedback
+      - action: utter_ask_feedback
+  - rule: FAQs عامة
+    steps:
+      - intent: ask_faq_prices
+      - action: utter_faq_prices
+  - rule: FAQs المدة الزمنية
+    steps:
+      - intent: ask_faq_timing
+      - action: utter_faq_timing
+  - rule: FAQs الضمان
+    steps:
+      - intent: ask_faq_warranty
+      - action: utter_faq_warranty
+  - rule: FAQs الدفع
+    steps:
+      - intent: ask_faq_payment
+      - action: utter_faq_payment
+  - rule: FAQs الموقع
+    steps:
+      - intent: ask_faq_location
+      - action: utter_faq_location
+  - rule: تفعيل استمارة الصيانة
+    steps:
+      - intent: ask_uberfix_request
+      - action: maintenance_form
+      - active_loop: maintenance_form
+  - rule: تنفيذ طلب الصيانة والحسابات
+    condition:
+      - active_loop: maintenance_form
+    steps:
+      - action: maintenance_form
+      - active_loop: null
+      - slot_was_set:
+          - requested_slot: null
+      - action: action_uberfix_create_request
+      - action: action_daftra_sync_client
+      - action: action_daftra_create_invoice
+  - rule: التوجيه لمواقع المجموعة
+    steps:
+      - intent: ask_brand_sites
+      - action: action_brand_navigator
