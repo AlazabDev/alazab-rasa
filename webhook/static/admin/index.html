@@ -1,217 +1,1515 @@
 <!doctype html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Alazab Bot Control Center</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="./styles.css" />
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AzaBot — لوحة التحكم</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#080c12;--surface:#0e1420;--s2:#141c2a;--s3:#1a2336;
+  --border:rgba(255,255,255,.07);--border2:rgba(255,255,255,.13);
+  --gold:#e8b84b;--gold-d:rgba(232,184,75,.15);--gold-g:rgba(232,184,75,.07);
+  --text:#e8edf5;--muted:#7a8499;--muted2:#3d4a60;
+  --green:#22d3a0;--green-d:rgba(34,211,160,.13);
+  --red:#f06560;--red-d:rgba(240,101,96,.13);
+  --blue:#60a5fa;--blue-d:rgba(96,165,250,.1);
+  --amber:#fb923c;--purple:#a78bfa;
+  --r:18px;--r2:12px;--r3:8px;
+  --sh:0 20px 60px rgba(0,0,0,.5);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{font-size:15px;scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:'Tajawal',sans-serif;min-height:100vh;overflow-x:hidden}
+button,input,select,textarea{font:inherit}
+button{cursor:pointer;border:none;outline:none}
+a{color:var(--gold);text-decoration:none}
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:var(--s2)}
+::-webkit-scrollbar-thumb{background:var(--muted2);border-radius:99px}
+
+/* ══ LOGIN ══ */
+#loginScreen{
+  position:fixed;inset:0;z-index:9000;
+  display:flex;align-items:center;justify-content:center;
+  background:radial-gradient(ellipse 140% 100% at 50% -10%,rgba(232,184,75,.08) 0%,var(--bg) 65%);
+}
+#loginScreen::before{
+  content:'';position:absolute;inset:0;pointer-events:none;
+  background:url("data:image/svg+xml,%3Csvg width='60' height='60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2zM36 4V0h-2v4h-4v2h4v4h2V6h4V4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2zM6 4V0H4v4H0v2h4v4h2V6h4V4z' fill='%23fff' fill-opacity='.012'/%3E%3C/svg%3E") repeat;
+}
+.login-wrap{
+  position:relative;width:420px;max-width:calc(100vw - 32px);
+  background:var(--surface);border:1px solid var(--border2);
+  border-radius:28px;padding:44px 40px;
+  box-shadow:var(--sh),0 0 0 1px rgba(232,184,75,.05),inset 0 1px 0 rgba(255,255,255,.04);
+  animation:slideUp .45s cubic-bezier(.16,1,.3,1) both;
+}
+@keyframes slideUp{from{opacity:0;transform:translateY(28px)}to{opacity:1;transform:none}}
+.login-brand{display:flex;align-items:center;gap:14px;margin-bottom:32px}
+.login-icon{
+  width:46px;height:46px;border-radius:14px;
+  background:var(--gold-d);border:1px solid rgba(232,184,75,.28);
+  display:grid;place-items:center;font-size:20px;
+}
+.login-name{font-size:20px;font-weight:800;letter-spacing:-.3px}
+.login-name small{display:block;font-size:11px;font-weight:400;color:var(--muted)}
+.login-title{font-size:24px;font-weight:800;margin-bottom:6px}
+.login-sub{font-size:13px;color:var(--muted);margin-bottom:28px}
+.lfield{display:grid;gap:7px;margin-bottom:16px}
+.lfield label{font-size:12px;color:var(--muted);font-weight:600;letter-spacing:.03em}
+.lfield input{
+  background:var(--s2);border:1px solid var(--border);
+  border-radius:13px;padding:13px 16px;color:var(--text);
+  width:100%;transition:border-color .2s,box-shadow .2s;
+}
+.lfield input:focus{border-color:rgba(232,184,75,.5);outline:none;box-shadow:0 0 0 3px rgba(232,184,75,.06)}
+.login-btn{
+  width:100%;padding:15px;border-radius:13px;font-size:15px;font-weight:800;
+  background:linear-gradient(135deg,var(--gold) 0%,#d4952d 100%);
+  color:#06080d;margin-top:6px;transition:opacity .18s,transform .1s;letter-spacing:.02em;
+}
+.login-btn:hover{opacity:.9}
+.login-btn:active{transform:scale(.98)}
+.login-btn:disabled{opacity:.45;cursor:not-allowed}
+.login-err{
+  background:var(--red-d);border:1px solid rgba(240,101,96,.28);
+  border-radius:11px;padding:11px 15px;font-size:13px;color:var(--red);
+  margin-bottom:14px;display:none;
+}
+.login-err.show{display:block;animation:fadeIn .25s}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+
+/* ══ SHELL ══ */
+#appShell{display:none}
+#appShell.visible{display:flex;min-height:100vh}
+
+/* ══ SIDEBAR ══ */
+.sidebar{
+  width:256px;min-height:100vh;
+  background:var(--surface);border-left:1px solid var(--border);
+  display:flex;flex-direction:column;
+  position:fixed;right:0;top:0;bottom:0;z-index:100;overflow-y:auto;
+}
+.sb-logo{
+  padding:22px 18px 14px;display:flex;align-items:center;gap:11px;
+  border-bottom:1px solid var(--border);
+}
+.sb-logo-icon{
+  width:38px;height:38px;background:var(--gold-d);
+  border:1px solid rgba(232,184,75,.22);border-radius:11px;
+  display:grid;place-items:center;font-size:17px;flex-shrink:0;
+}
+.sb-logo-name{font-size:14px;font-weight:800}
+.sb-logo-sub{font-size:10px;color:var(--muted)}
+.sb-sec{
+  padding:16px 14px 4px;font-size:9.5px;font-weight:700;
+  color:var(--muted2);letter-spacing:.12em;text-transform:uppercase;
+}
+.sb-nav{padding:0 7px}
+.nav-item{
+  display:flex;align-items:center;gap:9px;padding:10px 13px;
+  border-radius:var(--r3);color:var(--muted);font-size:13.5px;font-weight:500;
+  transition:all .16s;margin-bottom:2px;border:1px solid transparent;
+  background:none;width:100%;text-align:right;cursor:pointer;
+}
+.nav-item:hover{background:var(--s2);color:var(--text)}
+.nav-item.active{background:var(--gold-d);color:var(--gold);border-color:rgba(232,184,75,.18)}
+.nav-icon{font-size:15px;flex-shrink:0;width:18px;text-align:center}
+.nav-badge{
+  margin-right:auto;background:rgba(240,101,96,.2);color:var(--red);
+  font-size:10px;font-weight:800;padding:1px 7px;border-radius:999px;
+  animation:pulse 2s infinite;
+}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.6}}
+.sb-user{margin-top:auto;padding:14px;border-top:1px solid var(--border)}
+.user-card{
+  display:flex;align-items:center;gap:10px;padding:11px;
+  background:var(--s2);border-radius:13px;border:1px solid var(--border);
+}
+.user-av{
+  width:34px;height:34px;border-radius:9px;flex-shrink:0;
+  background:linear-gradient(135deg,var(--gold),#c9952a);
+  display:grid;place-items:center;font-size:11px;font-weight:900;color:#06080d;
+}
+.user-name{font-size:12.5px;font-weight:700}
+.user-role{font-size:10.5px;color:var(--muted)}
+.logout-btn{margin-right:auto;background:none;padding:5px;border-radius:7px;color:var(--muted);font-size:15px;transition:color .18s}
+.logout-btn:hover{color:var(--red)}
+
+/* ══ MAIN ══ */
+.main{margin-right:256px;flex:1;min-height:100vh;display:flex;flex-direction:column}
+.topbar{
+  padding:18px 28px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+  background:rgba(8,12,18,.75);backdrop-filter:blur(14px);
+  position:sticky;top:0;z-index:50;
+}
+.page-title{font-size:19px;font-weight:800}
+.page-sub{font-size:12px;color:var(--muted);margin-top:2px}
+.topbar-actions{display:flex;gap:8px;align-items:center}
+.content-area{padding:24px 28px;flex:1}
+.view{display:none}
+.view.active{display:block;animation:fadeIn .22s}
+
+/* ══ GRID ══ */
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:18px}
+.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:18px}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:18px}
+.g1{display:grid;gap:14px;margin-bottom:18px}
+
+/* ══ STAT CARD ══ */
+.stat{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--r);padding:20px 22px;position:relative;overflow:hidden;
+}
+.stat::after{
+  content:'';position:absolute;top:-20px;right:-20px;
+  width:80px;height:80px;border-radius:50%;background:var(--gold-g);
+}
+.stat-lbl{font-size:11.5px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px}
+.stat-val{font-size:30px;font-weight:800;line-height:1;margin-bottom:5px;letter-spacing:-1px}
+.stat-meta{font-size:11.5px;color:var(--muted)}
+.stat-up{color:var(--green)}.stat-dn{color:var(--red)}
+
+/* ══ PANEL ══ */
+.panel{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--r);overflow:hidden;margin-bottom:14px;
+}
+.panel-head{
+  padding:16px 20px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;gap:10px;
+}
+.panel-title{font-size:14px;font-weight:700}
+.panel-body{padding:18px 20px}
+
+/* ══ BUTTONS ══ */
+.btn{
+  display:inline-flex;align-items:center;gap:6px;padding:8px 16px;
+  border-radius:var(--r3);font-size:12.5px;font-weight:700;transition:all .16s;cursor:pointer;border:none;
+}
+.btn-gold{background:linear-gradient(135deg,var(--gold),#d4952d);color:#06080d}
+.btn-gold:hover{opacity:.88}
+.btn-ghost{background:var(--s2);border:1px solid var(--border);color:var(--text)}
+.btn-ghost:hover{border-color:var(--border2)}
+.btn-ghost.active{background:var(--gold-d);color:var(--gold);border-color:rgba(232,184,75,.2)}
+.btn-danger{background:var(--red-d);border:1px solid rgba(240,101,96,.2);color:var(--red)}
+.btn-danger:hover{background:rgba(240,101,96,.22)}
+.btn-sm{padding:5px 11px;font-size:11.5px}
+.btn-icon{padding:6px;border-radius:8px}
+.btn-blue{background:var(--blue-d);border:1px solid rgba(96,165,250,.2);color:var(--blue)}
+
+/* ══ TABLE ══ */
+.tbl-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse}
+thead tr{border-bottom:1px solid var(--border)}
+thead th{padding:11px 14px;text-align:right;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.07em}
+tbody tr{border-bottom:1px solid var(--border);transition:background .13s}
+tbody tr:hover{background:var(--s2)}
+tbody td{padding:13px 14px;font-size:13px}
+tbody tr:last-child{border-bottom:none}
+
+/* ══ PILL ══ */
+.pill{display:inline-flex;align-items:center;gap:4px;padding:2px 9px;border-radius:999px;font-size:11px;font-weight:700}
+.pill::before{content:'●';font-size:7px}
+.p-green{background:var(--green-d);color:var(--green)}
+.p-red{background:var(--red-d);color:var(--red)}
+.p-gold{background:var(--gold-d);color:var(--gold)}
+.p-blue{background:var(--blue-d);color:var(--blue)}
+.p-gray{background:rgba(255,255,255,.06);color:var(--muted)}
+.p-amber{background:rgba(251,146,60,.12);color:var(--amber)}
+.p-purple{background:rgba(167,139,250,.12);color:var(--purple)}
+
+/* ══ FORM ══ */
+.fg{display:grid;gap:6px}
+.fg label{font-size:11.5px;color:var(--muted);font-weight:600;letter-spacing:.03em}
+.fg input,.fg select,.fg textarea{
+  background:var(--s2);border:1px solid var(--border);
+  border-radius:var(--r2);padding:11px 14px;color:var(--text);
+  width:100%;transition:border-color .2s;font-size:13.5px;
+}
+.fg input:focus,.fg select:focus,.fg textarea:focus{border-color:rgba(232,184,75,.4);outline:none;box-shadow:0 0 0 3px rgba(232,184,75,.05)}
+.fg select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%237a8499' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:left 14px center;padding-left:36px}
+.fg textarea{resize:vertical;min-height:90px}
+.form-grid{display:grid;gap:14px}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.full{grid-column:1/-1}
+.fg-row{display:flex;gap:10px;align-items:flex-end}
+
+/* ══ CHAT ══ */
+.chat-area{
+  background:var(--s2);border-radius:var(--r2);
+  min-height:340px;max-height:340px;overflow-y:auto;
+  padding:14px;display:flex;flex-direction:column;gap:10px;
+}
+.chat-msg{display:flex;gap:8px;align-items:flex-end}
+.chat-msg.bot{flex-direction:row-reverse}
+.chat-av{
+  width:28px;height:28px;border-radius:8px;flex-shrink:0;
+  display:grid;place-items:center;font-size:13px;
+}
+.chat-av.u{background:var(--gold-d);border:1px solid rgba(232,184,75,.2)}
+.chat-av.b{background:var(--blue-d);border:1px solid rgba(96,165,250,.15)}
+.chat-bubble{
+  max-width:72%;padding:11px 15px;border-radius:14px;
+  font-size:13.5px;line-height:1.65;
+}
+.chat-msg.user .chat-bubble{
+  background:var(--gold-d);border:1px solid rgba(232,184,75,.18);
+  border-bottom-right-radius:4px;
+}
+.chat-msg.bot .chat-bubble{
+  background:var(--s3);border:1px solid var(--border);
+  border-bottom-left-radius:4px;
+}
+.chat-time{font-size:9.5px;color:var(--muted);margin-top:3px;text-align:left}
+.chat-typing{display:flex;gap:4px;padding:8px 12px}
+.chat-typing span{
+  width:6px;height:6px;border-radius:50%;background:var(--muted);
+  animation:bounce 1.2s infinite ease-in-out;
+}
+.chat-typing span:nth-child(2){animation-delay:.2s}
+.chat-typing span:nth-child(3){animation-delay:.4s}
+@keyframes bounce{0%,80%,100%{transform:none;opacity:.4}40%{transform:translateY(-5px);opacity:1}}
+.chat-footer{display:flex;gap:8px;margin-top:12px;align-items:center}
+.chat-input{
+  flex:1;background:var(--s2);border:1px solid var(--border);
+  border-radius:var(--r2);padding:11px 15px;color:var(--text);font-size:13.5px;
+  transition:border-color .2s;
+}
+.chat-input:focus{border-color:rgba(232,184,75,.4);outline:none}
+
+/* ══ AUDIO ══ */
+.audio-btn{
+  width:42px;height:42px;border-radius:var(--r2);border:none;cursor:pointer;
+  display:grid;place-items:center;font-size:18px;transition:all .18s;flex-shrink:0;
+}
+.audio-btn.record{background:var(--blue-d);border:1px solid rgba(96,165,250,.2);color:var(--blue)}
+.audio-btn.record.recording{background:var(--red-d);border-color:rgba(240,101,96,.3);color:var(--red);animation:ring 1s infinite}
+@keyframes ring{0%,100%{box-shadow:0 0 0 0 rgba(240,101,96,.3)}50%{box-shadow:0 0 0 8px rgba(240,101,96,0)}}
+.audio-btn.play{background:var(--green-d);border:1px solid rgba(34,211,160,.2);color:var(--green)}
+.audio-bar{
+  height:4px;background:var(--s3);border-radius:99px;overflow:hidden;flex:1;margin:0 4px;
+}
+.audio-bar-fill{height:100%;background:linear-gradient(90deg,var(--blue),var(--green));border-radius:99px;width:0%;transition:width .1s linear}
+.tts-panel{
+  display:flex;align-items:center;gap:8px;padding:10px 14px;
+  background:var(--s2);border:1px solid var(--border);border-radius:var(--r2);margin-top:8px;
+}
+.tts-text{font-size:12.5px;color:var(--muted);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* ══ INTEGRATION MODAL ══ */
+.modal-overlay{
+  display:none;position:fixed;inset:0;z-index:500;
+  background:rgba(0,0,0,.7);backdrop-filter:blur(4px);
+  align-items:center;justify-content:center;
+}
+.modal-overlay.open{display:flex;animation:fadeIn .2s}
+.modal-box{
+  background:var(--surface);border:1px solid var(--border2);
+  border-radius:22px;width:560px;max-width:calc(100vw - 32px);
+  max-height:90vh;overflow-y:auto;padding:28px;
+  box-shadow:var(--sh);
+}
+.modal-title{font-size:17px;font-weight:800;margin-bottom:22px;display:flex;align-items:center;justify-content:space-between}
+.modal-close{background:none;color:var(--muted);font-size:20px;padding:4px 8px;border-radius:8px;transition:color .15s}
+.modal-close:hover{color:var(--text)}
+.modal-footer{display:flex;gap:10px;justify-content:flex-end;margin-top:22px;padding-top:18px;border-top:1px solid var(--border)}
+
+/* ══ INT TYPE GRID ══ */
+.type-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:20px}
+.type-card{
+  padding:12px 8px;background:var(--s2);border:2px solid var(--border);
+  border-radius:var(--r2);text-align:center;cursor:pointer;transition:all .16s;
+}
+.type-card:hover{border-color:var(--border2);background:var(--s3)}
+.type-card.sel{border-color:var(--gold);background:var(--gold-d)}
+.type-card .tc-icon{font-size:22px;margin-bottom:6px}
+.type-card .tc-name{font-size:11px;font-weight:700;color:var(--muted)}
+.type-card.sel .tc-name{color:var(--gold)}
+
+/* ══ LABAN ══ */
+.order-card{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--r);padding:18px;transition:border-color .15s;
+}
+.order-card:hover{border-color:var(--border2)}
+.order-num{font-size:10.5px;color:var(--muted);font-family:'JetBrains Mono',monospace}
+.order-client{font-size:15px;font-weight:700;margin:5px 0 3px}
+.order-detail{font-size:12.5px;color:var(--muted);margin-bottom:12px;line-height:1.5}
+.order-footer{display:flex;align-items:center;gap:8px;justify-content:space-between}
+
+/* ══ EMPTY ══ */
+.empty{text-align:center;padding:52px 20px;color:var(--muted)}
+.empty-icon{font-size:38px;margin-bottom:12px}
+.empty-text{font-size:14px;font-weight:600;margin-bottom:5px}
+.empty-sub{font-size:12.5px;color:var(--muted2)}
+
+/* ══ RESPONSIVE ══ */
+@media(max-width:1100px){.g4{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:860px){
+  .sidebar{width:100%;min-height:auto;position:relative}
+  .main{margin-right:0}
+  .g4,.g3,.g2{grid-template-columns:1fr}
+  .form-row{grid-template-columns:1fr}
+  .content-area{padding:16px}
+  .topbar{padding:14px 16px}
+  .type-grid{grid-template-columns:repeat(3,1fr)}
+}
+@media(max-width:480px){
+  .login-wrap{padding:30px 22px}
+  .type-grid{grid-template-columns:repeat(2,1fr)}
+}
+</style>
 </head>
 <body>
-  <div class="admin-shell">
-    <aside class="sidebar">
-      <div class="brand-box">
-        <img src="/widget/alazab_rasa.svg" alt="Alazab" onerror="this.style.display='none'" />
-        <div>
-          <span>Alazab AI</span>
-          <strong>مركز إدارة البوت</strong>
-        </div>
+
+<!-- ══ LOGIN ══ -->
+<div id="loginScreen">
+  <div class="login-wrap">
+    <div class="login-brand">
+      <div class="login-icon">🤖</div>
+      <div class="login-logo-text">
+        <div style="font-size:18px;font-weight:800">AzaBot</div>
+        <small style="font-size:11px;color:var(--muted)">لوحة التحكم الإدارية</small>
       </div>
-
-      <nav class="sidebar-nav">
-        <button class="nav-btn active" data-target="overview">النظرة العامة</button>
-        <button class="nav-btn" data-target="playground">تجربة البوت</button>
-        <button class="nav-btn" data-target="widget">إدارة الزر والودجت</button>
-        <button class="nav-btn" data-target="assets">المعرفة والموديلات</button>
-        <button class="nav-btn" data-target="embed">كود الدمج</button>
-      </nav>
-
-      <div class="sidebar-footer">
-        <small>Professional Bot Management UI</small>
-        <strong id="appVersion">v3.0.0</strong>
-      </div>
-    </aside>
-
-    <main class="content">
-      <header class="topbar">
-        <div>
-          <h1>لوحة تحكم البوت</h1>
-          <p>إدارة الحالة، اختبار التدفق، والتحكم في زر الدردشة من مكان واحد.</p>
-        </div>
-        <div class="top-actions">
-          <button id="refreshOverviewBtn" class="ghost-btn">تحديث البيانات</button>
-        </div>
-      </header>
-
-      <section class="view active" id="overviewView">
-        <div class="cards-grid stats-grid">
-          <article class="stat-card">
-            <span>حالة الخدمة</span>
-            <strong id="healthStatus">...</strong>
-            <small id="healthMeta">جارٍ الفحص</small>
-          </article>
-          <article class="stat-card">
-            <span>الموديلات</span>
-            <strong id="modelsCount">0</strong>
-            <small>عدد ملفات النماذج الجاهزة</small>
-          </article>
-          <article class="stat-card">
-            <span>الملفات المعرفية</span>
-            <strong id="docsCount">0</strong>
-            <small>مستندات docs المستخدمة في البحث</small>
-          </article>
-          <article class="stat-card">
-            <span>العلامة الافتراضية</span>
-            <strong id="defaultBrand">-</strong>
-            <small>البراند المرتبط بواجهة الإدارة</small>
-          </article>
-        </div>
-
-        <div class="cards-grid split-grid">
-          <article class="panel">
-            <div class="panel-head">
-              <h2>أعلام التشغيل</h2>
-            </div>
-            <div id="flagsGrid" class="flags-grid"></div>
-          </article>
-
-          <article class="panel">
-            <div class="panel-head">
-              <h2>العلامات التجارية</h2>
-            </div>
-            <div id="brandsList" class="stack-list"></div>
-          </article>
-        </div>
-      </section>
-
-      <section class="view" id="playgroundView">
-        <div class="cards-grid split-grid">
-          <article class="panel">
-            <div class="panel-head">
-              <h2>اختبار مباشر للبوت</h2>
-            </div>
-            <form id="playgroundForm" class="form-grid">
-              <label>
-                <span>المرسل</span>
-                <input id="senderIdInput" type="text" value="admin_console_user" />
-              </label>
-              <label>
-                <span>العلامة التجارية</span>
-                <select id="brandSelect"></select>
-              </label>
-              <label class="full-span">
-                <span>الرسالة</span>
-                <textarea id="messageInput" rows="4" placeholder="اكتب رسالة اختبارية للبوت..."></textarea>
-              </label>
-              <div class="form-actions full-span">
-                <button type="submit" class="primary-btn">إرسال للبوت</button>
-                <button type="button" id="loadTrackerBtn" class="ghost-btn">تحميل التراكر</button>
-              </div>
-            </form>
-          </article>
-
-          <article class="panel">
-            <div class="panel-head">
-              <h2>الردود</h2>
-            </div>
-            <div id="responseBox" class="console-box empty-state">لم يتم إرسال شيء بعد.</div>
-          </article>
-        </div>
-
-        <article class="panel">
-          <div class="panel-head">
-            <h2>آخر أحداث التراكر</h2>
-          </div>
-          <div id="trackerBox" class="console-box empty-state">حمّل التراكر بعد تجربة المحادثة.</div>
-        </article>
-      </section>
-
-      <section class="view" id="widgetView">
-        <div class="cards-grid split-grid">
-          <article class="panel">
-            <div class="panel-head">
-              <h2>إعدادات الودجت</h2>
-            </div>
-            <form id="widgetConfigForm" class="form-grid">
-              <label>
-                <span>عنوان API</span>
-                <input id="widgetApiUrl" type="text" value="/chat" />
-              </label>
-              <label>
-                <span>العلامة التجارية الافتراضية</span>
-                <select id="widgetBrandSelect"></select>
-              </label>
-              <label>
-                <span>عنوان الزر</span>
-                <input id="widgetLauncherTitle" type="text" value="افتح المحادثة" />
-              </label>
-              <label>
-                <span>عنوان البطاقة</span>
-                <input id="widgetHeaderTitle" type="text" value="عزبوت (AzBot)" />
-              </label>
-              <div class="form-actions full-span">
-                <button type="submit" class="primary-btn">تطبيق على المعاينة</button>
-                <button type="button" id="openWidgetBtn" class="ghost-btn">فتح الودجت</button>
-                <button type="button" id="sendPresetBtn" class="ghost-btn">إرسال رسالة جاهزة</button>
-              </div>
-            </form>
-          </article>
-
-          <article class="panel preview-panel">
-            <div class="panel-head">
-              <h2>معاينة حية</h2>
-            </div>
-            <div class="preview-stage">
-              <div class="preview-note">
-                هذه المنطقة مجرد معاينة. الزر الحقيقي يتم حقنه تلقائيًا أسفل الصفحة.
-              </div>
-            </div>
-          </article>
-        </div>
-      </section>
-
-      <section class="view" id="assetsView">
-        <div class="cards-grid split-grid">
-          <article class="panel">
-            <div class="panel-head">
-              <h2>ملفات الموديلات</h2>
-            </div>
-            <div id="modelsList" class="stack-list"></div>
-          </article>
-
-          <article class="panel">
-            <div class="panel-head">
-              <h2>ملفات المعرفة</h2>
-            </div>
-            <div id="docsList" class="stack-list"></div>
-          </article>
-        </div>
-      </section>
-
-      <section class="view" id="embedView">
-        <div class="cards-grid split-grid">
-          <article class="panel">
-            <div class="panel-head">
-              <h2>سطر الدمج</h2>
-            </div>
-            <pre id="embedSnippet" class="code-box"></pre>
-            <button id="copyEmbedBtn" class="primary-btn compact-btn">نسخ الكود</button>
-          </article>
-
-          <article class="panel">
-            <div class="panel-head">
-              <h2>أوامر الاستدعاء</h2>
-            </div>
-            <pre id="invokeSnippet" class="code-box"></pre>
-          </article>
-        </div>
-      </section>
-    </main>
+    </div>
+    <div class="login-title">تسجيل الدخول</div>
+    <div class="login-sub">الوصول مقتصر على فريق مجموعة العزب</div>
+    <div class="login-err" id="loginErr"></div>
+    <div class="lfield">
+      <label>البريد الإلكتروني</label>
+      <input type="email" id="loginEmail" placeholder="name@alazab.com" autocomplete="email">
+    </div>
+    <div class="lfield">
+      <label>كلمة المرور</label>
+      <input type="password" id="loginPass" placeholder="••••••••••" autocomplete="current-password">
+    </div>
+    <button class="login-btn" id="loginBtn" onclick="doLogin()">دخول →</button>
   </div>
+</div>
 
-  <script src="/widget/alazab-chat-widget.js"></script>
-  <script src="./app.js"></script>
+<!-- ══ APP ══ -->
+<div id="appShell">
+  <aside class="sidebar">
+    <div class="sb-logo">
+      <div class="sb-logo-icon">🤖</div>
+      <div><div class="sb-logo-name">AzaBot v4</div><div class="sb-logo-sub">مجموعة العزب</div></div>
+    </div>
+    <div class="sb-sec">الرئيسية</div>
+    <nav class="sb-nav">
+      <button class="nav-item active" data-view="dashboard"><span class="nav-icon">📊</span>لوحة المعلومات</button>
+      <button class="nav-item" data-view="playground"><span class="nav-icon">🧪</span>تجربة البوت</button>
+    </nav>
+    <div class="sb-sec">إدارة</div>
+    <nav class="sb-nav">
+      <button class="nav-item" data-view="conversations"><span class="nav-icon">💬</span>المحادثات</button>
+      <button class="nav-item" data-view="laban"><span class="nav-icon">🪵</span>Laban — التصنيع<span class="nav-badge" id="labanBadge" style="display:none">0</span></button>
+      <button class="nav-item" data-view="kb"><span class="nav-icon">📚</span>قاعدة المعرفة</button>
+    </nav>
+    <div class="sb-sec">النظام</div>
+    <nav class="sb-nav">
+      <button class="nav-item" data-view="integrations"><span class="nav-icon">🔗</span>التكاملات</button>
+      <button class="nav-item" data-view="training"><span class="nav-icon">🧠</span>التدريب</button>
+      <button class="nav-item" data-view="settings"><span class="nav-icon">⚙️</span>الإعدادات</button>
+    </nav>
+    <div class="sb-user">
+      <div class="user-card">
+        <div class="user-av" id="sbAv">AD</div>
+        <div><div class="user-name" id="sbName">...</div><div class="user-role" id="sbRole">...</div></div>
+        <button class="logout-btn" onclick="doLogout()" title="خروج">⏏</button>
+      </div>
+    </div>
+  </aside>
+
+  <div class="main">
+    <header class="topbar">
+      <div>
+        <div class="page-title" id="pageTitle">لوحة المعلومات</div>
+        <div class="page-sub" id="pageSub">نظرة عامة على حالة النظام</div>
+      </div>
+      <div class="topbar-actions" id="topbarActs">
+        <button class="btn btn-ghost btn-sm" onclick="refreshCurrent()">↻ تحديث</button>
+      </div>
+    </header>
+
+    <div class="content-area">
+
+      <!-- DASHBOARD -->
+      <div class="view active" id="view-dashboard">
+        <div class="g4" id="statsRow">
+          <div class="stat"><div class="stat-lbl">الحالة</div><div class="stat-val" id="stStatus">—</div><div class="stat-meta" id="stRasa">جارٍ الفحص…</div></div>
+          <div class="stat"><div class="stat-lbl">المحادثات</div><div class="stat-val" id="stConvs">—</div><div class="stat-meta">إجمالي</div></div>
+          <div class="stat"><div class="stat-lbl">الرسائل</div><div class="stat-val" id="stMsgs">—</div><div class="stat-meta">كل القنوات</div></div>
+          <div class="stat"><div class="stat-lbl">اليوم</div><div class="stat-val" id="stToday">—</div><div class="stat-meta">محادثة جديدة</div></div>
+        </div>
+        <div class="g2">
+          <div class="panel"><div class="panel-head"><span class="panel-title">القنوات</span></div><div class="panel-body" id="channelsList"></div></div>
+          <div class="panel"><div class="panel-head"><span class="panel-title">الموارد</span></div><div class="panel-body" id="resourcesList"></div></div>
+        </div>
+        <div class="g2">
+          <div class="panel"><div class="panel-head"><span class="panel-title">البراندات</span></div><div class="panel-body" id="brandsList"></div></div>
+          <div class="panel"><div class="panel-head"><span class="panel-title">آخر طلبات Laban</span></div><div class="panel-body" id="dashLaban"></div></div>
+        </div>
+      </div>
+
+      <!-- PLAYGROUND -->
+      <div class="view" id="view-playground">
+        <div class="g2" style="margin-bottom:14px">
+          <div class="panel">
+            <div class="panel-head"><span class="panel-title">إعدادات الاختبار</span></div>
+            <div class="panel-body">
+              <div class="form-row">
+                <div class="fg"><label>معرّف المرسل</label><input id="pgSender" value="admin_test"></div>
+                <div class="fg"><label>البراند</label>
+                  <select id="pgBrand">
+                    <option value="alazab_construction">🏗️ Alazab Construction</option>
+                    <option value="uberfix">🔧 UberFix</option>
+                    <option value="laban_alasfour">🪵 Laban Alasfour</option>
+                    <option value="luxury_finishing">✨ Luxury Finishing</option>
+                    <option value="brand_identity">🎨 Brand Identity</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="panel">
+            <div class="panel-head"><span class="panel-title">رسائل سريعة</span></div>
+            <div class="panel-body" style="display:flex;flex-wrap:wrap;gap:7px" id="quickMsgs"></div>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel-head">
+            <span class="panel-title">المحادثة</span>
+            <div style="display:flex;gap:8px;align-items:center">
+              <label style="font-size:12px;color:var(--muted);display:flex;align-items:center;gap:6px;cursor:pointer">
+                <input type="checkbox" id="ttsEnabled" style="width:14px;height:14px"> 🔊 تشغيل الردود صوتياً
+              </label>
+              <button class="btn btn-ghost btn-sm" onclick="clearChat()">مسح</button>
+            </div>
+          </div>
+          <div class="panel-body">
+            <div class="chat-area" id="chatArea"></div>
+            <!-- TTS playback panel -->
+            <div class="tts-panel" id="ttsPanel" style="display:none">
+              <span style="font-size:15px">🔊</span>
+              <div class="audio-bar"><div class="audio-bar-fill" id="ttsBarFill"></div></div>
+              <span class="tts-text" id="ttsPanelText">—</span>
+              <button class="audio-btn play" id="ttsPlayBtn" onclick="toggleTTS()" style="width:32px;height:32px;font-size:14px">▶</button>
+            </div>
+            <div class="chat-footer">
+              <input class="chat-input" id="chatInput" placeholder="اكتب رسالة اختبارية…" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendChat()}">
+              <button class="audio-btn record" id="recordBtn" onclick="toggleRecord()" title="رسالة صوتية">🎙</button>
+              <button class="btn btn-gold" onclick="sendChat()">إرسال</button>
+            </div>
+            <div id="recordStatus" style="font-size:11.5px;color:var(--muted);margin-top:6px;display:none">🔴 جارٍ التسجيل… اضغط مرة أخرى للإرسال</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CONVERSATIONS -->
+      <div class="view" id="view-conversations">
+        <div class="panel">
+          <div class="panel-head">
+            <span class="panel-title">المحادثات</span>
+            <div style="display:flex;gap:8px">
+              <input id="convsQ" placeholder="بحث…" class="chat-input" style="width:180px;padding:7px 12px;font-size:12.5px" oninput="filterConvs(this.value)">
+              <select id="convsCh" class="btn btn-ghost btn-sm" style="padding:5px 10px" onchange="filterConvs(document.getElementById('convsQ').value)">
+                <option value="">كل القنوات</option>
+                <option value="website">موقع</option>
+                <option value="whatsapp">واتساب</option>
+                <option value="telegram">تيليجرام</option>
+                <option value="messenger">ماسنجر</option>
+              </select>
+            </div>
+          </div>
+          <div class="tbl-wrap">
+            <table id="convsTable">
+              <thead><tr><th>المعرف</th><th>البراند</th><th>القناة</th><th>الرسائل</th><th>آخر نشاط</th><th></th></tr></thead>
+              <tbody id="convsTbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- LABAN -->
+      <div class="view" id="view-laban">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+          <div>
+            <div style="font-size:17px;font-weight:800;margin-bottom:3px">🪵 Laban Alasfour — طلبات التصنيع</div>
+            <div style="font-size:12.5px;color:var(--muted)">البوت يُوجّه لـ <a href="https://laban-alasfour.alazab.com" target="_blank">laban-alasfour.alazab.com</a> — هنا تُدار الطلبات المُسجَّلة</div>
+          </div>
+          <button class="btn btn-gold" onclick="openLabanForm()">+ طلب جديد</button>
+        </div>
+        <div style="display:flex;gap:7px;margin-bottom:18px;flex-wrap:wrap">
+          <button class="btn btn-ghost btn-sm laban-filter active" data-s="">الكل</button>
+          <button class="btn btn-ghost btn-sm laban-filter" data-s="new">جديد</button>
+          <button class="btn btn-ghost btn-sm laban-filter" data-s="in_progress">قيد التنفيذ</button>
+          <button class="btn btn-ghost btn-sm laban-filter" data-s="ready">جاهز</button>
+          <button class="btn btn-ghost btn-sm laban-filter" data-s="delivered">مُسلَّم</button>
+          <button class="btn btn-ghost btn-sm laban-filter" data-s="cancelled">ملغي</button>
+        </div>
+        <div class="g3" id="labanGrid"></div>
+      </div>
+
+      <!-- KB -->
+      <div class="view" id="view-kb">
+        <div class="panel">
+          <div class="panel-head">
+            <span class="panel-title">مجموعات المعرفة</span>
+            <button class="btn btn-gold btn-sm" onclick="newKbCol()">+ مجموعة</button>
+          </div>
+          <div class="panel-body" id="kbContent"></div>
+        </div>
+      </div>
+
+      <!-- INTEGRATIONS -->
+      <div class="view" id="view-integrations">
+        <div class="panel">
+          <div class="panel-head">
+            <span class="panel-title">التكاملات الخارجية</span>
+            <button class="btn btn-gold btn-sm" onclick="openIntModal()">+ تكامل جديد</button>
+          </div>
+          <div class="tbl-wrap">
+            <table>
+              <thead><tr><th>الاسم</th><th>النوع</th><th>الأحداث</th><th>الحالة</th><th>آخر اختبار</th><th></th></tr></thead>
+              <tbody id="intTbody"></tbody>
+            </table>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel-head"><span class="panel-title">سجل التسليم</span></div>
+          <div class="tbl-wrap">
+            <table>
+              <thead><tr><th>التكامل</th><th>الحدث</th><th>الحالة</th><th>الوقت</th></tr></thead>
+              <tbody id="intLogTbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- TRAINING -->
+      <div class="view" id="view-training">
+        <div class="g2">
+          <div class="panel">
+            <div class="panel-head"><span class="panel-title">بدء تدريب</span></div>
+            <div class="panel-body">
+              <div class="form-grid">
+                <div class="fg"><label>اسم الجلسة</label><input id="trName" placeholder="training-v4-may"></div>
+                <div class="fg"><label>النوع</label>
+                  <select id="trModel">
+                    <option value="rasa">Rasa Pro CALM</option>
+                    <option value="nlu_only">NLU فقط</option>
+                    <option value="finetune">Fine-tune GPT</option>
+                  </select>
+                </div>
+              </div>
+              <button class="btn btn-gold" style="margin-top:14px" onclick="startTraining()">▶ بدء التدريب</button>
+            </div>
+          </div>
+          <div class="panel">
+            <div class="panel-head"><span class="panel-title">سجل الجلسات</span></div>
+            <div class="panel-body" id="trainingJobs"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SETTINGS -->
+      <div class="view" id="view-settings">
+        <div class="g2">
+          <div class="panel">
+            <div class="panel-head"><span class="panel-title">إعدادات البوت</span></div>
+            <div class="panel-body">
+              <div class="form-grid">
+                <div class="fg"><label>اسم البوت</label><input id="cfgName" value="AzaBot"></div>
+                <div class="fg"><label>اللون الرئيسي</label><input id="cfgColor" type="color" value="#e8b84b"></div>
+                <div class="fg"><label>رسالة الترحيب</label><textarea id="cfgWelcome">مرحباً!</textarea></div>
+                <div class="form-row">
+                  <div class="fg"><label>TTS Model</label>
+                    <select id="cfgTtsModel">
+                      <option value="gpt-4o-mini-tts">gpt-4o-mini-tts</option>
+                      <option value="tts-1">tts-1</option>
+                      <option value="tts-1-hd">tts-1-hd</option>
+                    </select>
+                  </div>
+                  <div class="fg"><label>الصوت</label>
+                    <select id="cfgTtsVoice">
+                      <option value="nova">Nova (أنثى)</option>
+                      <option value="alloy">Alloy (محايد)</option>
+                      <option value="echo">Echo (ذكوري)</option>
+                      <option value="fable">Fable</option>
+                      <option value="onyx">Onyx (ذكوري عميق)</option>
+                      <option value="shimmer">Shimmer (أنثى ناعمة)</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+              <button class="btn btn-gold" style="margin-top:14px" onclick="saveSettings()">حفظ</button>
+            </div>
+          </div>
+          <div class="panel">
+            <div class="panel-head"><span class="panel-title">الجلسات النشطة</span></div>
+            <div class="panel-body" id="activeUsers"></div>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel-head"><span class="panel-title">كود الدمج</span></div>
+          <div class="panel-body">
+            <pre id="embedCode" style="background:var(--s2);border:1px solid var(--border);border-radius:var(--r2);padding:14px;font-family:'JetBrains Mono',monospace;font-size:12px;overflow-x:auto;white-space:pre;color:var(--green)"></pre>
+            <button class="btn btn-ghost btn-sm" style="margin-top:10px" onclick="copyEmbed()">📋 نسخ</button>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel-head"><span class="panel-title">🔊 اختبار TTS</span></div>
+          <div class="panel-body">
+            <div class="fg-row">
+              <div class="fg" style="flex:1"><label>النص</label><input id="ttsTestText" value="مرحباً، أنا عزبوت، مساعد مجموعة العزب الذكي."></div>
+              <button class="btn btn-blue" onclick="testTTS()" style="flex-shrink:0;margin-bottom:1px">🔊 اختبار</button>
+            </div>
+            <div id="ttsTestResult" style="margin-top:10px"></div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- .content-area -->
+  </div><!-- .main -->
+</div><!-- #appShell -->
+
+<!-- INTEGRATION MODAL -->
+<div class="modal-overlay" id="intModal">
+  <div class="modal-box">
+    <div class="modal-title">
+      <span id="intModalTitle">تكامل جديد</span>
+      <button class="modal-close" onclick="closeIntModal()">✕</button>
+    </div>
+    <!-- Type selector -->
+    <div id="intTypeStep">
+      <div style="font-size:13px;color:var(--muted);margin-bottom:14px">اختر نوع التكامل</div>
+      <div class="type-grid">
+        <div class="type-card" data-t="webhook" onclick="selectIntType('webhook')"><div class="tc-icon">🌐</div><div class="tc-name">Webhook</div></div>
+        <div class="type-card" data-t="telegram" onclick="selectIntType('telegram')"><div class="tc-icon">✈️</div><div class="tc-name">Telegram</div></div>
+        <div class="type-card" data-t="whatsapp" onclick="selectIntType('whatsapp')"><div class="tc-icon">💬</div><div class="tc-name">WhatsApp</div></div>
+        <div class="type-card" data-t="twilio" onclick="selectIntType('twilio')"><div class="tc-icon">📞</div><div class="tc-name">Twilio</div></div>
+        <div class="type-card" data-t="daftra" onclick="selectIntType('daftra')"><div class="tc-icon">🧾</div><div class="tc-name">Daftra</div></div>
+        <div class="type-card" data-t="openai" onclick="selectIntType('openai')"><div class="tc-icon">🤖</div><div class="tc-name">OpenAI</div></div>
+        <div class="type-card" data-t="supabase" onclick="selectIntType('supabase')"><div class="tc-icon">🗄️</div><div class="tc-name">Supabase</div></div>
+        <div class="type-card" data-t="email" onclick="selectIntType('email')"><div class="tc-icon">📧</div><div class="tc-name">Email</div></div>
+      </div>
+    </div>
+    <!-- Config form (shows after type selected) -->
+    <div id="intConfigStep" style="display:none">
+      <button class="btn btn-ghost btn-sm" onclick="backIntType()" style="margin-bottom:16px">← تغيير النوع</button>
+      <div class="form-grid" id="intFormFields"></div>
+      <div style="margin-top:14px">
+        <div style="font-size:12px;color:var(--muted);margin-bottom:10px;font-weight:600">الأحداث المُفعَّلة</div>
+        <div style="display:flex;flex-wrap:wrap;gap:8px" id="intEventCheckboxes"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" onclick="closeIntModal()">إلغاء</button>
+        <button class="btn btn-gold" onclick="saveIntegration()">حفظ التكامل</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- LABAN MODAL -->
+<div class="modal-overlay" id="labanModal">
+  <div class="modal-box" style="width:640px">
+    <div class="modal-title">
+      <span id="labanModalTitle">طلب تصنيع جديد</span>
+      <button class="modal-close" onclick="closeLabanModal()">✕</button>
+    </div>
+    <div class="form-grid">
+      <div class="form-row">
+        <div class="fg"><label>اسم العميل</label><input id="lf-name" placeholder="أحمد محمد"></div>
+        <div class="fg"><label>الهاتف</label><input id="lf-phone" placeholder="01xxxxxxxxx"></div>
+      </div>
+      <div class="form-row">
+        <div class="fg"><label>نوع الوحدة</label>
+          <select id="lf-type">
+            <option value="">اختر</option>
+            <option value="island">Island — جزيرة عرض</option>
+            <option value="counter">Counter — كاونتر</option>
+            <option value="shelving">Shelving — رفوف</option>
+            <option value="cashier">Cashier</option>
+            <option value="display_wall">Display Wall</option>
+            <option value="storage">Storage Unit</option>
+            <option value="custom">مخصص</option>
+          </select>
+        </div>
+        <div class="fg"><label>الخامة</label>
+          <select id="lf-material">
+            <option value="">اختر</option>
+            <option value="mdf">MDF</option>
+            <option value="solid_wood">خشب طبيعي</option>
+            <option value="plywood">خشب قشرة</option>
+            <option value="melamine">ميلامين</option>
+            <option value="acrylic">أكريليك</option>
+            <option value="mix">مختلطة</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="fg"><label>الأبعاد (ط×ع×ا بالسم)</label><input id="lf-dims" placeholder="200×90×180"></div>
+        <div class="fg"><label>الكمية</label><input id="lf-qty" type="number" min="1" value="1"></div>
+      </div>
+      <div class="fg full"><label>تفاصيل التصميم</label><textarea id="lf-desc" placeholder="لون، تشطيب، ملحقات…"></textarea></div>
+      <div class="form-row">
+        <div class="fg"><label>الفرع / الموقع</label><input id="lf-branch"></div>
+        <div class="fg"><label>الحالة</label>
+          <select id="lf-status">
+            <option value="new">جديد</option>
+            <option value="in_progress">قيد التنفيذ</option>
+            <option value="ready">جاهز</option>
+            <option value="delivered">مُسلَّم</option>
+            <option value="cancelled">ملغي</option>
+          </select>
+        </div>
+      </div>
+      <div class="fg full"><label>ملاحظات داخلية</label><textarea id="lf-notes" rows="2"></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeLabanModal()">إلغاء</button>
+      <button class="btn btn-gold" onclick="saveLabanOrder()">حفظ الطلب</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════════
+const S = {
+  token: localStorage.getItem('azabot_admin_token') || '',
+  user: null,
+  convs: [],
+  labanOrders: [],
+  labanFilter: '',
+  integrations: [],
+  currentView: 'dashboard',
+  // Voice
+  recorder: null,
+  recordChunks: [],
+  recording: false,
+  ttsAudio: null,
+  ttsPlaying: false,
+  // Chat
+  sending: false,
+  editingIntId: null,
+  editingIntType: null,
+  editingLabanId: null,
+};
+
+const PAGES = {
+  dashboard:     { title:'لوحة المعلومات', sub:'نظرة شاملة على حالة النظام' },
+  playground:    { title:'تجربة البوت', sub:'اختبار المحادثة والصوت' },
+  conversations: { title:'المحادثات', sub:'سجل كل المحادثات' },
+  laban:         { title:'Laban — التصنيع', sub:'طلبات الوحدات الخشبية' },
+  kb:            { title:'قاعدة المعرفة', sub:'المستندات والمجموعات' },
+  integrations:  { title:'التكاملات', sub:'ربط مع الخدمات الخارجية' },
+  training:      { title:'التدريب', sub:'تدريب موديلات Rasa' },
+  settings:      { title:'الإعدادات', sub:'إعدادات البوت والنظام' },
+};
+
+const STATUS_LABELS = { new:'جديد', in_progress:'قيد التنفيذ', ready:'جاهز', delivered:'مُسلَّم', cancelled:'ملغي' };
+const STATUS_PILLS  = { new:'p-gold', in_progress:'p-blue', ready:'p-green', delivered:'p-gray', cancelled:'p-red' };
+
+// ══════════════════════════════════════════════
+// API
+// ══════════════════════════════════════════════
+async function api(method, path, body) {
+  const opts = { method, headers: { 'Content-Type': 'application/json' } };
+  if (S.token) opts.headers['Authorization'] = 'Bearer ' + S.token;
+  if (body) opts.body = JSON.stringify(body);
+  try {
+    const r = await fetch(path, opts);
+    if (r.status === 401) { showLogin(); return null; }
+    if (!r.ok) { const e = await r.json().catch(() => {}); throw new Error(e?.detail || r.statusText); }
+    return r.json();
+  } catch (e) { if (e.message !== 'Failed to fetch') console.error(path, e); return null; }
+}
+const GET = p => api('GET', p);
+const POST = (p, b) => api('POST', p, b);
+const aGet = (action, qs = '') => GET(`/admin/api?action=${action}${qs}`);
+const aPost = (action, b) => POST(`/admin/api?action=${action}`, b);
+
+// ══════════════════════════════════════════════
+// AUTH
+// ══════════════════════════════════════════════
+async function doLogin() {
+  const email = document.getElementById('loginEmail').value.trim();
+  const pass  = document.getElementById('loginPass').value.trim();
+  const btn = document.getElementById('loginBtn');
+  if (!email || !pass) return showErr('يرجى ملء الحقلين');
+  btn.disabled = true; btn.textContent = 'جارٍ التحقق…';
+  try {
+    const r = await fetch('/admin/login', { method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ email, password: pass }) });
+    if (!r.ok) { const e = await r.json(); throw new Error(e.detail || 'خطأ'); }
+    const d = await r.json();
+    S.token = d.token; S.user = d.user;
+    localStorage.setItem('azabot_admin_token', S.token);
+    showApp();
+  } catch(e) { showErr(e.message); }
+  finally { btn.disabled = false; btn.textContent = 'دخول →'; }
+}
+function showErr(msg) {
+  const el = document.getElementById('loginErr');
+  el.textContent = msg; el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 4000);
+}
+async function checkAuth() {
+  if (!S.token) { showLogin(); return; }
+  S.user = await GET('/admin/me');
+  S.user ? showApp() : showLogin();
+}
+function showLogin() {
+  document.getElementById('loginScreen').style.display = 'flex';
+  document.getElementById('appShell').classList.remove('visible');
+  S.token = ''; localStorage.removeItem('azabot_admin_token');
+}
+function showApp() {
+  document.getElementById('loginScreen').style.display = 'none';
+  document.getElementById('appShell').classList.add('visible');
+  updateUserUI();
+  navigate('dashboard');
+  loadDashboard();
+  loadLabanOrders();
+}
+async function doLogout() {
+  await fetch('/admin/logout', { method:'POST', headers:{'Authorization':'Bearer '+S.token} }).catch(()=>{});
+  showLogin();
+}
+function updateUserUI() {
+  if (!S.user) return;
+  document.getElementById('sbAv').textContent   = S.user.avatar || (S.user.name||'?')[0];
+  document.getElementById('sbName').textContent  = S.user.name  || S.user.email;
+  document.getElementById('sbRole').textContent  = S.user.role  || '';
+}
+document.getElementById('loginPass').addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); });
+
+// ══════════════════════════════════════════════
+// NAVIGATION
+// ══════════════════════════════════════════════
+function navigate(view) {
+  S.currentView = view;
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('.nav-item[data-view]').forEach(b => b.classList.toggle('active', b.dataset.view===view));
+  const el = document.getElementById('view-' + view);
+  if (el) el.classList.add('active');
+  const p = PAGES[view] || {};
+  document.getElementById('pageTitle').textContent = p.title || view;
+  document.getElementById('pageSub').textContent   = p.sub   || '';
+  const loaders = { conversations: loadConversations, laban: loadLabanOrders, kb: loadKb,
+                    integrations: loadIntegrations, training: loadTraining, settings: loadSettings };
+  if (loaders[view]) loaders[view]();
+}
+document.querySelectorAll('.nav-item[data-view]').forEach(b => b.addEventListener('click', () => navigate(b.dataset.view)));
+function refreshCurrent() { navigate(S.currentView); loadDashboard(); }
+
+// ══════════════════════════════════════════════
+// DASHBOARD
+// ══════════════════════════════════════════════
+async function loadDashboard() {
+  const [stats, health, brands] = await Promise.all([aGet('stats'), GET('/health'), GET('/brands')]);
+  if (!stats || !health) return;
+
+  document.getElementById('stStatus').innerHTML = `<span class="pill ${health.status==='ok'?'p-green':health.status==='degraded'?'p-amber':'p-red'}">${health.status||'?'}</span>`;
+  document.getElementById('stRasa').textContent  = `Rasa: ${health.services?.rasa||'?'} · DB: ${health.services?.database||'?'}`;
+  document.getElementById('stConvs').textContent = stats.conversations || 0;
+  document.getElementById('stMsgs').textContent  = stats.messages || 0;
+  document.getElementById('stToday').textContent = stats.today || 0;
+
+  const ch = health.channels || {};
+  document.getElementById('channelsList').innerHTML = [
+    ['🌐', 'موقع', ch.website], ['💬', 'واتساب', ch.whatsapp],
+    ['📘', 'ماسنجر', ch.messenger], ['✈️', 'تيليجرام', ch.telegram]
+  ].map(([ic, nm, ok]) => `<div style="display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid var(--border)">
+    <span style="font-size:13px">${ic} ${nm}</span>
+    <span class="pill ${ok?'p-green':'p-gray'}">${ok?'نشط':'معطل'}</span>
+  </div>`).join('');
+
+  const sys = health.system || {};
+  document.getElementById('resourcesList').innerHTML = `
+    <div style="display:grid;gap:10px">
+      ${[['RAM', (sys.memory_mb||'?')+' MB'], ['CPU', (sys.cpu_percent||0)+'%'],
+         ['Uptime', sys.uptime_human||fmtUptime(sys.uptime_seconds)], ['Version', health.version||'4.0']]
+        .map(([l,v]) => `<div style="display:flex;justify-content:space-between"><span style="color:var(--muted);font-size:12.5px">${l}</span><strong style="font-size:13px">${v}</strong></div>`)
+        .join('')}
+    </div>`;
+
+  document.getElementById('brandsList').innerHTML = (brands||[]).map(b => `
+    <div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border)">
+      <div style="width:32px;height:32px;background:var(--gold-d);border-radius:9px;display:grid;place-items:center;font-size:14px">🏢</div>
+      <div><div style="font-size:13px;font-weight:600">${esc(b.title||b.name)}</div><div style="font-size:11px;color:var(--muted)">${b.slug||''}</div></div>
+    </div>`).join('');
+}
+function fmtUptime(s) {
+  if (!s) return '?';
+  const h = Math.floor(s/3600), m = Math.floor((s%3600)/60);
+  return h ? `${h}س ${m}د` : `${m}د`;
+}
+
+// ══════════════════════════════════════════════
+// PLAYGROUND + VOICE
+// ══════════════════════════════════════════════
+const QUICK = ['مرحبا','أريد عرض سعر','ما هي خدماتكم؟','أريد صيانة','لبن العصفور'];
+document.getElementById('quickMsgs').innerHTML = QUICK.map(m =>
+  `<button class="btn btn-ghost btn-sm" onclick="sendChatMsg('${m.replace(/'/g,"\\'")}')">${m}</button>`).join('');
+
+function appendBubble(text, role, isAudio=false) {
+  const ca = document.getElementById('chatArea');
+  const now = new Date().toLocaleTimeString('ar-EG',{hour:'2-digit',minute:'2-digit'});
+  const div = document.createElement('div');
+  div.className = `chat-msg ${role}`;
+  div.innerHTML = `
+    <div class="chat-av ${role==='user'?'u':'b'}">${role==='user'?'أ':'🤖'}</div>
+    <div>
+      <div class="chat-bubble">${isAudio?'🎙 ':''}${esc(text)}</div>
+      <div class="chat-time">${now}</div>
+    </div>`;
+  ca.appendChild(div);
+  ca.scrollTop = ca.scrollHeight;
+}
+function showTyping() {
+  const ca = document.getElementById('chatArea');
+  const div = document.createElement('div');
+  div.className = 'chat-msg bot'; div.id = 'typingIndicator';
+  div.innerHTML = '<div class="chat-av b">🤖</div><div class="chat-bubble"><div class="chat-typing"><span></span><span></span><span></span></div></div>';
+  ca.appendChild(div); ca.scrollTop = ca.scrollHeight;
+}
+function hideTyping() {
+  document.getElementById('typingIndicator')?.remove();
+}
+function clearChat() { document.getElementById('chatArea').innerHTML = ''; stopTTS(); }
+
+function sendChat() {
+  const inp = document.getElementById('chatInput');
+  const msg = inp.value.trim();
+  if (!msg || S.sending) return;
+  inp.value = '';
+  sendChatMsg(msg);
+}
+document.getElementById('chatInput').addEventListener('keydown', e => { if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendChat();} });
+
+async function sendChatMsg(msg, isAudio=false) {
+  if (S.sending) return;
+  S.sending = true;
+  appendBubble(msg, 'user', isAudio);
+  showTyping();
+  try {
+    const r = await fetch('/chat', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        sender_id: document.getElementById('pgSender').value || 'admin_test',
+        brand: document.getElementById('pgBrand').value,
+        message: msg, channel: 'website'
+      })
+    });
+    const data = await r.json();
+    hideTyping();
+    const responses = data.responses || [];
+    for (const resp of responses) {
+      if (resp.text) {
+        appendBubble(resp.text, 'bot');
+        if (document.getElementById('ttsEnabled').checked) {
+          await speakText(resp.text);
+        }
+      }
+    }
+  } catch(e) {
+    hideTyping();
+    appendBubble('⚠️ خطأ في الاتصال بالبوت', 'bot');
+  } finally { S.sending = false; }
+}
+
+// ── TTS ──────────────────────────────────────
+async function speakText(text) {
+  try {
+    const voice = document.getElementById('cfgTtsVoice')?.value || 'nova';
+    const model = document.getElementById('cfgTtsModel')?.value || 'gpt-4o-mini-tts';
+    const r = await fetch('/chat/tts', {
+      method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+S.token},
+      body: JSON.stringify({ text, voice, model })
+    });
+    if (!r.ok) throw new Error('TTS failed');
+    const blob = await r.blob();
+    const url = URL.createObjectURL(blob);
+    stopTTS();
+    S.ttsAudio = new Audio(url);
+    S.ttsPlaying = true;
+    showTTSPanel(text);
+    animateTTSBar();
+    S.ttsAudio.onended = () => { S.ttsPlaying = false; hideTTSPanel(); };
+    await S.ttsAudio.play();
+  } catch(e) { console.warn('TTS:', e); }
+}
+function stopTTS() {
+  if (S.ttsAudio) { S.ttsAudio.pause(); S.ttsAudio = null; }
+  S.ttsPlaying = false; hideTTSPanel();
+}
+function toggleTTS() {
+  if (!S.ttsAudio) return;
+  if (S.ttsPlaying) { S.ttsAudio.pause(); S.ttsPlaying = false; document.getElementById('ttsPlayBtn').textContent = '▶'; }
+  else { S.ttsAudio.play(); S.ttsPlaying = true; document.getElementById('ttsPlayBtn').textContent = '⏸'; }
+}
+function showTTSPanel(text) {
+  document.getElementById('ttsPanel').style.display = 'flex';
+  document.getElementById('ttsPanelText').textContent = text.slice(0,60)+(text.length>60?'…':'');
+  document.getElementById('ttsPlayBtn').textContent = '⏸';
+}
+function hideTTSPanel() { document.getElementById('ttsPanel').style.display = 'none'; }
+let _ttsBarInterval = null;
+function animateTTSBar() {
+  clearInterval(_ttsBarInterval);
+  let pct = 0;
+  const fill = document.getElementById('ttsBarFill');
+  const dur = S.ttsAudio?.duration || 4;
+  _ttsBarInterval = setInterval(() => {
+    if (!S.ttsAudio) { clearInterval(_ttsBarInterval); return; }
+    pct = (S.ttsAudio.currentTime / (S.ttsAudio.duration||dur)) * 100;
+    fill.style.width = Math.min(pct,100) + '%';
+    if (!S.ttsPlaying) clearInterval(_ttsBarInterval);
+  }, 100);
+}
+
+async function testTTS() {
+  const text = document.getElementById('ttsTestText').value.trim() || 'مرحباً!';
+  document.getElementById('ttsTestResult').innerHTML = '<span style="color:var(--muted);font-size:13px">🔄 جارٍ التوليد…</span>';
+  try {
+    const voice = document.getElementById('cfgTtsVoice').value || 'nova';
+    const model = document.getElementById('cfgTtsModel').value || 'gpt-4o-mini-tts';
+    const r = await fetch('/chat/tts', {
+      method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+S.token},
+      body: JSON.stringify({ text, voice, model })
+    });
+    if (!r.ok) throw new Error((await r.json())?.detail || 'فشل');
+    const blob = await r.blob();
+    const url = URL.createObjectURL(blob);
+    const sz = Math.round(blob.size/1024);
+    document.getElementById('ttsTestResult').innerHTML = `
+      <div style="display:flex;align-items:center;gap:10px;margin-top:8px">
+        <audio controls src="${url}" style="height:36px;flex:1"></audio>
+        <span style="font-size:11px;color:var(--muted)">${sz} KB</span>
+        <a href="${url}" download="tts-test.mp3" class="btn btn-ghost btn-sm">⬇</a>
+      </div>`;
+  } catch(e) {
+    document.getElementById('ttsTestResult').innerHTML = `<span style="color:var(--red);font-size:13px">❌ ${e.message}</span>`;
+  }
+}
+
+// ── Voice Recording ───────────────────────────
+async function toggleRecord() {
+  const btn = document.getElementById('recordBtn');
+  const status = document.getElementById('recordStatus');
+  if (!S.recording) {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      S.recorder = new MediaRecorder(stream, { mimeType: 'audio/webm' });
+      S.recordChunks = [];
+      S.recorder.ondataavailable = e => { if (e.data.size) S.recordChunks.push(e.data); };
+      S.recorder.onstop = sendAudioMessage;
+      S.recorder.start();
+      S.recording = true;
+      btn.classList.add('recording');
+      status.style.display = 'block';
+    } catch(e) {
+      appendBubble('⚠️ تعذّر الوصول للميكروفون', 'bot');
+    }
+  } else {
+    S.recorder?.stop();
+    S.recorder?.stream?.getTracks().forEach(t => t.stop());
+    S.recording = false;
+    btn.classList.remove('recording');
+    status.style.display = 'none';
+  }
+}
+
+async function sendAudioMessage() {
+  const blob = new Blob(S.recordChunks, { type: 'audio/webm' });
+  S.recordChunks = [];
+  if (blob.size < 1000) return;
+  appendBubble('🎙 رسالة صوتية…', 'user', true);
+  showTyping();
+  S.sending = true;
+  try {
+    const fd = new FormData();
+    fd.append('audio', blob, 'voice.webm');
+    fd.append('sender_id', document.getElementById('pgSender').value || 'admin_test');
+    fd.append('brand', document.getElementById('pgBrand').value);
+    fd.append('channel', 'website');
+    const r = await fetch('/chat/audio', { method:'POST', body: fd });
+    const data = await r.json();
+    hideTyping();
+    if (data.transcript) appendBubble(`📝 "${data.transcript}"`, 'user');
+    for (const resp of (data.responses||[])) {
+      if (resp.text) {
+        appendBubble(resp.text, 'bot');
+        if (document.getElementById('ttsEnabled').checked) await speakText(resp.text);
+      }
+    }
+  } catch(e) {
+    hideTyping();
+    appendBubble('⚠️ خطأ في إرسال الرسالة الصوتية', 'bot');
+  } finally { S.sending = false; }
+}
+
+// ══════════════════════════════════════════════
+// CONVERSATIONS
+// ══════════════════════════════════════════════
+async function loadConversations() {
+  S.convs = await aGet('list_conversations') || [];
+  renderConvs(S.convs);
+}
+function filterConvs(q) {
+  const ch = document.getElementById('convsCh').value;
+  let list = S.convs;
+  if (q) list = list.filter(c => [c.session_id,c.brand,c.channel].some(f => (f||'').toLowerCase().includes(q.toLowerCase())));
+  if (ch) list = list.filter(c => c.channel === ch);
+  renderConvs(list);
+}
+function renderConvs(list) {
+  document.getElementById('convsTbody').innerHTML = list.length
+    ? list.map(c => `<tr>
+        <td><code style="font-size:11px;color:var(--muted)">${(c.session_id||'').slice(0,14)}…</code></td>
+        <td>${esc(c.brand||'—')}</td>
+        <td><span class="pill p-blue">${c.channel||'web'}</span></td>
+        <td>${c.message_count||0}</td>
+        <td style="font-size:11.5px;color:var(--muted)">${fmtDate(c.last_message_at)}</td>
+        <td><button class="btn btn-danger btn-sm btn-icon" onclick="delConv('${c.id}')">🗑</button></td>
+      </tr>`).join('')
+    : '<tr><td colspan="6" class="empty" style="text-align:center">لا توجد محادثات</td></tr>';
+}
+async function delConv(id) {
+  if (!confirm('حذف؟')) return;
+  await aPost('delete_conversation', { id }); loadConversations();
+}
+
+// ══════════════════════════════════════════════
+// LABAN
+// ══════════════════════════════════════════════
+async function loadLabanOrders() {
+  const qs = S.labanFilter ? `&status=${S.labanFilter}` : '';
+  S.labanOrders = await aGet('list_laban_orders', qs) || [];
+  renderLabanOrders(S.labanOrders);
+  const newCount = S.labanOrders.filter(o => o.status==='new').length;
+  const badge = document.getElementById('labanBadge');
+  badge.textContent = newCount; badge.style.display = newCount ? 'inline' : 'none';
+  // dashboard
+  const dash = document.getElementById('dashLaban');
+  if (dash) dash.innerHTML = S.labanOrders.slice(0,4).map(o => `
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid var(--border)">
+      <div><div style="font-size:12.5px;font-weight:600">${esc(o.client_name||'—')}</div>
+           <div style="font-size:11px;color:var(--muted)">${o.unit_type||'—'} · ${o.order_number||''}</div></div>
+      <span class="pill ${STATUS_PILLS[o.status]||'p-gray'}">${STATUS_LABELS[o.status]||o.status}</span>
+    </div>`).join('') || '<div class="empty"><div class="empty-icon">📋</div><div class="empty-text">لا توجد طلبات</div></div>';
+}
+function renderLabanOrders(list) {
+  document.getElementById('labanGrid').innerHTML = list.length
+    ? list.map(o => `<div class="order-card">
+        <div class="order-num">${o.order_number||'—'}</div>
+        <div class="order-client">${esc(o.client_name||'—')}</div>
+        <div class="order-detail">
+          ${o.unit_type?`📦 ${esc(o.unit_type)} ·`:''} ${o.material?`🪵 ${esc(o.material)} ·`:''} ${o.dims?`📐 ${esc(o.dims)}`:''}${o.qty>1?` × ${o.qty}`:''}
+        </div>
+        ${o.description?`<div style="font-size:12px;color:var(--muted);margin-bottom:10px">${esc(o.description).slice(0,80)}${o.description.length>80?'…':''}</div>`:''}
+        <div class="order-footer">
+          <span class="pill ${STATUS_PILLS[o.status]||'p-gray'}">${STATUS_LABELS[o.status]||o.status}</span>
+          <div style="display:flex;gap:6px">
+            <select class="btn btn-ghost btn-sm" onchange="changeStatus('${o.id}',this.value)" style="padding:4px 8px;font-size:11px">
+              ${Object.entries(STATUS_LABELS).map(([k,v])=>`<option value="${k}" ${o.status===k?'selected':''}>${v}</option>`).join('')}
+            </select>
+            <button class="btn btn-ghost btn-sm btn-icon" onclick="editLaban('${o.id}')">✏️</button>
+            <button class="btn btn-danger btn-sm btn-icon" onclick="delLaban('${o.id}')">🗑</button>
+          </div>
+        </div>
+        <div style="font-size:10.5px;color:var(--muted2);margin-top:7px">${fmtDate(o.created_at)}</div>
+      </div>`).join('')
+    : `<div class="empty" style="grid-column:1/-1"><div class="empty-icon">🪵</div><div class="empty-text">لا توجد طلبات</div><div class="empty-sub">البوت يُوجّه العميل لـ laban-alasfour.alazab.com</div></div>`;
+}
+document.querySelectorAll('.laban-filter').forEach(btn => btn.addEventListener('click', () => {
+  document.querySelectorAll('.laban-filter').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active'); S.labanFilter = btn.dataset.s; loadLabanOrders();
+}));
+function openLabanForm(o=null) {
+  S.editingLabanId = o?.id || null;
+  document.getElementById('labanModalTitle').textContent = o ? 'تعديل الطلب' : 'طلب جديد';
+  ['name','phone','dims','branch','notes'].forEach(k => document.getElementById('lf-'+k).value = o?.[{name:'client_name',phone:'phone',dims:'dims',branch:'branch',notes:'notes'}[k]]||'');
+  document.getElementById('lf-type').value     = o?.unit_type || '';
+  document.getElementById('lf-material').value = o?.material  || '';
+  document.getElementById('lf-qty').value      = o?.qty       || 1;
+  document.getElementById('lf-desc').value     = o?.description|| '';
+  document.getElementById('lf-status').value   = o?.status    || 'new';
+  document.getElementById('labanModal').classList.add('open');
+}
+function closeLabanModal() { document.getElementById('labanModal').classList.remove('open'); }
+function editLaban(id) { openLabanForm(S.labanOrders.find(o=>o.id===id)); }
+async function saveLabanOrder() {
+  const order = {
+    id: S.editingLabanId || undefined,
+    client_name: document.getElementById('lf-name').value.trim(),
+    phone:       document.getElementById('lf-phone').value.trim(),
+    unit_type:   document.getElementById('lf-type').value,
+    material:    document.getElementById('lf-material').value,
+    dims:        document.getElementById('lf-dims').value.trim(),
+    qty:         parseInt(document.getElementById('lf-qty').value)||1,
+    description: document.getElementById('lf-desc').value.trim(),
+    branch:      document.getElementById('lf-branch').value.trim(),
+    status:      document.getElementById('lf-status').value,
+    notes:       document.getElementById('lf-notes').value.trim(),
+  };
+  if (!order.client_name) { alert('اسم العميل مطلوب'); return; }
+  await aPost('save_laban_order', order); closeLabanModal(); loadLabanOrders();
+}
+async function delLaban(id) { if (!confirm('حذف؟')) return; await aPost('delete_laban_order',{id}); loadLabanOrders(); }
+async function changeStatus(id, status) { await aPost('update_laban_order_status',{id,status}); loadLabanOrders(); }
+
+// ══════════════════════════════════════════════
+// KB
+// ══════════════════════════════════════════════
+async function loadKb() {
+  const cols = await aGet('list_kb_collections') || [];
+  document.getElementById('kbContent').innerHTML = cols.length
+    ? cols.map(c => `<div style="display:flex;justify-content:space-between;align-items:center;padding:13px 0;border-bottom:1px solid var(--border)">
+        <div><div style="font-size:13.5px;font-weight:600">${esc(c.name)}</div>
+             <div style="font-size:11.5px;color:var(--muted)">${c.document_count||0} مستند · ${c.description||''}</div></div>
+        <div style="display:flex;gap:7px">
+          <button class="btn btn-ghost btn-sm" onclick="listKbDocs('${c.id}','${esc(c.name)}')">المستندات</button>
+          <button class="btn btn-danger btn-sm btn-icon" onclick="delKbCol('${c.id}')">🗑</button>
+        </div>
+      </div>`).join('')
+    : '<div class="empty"><div class="empty-icon">📚</div><div class="empty-text">لا توجد مجموعات</div></div>';
+}
+async function newKbCol() {
+  const name = prompt('اسم المجموعة:'); if (!name) return;
+  await aPost('create_kb_collection',{name}); loadKb();
+}
+async function delKbCol(id) { if (!confirm('حذف؟')) return; await aPost('delete_kb_collection',{id}); loadKb(); }
+async function listKbDocs(colId, colName) {
+  const docs = await aGet('list_kb_documents', `&collection_id=${colId}`) || [];
+  alert(`${colName}\n${docs.length} مستند\n${docs.map(d=>d.name).join('\n')}`);
+}
+
+// ══════════════════════════════════════════════
+// INTEGRATIONS — FULL CRUD
+// ══════════════════════════════════════════════
+const INT_TYPES = {
+  webhook:  { icon:'🌐', label:'Webhook',  fields:[{k:'url',l:'URL',ph:'https://...'},  {k:'secret',l:'Secret Token (اختياري)',ph:'...'}] },
+  telegram: { icon:'✈️', label:'Telegram', fields:[{k:'bot_token',l:'Bot Token',ph:'123456:ABC...'}, {k:'chat_id',l:'Chat ID',ph:'-100123456'}] },
+  whatsapp: { icon:'💬', label:'WhatsApp', fields:[{k:'phone_number_id',l:'Phone Number ID',ph:'1234567890'},{k:'access_token',l:'Access Token',ph:'EAAm...'},{k:'recipient',l:'رقم المستلم',ph:'201012345678'}] },
+  twilio:   { icon:'📞', label:'Twilio',   fields:[{k:'account_sid',l:'Account SID',ph:'ACa1b2...'},{k:'auth_token',l:'Auth Token',ph:'...'},{k:'from',l:'From Number',ph:'+1...'},{k:'to',l:'To Number',ph:'+201...'}] },
+  daftra:   { icon:'🧾', label:'Daftra',   fields:[{k:'api_key',l:'API Key',ph:'...'},{k:'base_url',l:'Base URL',ph:'https://...'}] },
+  openai:   { icon:'🤖', label:'OpenAI',   fields:[{k:'api_key',l:'API Key',ph:'sk-...'}] },
+  supabase: { icon:'🗄️', label:'Supabase', fields:[{k:'url',l:'Project URL',ph:'https://xxx.supabase.co'},{k:'anon_key',l:'Anon Key',ph:'eyJ...'}] },
+  email:    { icon:'📧', label:'Email',    fields:[{k:'smtp_host',l:'SMTP Host',ph:'smtp.gmail.com'},{k:'smtp_port',l:'Port',ph:'587'},{k:'username',l:'Username',ph:'...'},{k:'password',l:'Password',ph:'...'},{k:'to',l:'إرسال إلى',ph:'...@...'}] },
+};
+const INT_EVENTS = ['message.received','lead.created','handoff.requested','session.started','session.ended'];
+
+async function loadIntegrations() {
+  S.integrations = await aGet('list_integrations') || [];
+  const logs = await aGet('list_integration_logs').catch(()=>null) || [];
+  renderIntegrations(S.integrations);
+  renderIntLogs(logs);
+}
+function renderIntegrations(list) {
+  document.getElementById('intTbody').innerHTML = list.length
+    ? list.map(i => {
+        const t = INT_TYPES[i.type] || {};
+        const tested = i.last_test_at ? fmtDate(i.last_test_at) : '—';
+        return `<tr>
+          <td><strong>${esc(i.name||'—')}</strong></td>
+          <td><span class="pill p-purple">${t.icon||''} ${esc(i.type||'—')}</span></td>
+          <td style="font-size:11.5px;color:var(--muted)">${(i.events||[]).join(', ')||'—'}</td>
+          <td><span class="pill ${i.enabled?'p-green':'p-gray'}">${i.enabled?'مفعّل':'معطّل'}</span></td>
+          <td style="font-size:11.5px;color:var(--muted)">${tested}</td>
+          <td><div style="display:flex;gap:5px">
+            <button class="btn btn-blue btn-sm" onclick="testInt('${i.id}')">اختبار</button>
+            <button class="btn btn-ghost btn-sm" onclick="editInt('${i.id}')">✏️</button>
+            <button class="btn btn-danger btn-sm btn-icon" onclick="delInt('${i.id}')">🗑</button>
+          </div></td>
+        </tr>`;
+      }).join('')
+    : '<tr><td colspan="6" class="empty" style="text-align:center">لا توجد تكاملات — أضف تكاملاً جديداً</td></tr>';
+}
+function renderIntLogs(logs) {
+  document.getElementById('intLogTbody').innerHTML = (logs||[]).length
+    ? logs.slice(0,20).map(l => `<tr>
+        <td style="font-size:12px">${esc(l.integration_type||'—')}</td>
+        <td style="font-size:12px;color:var(--muted)">${esc(l.event||'—')}</td>
+        <td><span class="pill ${l.status==='success'?'p-green':'p-red'}">${l.status}</span></td>
+        <td style="font-size:11px;color:var(--muted)">${fmtDate(l.created_at)}</td>
+      </tr>`).join('')
+    : '<tr><td colspan="4" class="empty" style="text-align:center;font-size:12px;color:var(--muted)">لا يوجد سجل بعد</td></tr>';
+}
+
+function openIntModal(existingId=null) {
+  S.editingIntId = existingId;
+  document.getElementById('intModalTitle').textContent = existingId ? 'تعديل التكامل' : 'تكامل جديد';
+  document.getElementById('intTypeStep').style.display = existingId ? 'none' : 'block';
+  if (existingId) {
+    const int = S.integrations.find(i=>i.id===existingId);
+    if (int) { selectIntType(int.type, int); return; }
+  }
+  document.getElementById('intConfigStep').style.display = 'none';
+  // reset type selection
+  document.querySelectorAll('.type-card').forEach(c=>c.classList.remove('sel'));
+  document.getElementById('intModal').classList.add('open');
+}
+function closeIntModal() { document.getElementById('intModal').classList.remove('open'); S.editingIntId=null; S.editingIntType=null; }
+function editInt(id) { openIntModal(id); }
+function backIntType() {
+  document.getElementById('intTypeStep').style.display = 'block';
+  document.getElementById('intConfigStep').style.display = 'none';
+}
+
+function selectIntType(type, existing=null) {
+  S.editingIntType = type;
+  document.querySelectorAll('.type-card').forEach(c => c.classList.toggle('sel', c.dataset.t===type));
+  const def = INT_TYPES[type];
+  if (!def) return;
+
+  // Build form
+  const cfg = existing?.config || {};
+  document.getElementById('intFormFields').innerHTML = `
+    <div class="fg full"><label>اسم التكامل</label><input id="int-name" value="${esc(existing?.name||def.label+' Integration')}" placeholder="${def.label}"></div>
+    ${def.fields.map(f => `<div class="fg full"><label>${f.l}</label><input id="int-${f.k}" value="${esc(cfg[f.k]||'')}" placeholder="${f.ph||''}" type="${f.k.includes('token')||f.k.includes('key')||f.k.includes('password')||f.k.includes('secret')?'password':'text'}"></div>`).join('')}
+    <div class="form-row">
+      <div class="fg"><label>الحالة</label>
+        <select id="int-enabled">
+          <option value="1" ${!existing||existing.enabled?'selected':''}>مفعّل</option>
+          <option value="0" ${existing&&!existing.enabled?'selected':''}>معطّل</option>
+        </select>
+      </div>
+    </div>`;
+
+  // Events
+  document.getElementById('intEventCheckboxes').innerHTML = INT_EVENTS.map(ev => `
+    <label style="display:flex;align-items:center;gap:6px;font-size:12.5px;cursor:pointer;padding:6px 10px;background:var(--s2);border-radius:8px;border:1px solid var(--border)">
+      <input type="checkbox" value="${ev}" ${!existing||(existing.events||[]).includes(ev)?'checked':''} style="width:13px;height:13px">
+      ${ev}
+    </label>`).join('');
+
+  document.getElementById('intTypeStep').style.display = 'none';
+  document.getElementById('intConfigStep').style.display = 'block';
+  document.getElementById('intModal').classList.add('open');
+}
+
+async function saveIntegration() {
+  const type = S.editingIntType;
+  if (!type) return;
+  const def = INT_TYPES[type] || {};
+  const config = {};
+  def.fields?.forEach(f => { config[f.k] = document.getElementById('int-'+f.k)?.value?.trim()||''; });
+  const events = [...document.querySelectorAll('#intEventCheckboxes input:checked')].map(c=>c.value);
+  const data = {
+    id:      S.editingIntId || undefined,
+    name:    document.getElementById('int-name').value.trim() || (def.label+' Integration'),
+    type,    config, events,
+    enabled: document.getElementById('int-enabled').value === '1',
+  };
+  await aPost('save_integration', data);
+  closeIntModal(); loadIntegrations();
+}
+async function testInt(id) {
+  const btn = event.target; btn.textContent = '⏳'; btn.disabled = true;
+  const res = await aPost('test_integration', { id });
+  btn.textContent = res?.status==='success' ? '✅' : '❌';
+  setTimeout(() => { btn.textContent = 'اختبار'; btn.disabled = false; }, 2000);
+  loadIntegrations();
+}
+async function delInt(id) {
+  if (!confirm('حذف التكامل؟')) return;
+  await aPost('delete_integration',{id}); loadIntegrations();
+}
+
+// ══════════════════════════════════════════════
+// TRAINING
+// ══════════════════════════════════════════════
+async function loadTraining() {
+  const jobs = await aGet('list_training_jobs') || [];
+  const P = { running:'p-blue', completed:'p-green', failed:'p-red' };
+  document.getElementById('trainingJobs').innerHTML = jobs.length
+    ? jobs.map(j => `<div style="display:flex;justify-content:space-between;align-items:center;padding:11px 0;border-bottom:1px solid var(--border)">
+        <div><div style="font-size:13px;font-weight:600">${esc(j.name)}</div>
+             <div style="font-size:11px;color:var(--muted)">${fmtDate(j.created_at)}</div></div>
+        <div style="display:flex;gap:7px;align-items:center">
+          <span class="pill ${P[j.status]||'p-gray'}">${j.status}</span>
+          <button class="btn btn-danger btn-sm btn-icon" onclick="delTrJob('${j.id}')">🗑</button>
+        </div>
+      </div>`).join('')
+    : '<div class="empty"><div class="empty-icon">🧠</div><div class="empty-text">لا توجد جلسات</div></div>';
+}
+async function startTraining() {
+  const fd = new FormData();
+  fd.append('name', document.getElementById('trName').value||'training-new');
+  fd.append('model_type', document.getElementById('trModel').value||'rasa');
+  await fetch('/admin/api?action=start_training', { method:'POST', headers:{'Authorization':'Bearer '+S.token}, body:fd });
+  loadTraining();
+}
+async function delTrJob(id) { if (!confirm('حذف؟')) return; await aPost('delete_training_job',{id}); loadTraining(); }
+
+// ══════════════════════════════════════════════
+// SETTINGS
+// ══════════════════════════════════════════════
+async function loadSettings() {
+  const cfg = await aGet('get_settings');
+  if (cfg) {
+    document.getElementById('cfgName').value       = cfg.bot_name||'AzaBot';
+    document.getElementById('cfgWelcome').value    = cfg.welcome_message||'';
+    document.getElementById('cfgColor').value      = cfg.primary_color||'#e8b84b';
+    document.getElementById('cfgTtsModel').value   = cfg.tts_model||'gpt-4o-mini-tts';
+    document.getElementById('cfgTtsVoice').value   = cfg.tts_voice||'nova';
+  }
+  document.getElementById('embedCode').textContent =
+    `<script src="${location.origin}/embed/azabot-embed.js"><\/script>\n`+
+    `<script>\n  window.AzaBotConfig = {\n    apiOrigin: '${location.origin}',\n    brand: 'alazab_construction'\n  };\n<\/script>`;
+  try {
+    const sess = await GET('/admin/sessions');
+    document.getElementById('activeUsers').innerHTML = (sess||[]).length
+      ? sess.map(s => `<div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border)">
+          <div><div style="font-size:12.5px;font-weight:600">${s.email}</div>
+               <div style="font-size:11px;color:var(--muted)">آخر نشاط: ${fmtDate(new Date(s.last_seen*1000).toISOString())}</div></div>
+        </div>`).join('')
+      : '<div class="empty"><div class="empty-text">لا توجد جلسات</div></div>';
+  } catch { document.getElementById('activeUsers').innerHTML = '<div style="font-size:12.5px;color:var(--muted);padding:10px">— غير متاح —</div>'; }
+}
+async function saveSettings() {
+  await aPost('update_settings', {
+    bot_name:        document.getElementById('cfgName').value,
+    welcome_message: document.getElementById('cfgWelcome').value,
+    primary_color:   document.getElementById('cfgColor').value,
+    tts_model:       document.getElementById('cfgTtsModel').value,
+    tts_voice:       document.getElementById('cfgTtsVoice').value,
+  });
+  const btn = event.target; btn.textContent = '✅ تم الحفظ';
+  setTimeout(() => btn.textContent = 'حفظ', 2000);
+}
+function copyEmbed() {
+  navigator.clipboard.writeText(document.getElementById('embedCode').textContent).then(() => {
+    const btn = event.target; btn.textContent = '✅ تم النسخ';
+    setTimeout(() => btn.textContent = '📋 نسخ', 2000);
+  });
+}
+
+// ══════════════════════════════════════════════
+// UTILS
+// ══════════════════════════════════════════════
+function esc(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function fmtDate(iso) {
+  if (!iso) return '—';
+  try {
+    return new Date(iso).toLocaleDateString('ar-EG',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+  } catch { return iso; }
+}
+
+// ══════════════════════════════════════════════
+// BOOT
+// ══════════════════════════════════════════════
+checkAuth();
+</script>
 </body>
 </html>

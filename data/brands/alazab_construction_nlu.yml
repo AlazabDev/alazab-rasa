@@ -1,0 +1,34 @@
+version: "3.1"
+nlu:
+  - intent: ask_alazab_services
+    examples: |
+      - خدمات مجموعة العزب
+      - بتعملوا ايه
+      - تخصصات الشركة
+      - alazab services
+      - المقاولات العامة
+  - intent: ask_alazab_quote
+    examples: |
+      - عايز عرض سعر مشروع
+      - مقايسة مقاولات
+      - تكلفة البناء
+      - alazab quote
+  - intent: ask_alazab_about
+    examples: |
+      - مين مجموعة العزب
+      - تاريخ الشركة
+      - خبرة العزب في السوق
+      - about alazab group
+  - intent: ask_alazab_contact
+    examples: |
+      - عايز أكلم حد
+      - رقم تليفون الشركة
+      - عنوان المكتب
+      - تواصل معانا
+      - alazab contact
+  - intent: ask_alazab_projects
+    examples: |
+      - مشاريع الشركة الكبيرة
+      - نفذتوا ايه قبل كده
+      - سابقة أعمال العزب
+      - alazab projects

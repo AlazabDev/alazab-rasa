@@ -57,7 +57,9 @@ class FakeGatewayClient:
         self.payloads: list[Any] = []
         self.idempotency_keys: list[str] = []
 
-    async def create_request(self, payload: Any, idempotency_key: str) -> dict[str, Any]:
+    async def create_request(
+        self, payload: Any, idempotency_key: str
+    ) -> dict[str, Any]:
         self.payloads.append(payload)
         self.idempotency_keys.append(idempotency_key)
         return {
@@ -82,7 +84,9 @@ async def run_service_smoke() -> dict[str, Any]:
     load_module("actions.maintenance.errors", MAINTENANCE_DIR / "errors.py")
     schemas = load_module("actions.maintenance.schemas", MAINTENANCE_DIR / "schemas.py")
     load_module("actions.maintenance.responses", MAINTENANCE_DIR / "responses.py")
-    service_module = load_module("actions.maintenance.service", MAINTENANCE_DIR / "service.py")
+    service_module = load_module(
+        "actions.maintenance.service", MAINTENANCE_DIR / "service.py"
+    )
 
     normalized_phone = schemas.normalize_egyptian_phone("0100 400 6620")
     if normalized_phone != "01004006620":

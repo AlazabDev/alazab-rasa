@@ -421,11 +421,13 @@ curl -X POST https://zrrffsjbfkphridqyais.supabase.co/functions/v1/bot-gateway \
 
 ## 📚 11. مراجع إضافية
 
-- [`docs/BOT_GATEWAY_INTEGRATION.md`](./BOT_GATEWAY_INTEGRATION.md) — تفاصيل تقنية للـ gateway
-- [`docs/PAYTABS_TESTING_GUIDE.md`](./PAYTABS_TESTING_GUIDE.md) — تكامل المدفوعات
-- [`docs/E2E_FULL_LIFECYCLE_TEST.md`](./E2E_FULL_LIFECYCLE_TEST.md) — اختبار دورة حياة كاملة
-- [`supabase/functions/bot-gateway/index.ts`](../supabase/functions/bot-gateway/index.ts) — الكود المصدري
+- [`docs/API_GATEWAY_TESTING_COMMANDS.md`](./API_GATEWAY_TESTING_COMMANDS.md) — أوامر اختبار دورة حياة طلب الصيانة عبر maintenance-gateway
+- [`docs/PRODUCTION_DEPLOYMENT.md`](./PRODUCTION_DEPLOYMENT.md) — دليل النشر على الإنتاج
+- [`docs/daftra-module.md`](./daftra-module.md) — توثيق API دفترة الكامل
+- `azabot/supabase/functions/` — مجلد Edge Functions (admin-api, azabot-chat, chat, chat-v2, ...)
+
+> ⚠️ ملاحظة: ملفات `BOT_GATEWAY_INTEGRATION.md` و `PAYTABS_TESTING_GUIDE.md` و `E2E_FULL_LIFECYCLE_TEST.md` مخططة للإضافة لاحقاً.
 
 ---
 
-**جاهز للاستخدام الآن.** أي بوت جديد يحتاج فقط: `BOT_API_KEY` + استدعاء `bot-gateway` بأي من الـ 14 action أعلاه.
+**جاهز للاستخدام الآن.** أي بوت جديد يحتاج فقط: `BOT_API_KEY` + استدعاء `bot-gateway` بأي من الـ 17 action أعلاه.

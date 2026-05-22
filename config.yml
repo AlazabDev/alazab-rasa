@@ -25,10 +25,10 @@ pipeline:
     entity_recognition: true
     random_seed: 42
   - name: EntitySynonymMapper
+
   - name: ResponseSelector
     epochs: 80
     constrain_similarities: true
-    retrieval_intent: chitchat
   - name: FallbackClassifier
     threshold: 0.35
     ambiguity_threshold: 0.1

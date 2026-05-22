@@ -1,11 +1,18 @@
 version: '3.1'
 includes:
 - domain/general.yml
-- domain/alazab.yml
-- domain/luxury_finishing.yml
-- domain/brand_identity.yml
-- domain/laban_alasfour.yml
-- domain/uberfix.yml
+- domain/general/maintenance.yml
+- domain/general/placeholder_domain.yml
+- domain/general/feedback.yml
+- domain/general/goodbye.yml
+- domain/general/hello.yml
+- domain/general/help.yml
+- domain/general/human_handoff.yml
+- domain/general/privacy.yml
+- domain/general/show_faqs.yml
+- domain/general/sweets.yml
+- domain/system/patterns/pattern_session_start.yml
+- domain/system/patterns/pattern_cannot_handle.yml
 intents:
 - greet
 - goodbye
@@ -15,31 +22,24 @@ intents:
 - bot_challenge
 - out_of_scope
 - session_start
+- nlu_fallback
+- give_feedback
+- provide_rating
+- provide_suggestion
 - ask_alazab_about
 - ask_alazab_contact
 - ask_alazab_projects
 - ask_alazab_quote
 - ask_alazab_services
 - ask_alazab_technical_specs
-- ask_brand_complete_identity
 - ask_brand_industries
 - ask_brand_portfolio
 - ask_brand_process
 - ask_brand_quote
 - ask_brand_services
-- ask_brand_shop_fitting
 - ask_brand_sites
-- ask_faq_location
-- ask_faq_payment
-- ask_faq_prices
-- ask_faq_timing
-- ask_faq_warranty
-- ask_help
-- ask_laban_bulk_order
-- ask_laban_catalog
-- ask_laban_contact
-- ask_laban_delivery
-- ask_laban_products
+- ask_brand_complete_identity
+- ask_brand_shop_fitting
 - ask_luxury_materials
 - ask_luxury_portfolio
 - ask_luxury_quote
@@ -76,10 +76,24 @@ intents:
 - ask_uberfix_track
 - ask_uberfix_tracking
 - ask_uberfix_working_hours
-- give_feedback
-- provide_rating
-- provide_suggestion
 - uberfix_specific_repair
+- ask_laban_bulk_order
+- ask_laban_catalog
+- ask_laban_contact
+- ask_laban_delivery
+- ask_laban_products
+- ask_help
+- ask_alazab_group_services
+- faq_search
+- request_quote
+- start_maintenance_request
+- request_human_handoff
+- abo_auf_branch_coffee_mode
+- ask_faq_location
+- ask_faq_payment
+- ask_faq_prices
+- ask_faq_timing
+- ask_faq_warranty
 slots:
   brand:
     type: text
@@ -121,13 +135,6 @@ slots:
     type: text
     mappings:
     - type: custom
-  confirm_human_handoff:
-    type: categorical
-    values:
-    - 'Yes'
-    - 'No'
-    mappings:
-    - type: custom
   branch_name:
     type: text
     mappings:
@@ -148,6 +155,10 @@ slots:
     type: bool
     mappings:
     - type: custom
+  context_memory:
+    type: text
+    mappings:
+    - type: custom
   daftra_client_id:
     type: text
     mappings:
@@ -165,120 +176,6 @@ slots:
     mappings:
     - type: custom
 responses:
-  utter_greet:
-  - text: 'أهلاً وسهلاً! 👋😊
-
-      أنا عزبوت، رفيقك في مجموعة العزب!
-
-
-      إيه اللي ممكن أساعدك فيه النهارده؟ 🎯
-
-      🔧 صيانة واحترافية مع UberFix
-
-      🏗️ مقاولات وتجهيز مشروعات
-
-      ✨ تشطيبات فاخرة تعمل فرق
-
-      🎨 هوية تجارية بتفرق فعلاً
-
-      📦 توريدات وخامات بجودة عالية
-
-
-      قولّي وأنا جاهز! 💪
-
-      '
-  - text: 'يا هلا يا هلا! 🌟
-
-      أنا عزبوت، وأنا هنا عشان أريّحك وأحل كل حاجة بسرعة 😄
-
-
-      مقاولات؟ تشطيب؟ صيانة؟ هوية تجارية؟ توريدات؟
-
-      كلها في المكان الصح، قولّي تحب نبدأ بإيه! 🚀
-
-      '
-  utter_goodbye:
-  - text: 'كان شرف ليّا إني أساعدك! 🤝✨
-
-      مجموعة العزب دايماً جنبك في أي خطوة.
-
-      ربنا يوفقك ويكمّل عليك بالخير! 👋😊
-
-      '
-  - text: 'تسلم يا صاحبي! 🌟
-
-      أي وقت تحتاجنا، عزبوت في الخدمة 24/7 😄
-
-      يوم سعيد وموفق إن شاء الله! 🤍
-
-      '
-  utter_thanks:
-  - text: 'ولا يهمك خالص! 😄🤍
-
-      ده واجبنا وأكثر، وجودك بيسعدنا فعلاً.
-
-      في أي حاجة تانية، أنا هنا! 💪
-
-      '
-  - text: 'إيه الكلام ده! 😊
-
-      إحنا اللي شاكرين إنك معانا.
-
-      تحب تكمل في حاجة تانية؟
-
-      '
-  utter_bot_challenge:
-  - text: 'أيوه بكل فخر! 🤖✨
-
-      أنا عزبوت، المساعد الذكي لمجموعة العزب.
-
-      مش بس بوت عادي، أنا بساعدك في الصيانة، التشطيبات، الهوية التجارية، التوريدات،
-      وكمان أوصلك بالفريق المناسب!
-
-      قولّي تحب إيه؟ 😄
-
-      '
-  utter_out_of_scope:
-  - text: 'آه، الطلب ده بره تخصصي شوية 😅
-
-      بس أنا شاطر في حاجات تانية كتير!
-
-
-      أقدر أساعدك في:
-
-      🔧 الصيانة والتشغيل
-
-      🏗️ المقاولات والمشروعات
-
-      ✨ التشطيبات الفاخرة
-
-      🎨 الهوية التجارية
-
-      📦 التوريدات والخامات
-
-
-      تحب نبدأ بأي خدمة منهم؟ 😊
-
-      '
-  utter_default_fallback:
-  - text: 'عفواً، مش فاهم المطلوب كويس كده 🙈
-
-      بس مش مشكلة، جرب تكتبلي بكلمة بسيطة زي:
-
-      "صيانة" أو "تشطيب" أو "هوية" أو "توريدات"
-
-      وأنا هكمّل معاك على طول! 🚀
-
-      '
-  - text: 'يمكن الطلب وصلني بشكل غلط شوية 😅
-
-      مش مشكلة، جرب تاني بكلمة واضحة.
-
-      مثلاً: "طلب صيانة"، "عرض سعر تشطيب"، أو "هوية تجارية"
-
-      وأنا فاهمك! 😄
-
-      '
   utter_ask_user_name:
   - text: 'تمام، يلا نبدأ! 🎯
 
@@ -603,17 +500,6 @@ responses:
       وهوجّه الطلب للمسار الصح فوراً! ✅
 
       '
-  utter_alazab_about:
-  - text: 'مجموعة العزب! 🏗️✨
-
-      حلول متكاملة من التنفيذ والتشطيبات للصيانة والهوية التجارية والتوريدات.
-
-      خبرة حقيقية، جودة واضحة، ونتائج بتتكلم عن نفسها! 💪
-
-
-      تحب تعرف أكثر أو تطلب تواصل مع الفريق مباشرة؟ 😊
-
-      '
   utter_alazab_services:
   - text: 'مجموعة العزب عندها كل اللي محتاجه! 🏆
 
@@ -660,15 +546,6 @@ responses:
       اكتبلي البند أو نوع العمل المطلوب، وأنا هوضحلك الصياغة الفنية المناسبة! ✅
 
       '
-  utter_luxury_services:
-  - text: 'تشطيب بيفرق فعلاً؟ إحنا عندنا الجواب! ✨🏠
-
-      من التصميم لاختيار الخامات للتنفيذ للتسليم، إحنا معاك في كل خطوة!
-
-
-      تحب تبدأ بمعاينة، استشارة، أو عرض سعر؟ 😊
-
-      '
   utter_luxury_quote:
   - text: 'عرض سعر تشطيب؟ يلا نبدأ! ✨
 
@@ -704,24 +581,6 @@ responses:
   - text: 'عندنا أعمال تشطيب سكني وتجاري بمستويات مختلفة! 🏆✨
 
       اكتبلي نوع المشروع وهوجّهك للمسار الأنسب ليك. 😊
-
-      '
-  utter_brand_services:
-  - text: 'الهوية التجارية هي اللي بتفرّق بينك وبين منافسيك! 🎨🌟
-
-
-      خدماتنا شاملة:
-
-      🎨 الشعار والهوية البصرية الكاملة
-
-      🧭 دليل استخدام العلامة التجارية
-
-      🏬 تجهيز واجهات ومساحات تجارية
-
-      📱 تطبيق الهوية على كل القنوات
-
-
-      تحب تبدأ من التصميم ولا التنفيذ؟ 😊
 
       '
   utter_brand_quote:
@@ -785,12 +644,6 @@ responses:
       اكتبلي نوع الخامة أو الاستخدام المطلوب وأنا هساعدك! ✅
 
       '
-  utter_laban_products:
-  - text: 'عندنا منتجات وخامات تخدم أعمال التشطيب والتجهيز بجودة عالية! 📦✨
-
-      اكتبلي نوع المنتج اللي بتدور عليه وأنا هجيبلك أفضل الخيارات! 🔍
-
-      '
   utter_laban_bulk_order:
   - text: 'توريد بالجملة؟ ممتاز! 📦💪
 
@@ -814,26 +667,20 @@ responses:
 
       '
   utter_ask_confirm_human_handoff:
-  - text: 'تحب أوصلك بأحد أفراد فريقنا مباشرة؟ 😊
-
-      '
+  - text: تحب أوصلك بأحد أفراد فريقنا مباشرة؟ 😊
     buttons:
     - title: ✅ أيوه، وصّلني
       payload: /SetSlots(confirm_human_handoff="Yes")
     - title: ❌ لا شكراً، هكمّل مع عزبوت
       payload: /SetSlots(confirm_human_handoff="No")
-  - text: 'أقدر أحوّلك لممثل من الفريق لو عايز متابعة مباشرة! 👤
-
-      '
+  - text: أقدر أحوّلك لممثل من الفريق لو عايز متابعة مباشرة! 👤
     buttons:
     - title: ✅ أيوه، وصّلني
       payload: /SetSlots(confirm_human_handoff="Yes")
     - title: ❌ لا، هكمّل هنا
       payload: /SetSlots(confirm_human_handoff="No")
   utter_offer_human_handoff:
-  - text: 'تحب أحوّل المحادثة لممثل من الفريق دلوقتي؟ 👤😊
-
-      '
+  - text: تحب أحوّل المحادثة لممثل من الفريق دلوقتي؟ 👤😊
   utter_human_handoff_immediate:
   - text: 'تمام! جاري التحويل دلوقتي 🔄
 
@@ -861,11 +708,9 @@ responses:
   utter_transfer_to_manager:
   - text: '👤 جاري تحويلك لأحد ممثلي الفريق دلوقتي!
 
-
       ملخص المحادثة:
 
       {summary}
-
 
       الفريق هيكون معاك قريباً جداً! ⏳
 
@@ -874,14 +719,6 @@ responses:
   - text: 'قولّي سبب رغبتك في التحدث مع أحد الفريق 😊
 
       عشان أوصّل طلبك بأوضح طريقة ممكنة! ✍️
-
-      '
-  utter_ask_feedback:
-  - text: 'رأيك هو اللي بيخلينا أحسن! 🌟
-
-      اكتبلي ملاحظتك أو اقتراحك بصراحة تامة،
-
-      وأنا هسجّله للفريق المختص فوراً! 📝
 
       '
   utter_receive_escalation:
@@ -918,36 +755,6 @@ responses:
       أو تواصل مع الفريق مباشرة! 😄
 
       '
-  utter_faq_location:
-  - text: 'نطاق الخدمة بيختلف حسب نوع الطلب وتوافر الفريق 📍
-
-      اكتبلي منطقتك ونوع الخدمة، وهوضحلك أفضل مسار! 🗺️
-
-      '
-  utter_faq_payment:
-  - text: 'طرق الدفع بتتعدد حسب الخدمة والمرحلة 💳
-
-      اكتبلي الخدمة المطلوبة وهوضحلك الطريقة الأنسب! 💰
-
-      '
-  utter_faq_prices:
-  - text: 'الأسعار بتعتمد على نوع الخدمة وحجم الطلب 💰
-
-      اكتبلي المطلوب باختصار وهساعدك في تقدير أولي أو أوجّهك للفريق المختص! 😊
-
-      '
-  utter_faq_timing:
-  - text: 'مدة التنفيذ بتعتمد على نوع الخدمة وحجم العمل ⏱️
-
-      اكتبلي التفاصيل الأساسية وهعطيك تصور مبدئي واقعي! 📅
-
-      '
-  utter_faq_warranty:
-  - text: 'الضمان بيختلف حسب نوع الخدمة والبند المنفذ 🛡️
-
-      اكتبلي نوع العمل وهوضحلك كل التفاصيل! ✅
-
-      '
   utter_lead_submitted:
   - text: '✅ وصلنا بياناتك بنجاح تام!
 
@@ -958,9 +765,7 @@ responses:
 
       '
   utter_offer_alternative_contact:
-  - text: 'تحب نكمّل التواصل على واتساب مباشرة؟ 📱😊
-
-      '
+  - text: تحب نكمّل التواصل على واتساب مباشرة؟ 📱😊
   utter_provide_whatsapp:
   - text: 'تقدر تتواصل معنا على واتساب وهيردوا عليك بسرعة! 📱✅
 
@@ -976,8 +781,7 @@ responses:
   utter_daftra_sync_success:
   - text: ✅ تم تحديث بياناتك ومزامنتها مع النظام المحاسبي (دفترة) بنجاح.
   utter_daftra_invoice_created:
-  - text: '🧾 أبشر يا فندم، تم إصدار الفاتورة الإلكترونية الخاصة بك بنجاح. رقم الفاتورة
-      في النظام: {daftra_last_invoice_id}'
+  - text: '🧾 أبشر يا فندم، تم إصدار الفاتورة الإلكترونية الخاصة بك بنجاح. رقم الفاتورة في النظام: {daftra_last_invoice_id}'
   utter_brand_sites:
   - text: '🏢 **مجموعة آل عزب - حلول متكاملة من البناء حتى التشغيل:**
 
@@ -996,12 +800,65 @@ responses:
       أي موقع حابب تزوره أو تستفسر عن خدماته أكتر؟
 
       '
+  utter_laban_redirect_to_site:
+  - text: '🪵 *Laban Alasfour — الوحدات الخشبية والتجهيزات*
+
+
+      لتصفح الكتالوج الكامل، تجربة التصاميم، وطلب عروض الأسعار:
+
+      👉 *laban-alasfour.alazab.com*
+
+
+      الموقع يتيح لك رؤية كل الوحدات وتجربتها قبل الطلب.
+
+      '
+  utter_laban_offer_contact:
+  - text: تريد أن يتواصل معك فريق Laban مباشرة؟ 😊
+    buttons:
+    - title: ✅ نعم، تواصلوا معي
+      payload: /affirm
+    - title: 🌐 سأزور الموقع
+      payload: /deny
+  utter_alazab_group_services:
+  - text: '🏢 *مجموعة العزب — حلول متكاملة:*
+
+
+      🏗️ *Alazab Construction* — مقاولات وتنفيذ مشروعات
+
+      ✨ *Luxury Finishing* — تشطيبات فاخرة
+
+      🎨 *Brand Identity* — هوية تجارية وتجهيز مساحات
+
+      🔧 *UberFix* — صيانة ذكية وتشغيل
+
+      🪵 *Laban Alasfour* — توريدات وخامات
+
+
+      قولّي ما تحتاجه وأوجّهك للجهة الصحيحة! 💪
+
+      '
+  utter_brand_navigator_prompt:
+  - text: أي خدمة من خدمات مجموعة العزب تحتاجها؟ 🎯
+    buttons:
+    - title: 🔧 صيانة — UberFix
+      payload: /ask_uberfix_services
+    - title: 🏗️ مقاولات — Alazab
+      payload: /ask_alazab_about
+    - title: ✨ تشطيب — Luxury
+      payload: /ask_luxury_services
+    - title: 🎨 هوية — Brand Identity
+      payload: /ask_brand_services
+    - title: 🪵 توريدات — Laban
+      payload: /ask_laban_products
 session_config:
   session_expiration_time: 60
   carry_over_slots_to_new_session: true
 actions:
+- action_human_handoff
 - action_save_lead_to_crm
 - action_notify_sales_team
+- action_submit_lead
+- action_brand_navigator
 - action_receive_handoff_reason
 - action_check_human_availability
 - action_check_queue_position
@@ -1012,6 +869,7 @@ actions:
 - action_collect_escalation_details
 - action_create_escalation_ticket
 - action_notify_manager
+- action_create_project
 - action_receive_feedback_service
 - action_receive_rating
 - action_receive_feedback_text
@@ -1025,31 +883,29 @@ actions:
 - action_brand_get_quote
 - action_brand_show_industries
 - action_brand_show_process
-- action_human_handoff
 - action_laban_bulk_quote
 - action_laban_check_delivery
 - action_laban_show_catalog
 - action_luxury_get_quote
 - action_luxury_show_materials
-- action_submit_lead
 - action_uberfix_create_request
-- action_uberfix_show_subscriptions
 - action_uberfix_track_request
-- action_brand_navigator
-- validate_collect_lead_form
-- validate_maintenance_form
+- action_uberfix_show_subscriptions
+- action_uberfix_triage_request
 - action_daftra_sync_client
 - action_daftra_create_invoice
 - action_accumulate_context
 - action_smart_slot_check
 - action_confirm_understanding
 - action_build_full_request
-- action_route_alazab_service
-- action_collect_production_context
-- action_create_site_visit_request
-- action_create_maintenance_scope
-- action_create_supply_quote
-- action_escalate_to_engineering_team
+- validate_collect_lead_form
+- validate_maintenance_form
+- action_send_sweets_info
+- action_create_maintenance_request
+- action_get_maintenance_status
+- action_triage_maintenance_request
+- action_assign_maintenance_request
+- action_session_start
 entities:
 - brand
 - service_type

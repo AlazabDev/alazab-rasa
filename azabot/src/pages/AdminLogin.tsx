@@ -3,11 +3,11 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { adminLogin, adminToken } from "@/lib/adminApi";
+import { supabase } from "@/integrations/supabase/client";
+import { adminToken } from "@/lib/adminApi";
 import { toast } from "sonner";
 import azabotLogo from "@/assets/azabot-logo.png";
 import { Loader2, Lock, Mail } from "lucide-react";
-import { errorMessage } from "@/types/admin";
 
 export default function AdminLogin() {
   const nav = useNavigate();
@@ -16,7 +16,12 @@ export default function AdminLogin() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (adminToken.get()) nav("/admin", { replace: true });
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) {
+        adminToken.set(session.access_token);
+        nav("/admin", { replace: true });
+      }
+    });
   }, [nav]);
 
   const onSubmit = async (e: React.FormEvent) => {
@@ -31,11 +36,21 @@ export default function AdminLogin() {
     }
     setLoading(true);
     try {
-      await adminLogin(email, password);
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error) throw error;
+      
+      if (data.session) {
+        adminToken.set(data.session.access_token);
+      }
+      
       toast.success("تم الدخول");
       nav("/admin", { replace: true });
-    } catch (e: unknown) {
-      toast.error(errorMessage(e, "فشل الدخول"));
+    } catch (e: any) {
+      toast.error(e.message || "فشل الدخول");
     } finally {
       setLoading(false);
     }

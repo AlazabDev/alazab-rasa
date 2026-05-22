@@ -48,7 +48,7 @@
   var SITE_THEMES = {
     "luxury-finishing": {
       botName: "عزبوت التشطيبات",
-      color: "#C9A84C",
+      color: "#FFB900",
       header: "linear-gradient(135deg,#1a1208 0%,#3d2b0e 100%)",
       actions: ["ما هي خدمات التشطيبات؟","أريد عرض سعر","ما أنواع الرخام؟","كيف أتواصل معكم؟"],
       welcome: "مرحباً! أنا عزبوت التشطيبات 🏠",
@@ -56,7 +56,7 @@
     },
     "brand-identity": {
       botName: "عزبوت الهوية",
-      color: "#E63946",
+      color: "#030957",
       header: "linear-gradient(135deg,#1a0a0a 0%,#3d0e0e 100%)",
       actions: ["أريد تصميم هوية بصرية","ما تكلفة تصميم شعار؟","خدمات التصميم","I need a logo"],
       welcome: "مرحباً! أنا عزبوت الهوية 🎨",
@@ -64,7 +64,7 @@
     },
     "uberfix": {
       botName: "UberBot",
-      color: "#F7B731",
+      color: "#0ab312ff",
       header: "linear-gradient(135deg,#0f0f0f 0%,#2d2000 100%)",
       actions: ["أريد حجز موعد صيانة","ما خدمات الطوارئ؟","Book a visit","AC repair prices?"],
       welcome: "Hi! I'm UberBot 🔧",
@@ -72,7 +72,7 @@
     },
     "laban-alasfour": {
       botName: "مساعد العصفور",
-      color: "#2D9CDB",
+      color: "#e2df0aff",
       header: "linear-gradient(135deg,#0a1a2a 0%,#0e2d3d 100%)",
       actions: ["أحتاج خامة صعب ألاقيها","أريد توريد مواد بناء","كيف أطلب بالجملة؟","هل توصلون للموقع؟"],
       welcome: "مرحباً! أنا مساعد لبن العصفور",

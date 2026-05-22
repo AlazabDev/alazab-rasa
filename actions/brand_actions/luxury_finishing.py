@@ -27,7 +27,6 @@ class ActionLuxuryGetQuote(Action):
         tracker: Tracker,
         domain: DomainDict,
     ) -> List[Dict[Text, Any]]:
-
         dispatcher.utter_message(
             text=(
                 "✨ سنرسل مهندس Luxury Finishing للمعاينة وتقديم "
@@ -49,12 +48,11 @@ class ActionLuxuryShowMaterials(Action):
         tracker: Tracker,
         domain: DomainDict,
     ) -> List[Dict[Text, Any]]:
-
         materials = {
             "أرضيات": ["رخام إيطالي", "بورسلان فاخر", "باركيه خشبي", "إيبوكسي"],
-            "حوائط":  ["دهانات فاخرة", "ورق حائط", "خشب ديكوري", "جبس بورد"],
-            "إضاءة":  ["تراك ليد", "داون لايت", "إضاءة خفية", "ثريات فاخرة"],
-            "أسقف":   ["جبس بورد", "مستويات متعددة", "إضاءة مدمجة"],
+            "حوائط": ["دهانات فاخرة", "ورق حائط", "خشب ديكوري", "جبس بورد"],
+            "إضاءة": ["تراك ليد", "داون لايت", "إضاءة خفية", "ثريات فاخرة"],
+            "أسقف": ["جبس بورد", "مستويات متعددة", "إضاءة مدمجة"],
         }
 
         text = "✨ *خامات Luxury Finishing المتاحة:*\n\n"

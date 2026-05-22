@@ -1,28 +1,28 @@
 1. General Questions
 
 Q: What is Rasa and what can I build with it?
-A: Rasa is a conversational AI framework that lets you build agents using flows and large language models (LLMs). You can create agents for customer support, automation, or any use case that needs reliable, multi-step conversations.
+A: Rasa is a conversational AI framework for building chatbots and virtual assistants. It uses NLU (Natural Language Understanding) to classify intents and extract entities, combined with stories, rules, and custom actions to handle multi-step conversations.
 
-Q: What is CALM in Rasa?
-A: CALM (Conversational AI with Language Models) is Rasa’s architecture for building agents that combine LLM-powered language understanding with deterministic business logic, defined in flows.
+Q: What is NLU in Rasa?
+A: NLU (Natural Language Understanding) is the component that processes user messages to identify the intent (what the user wants) and extract entities (key pieces of information like names, dates, or locations).
 
-Q: What is a flow in Rasa?
-A: A flow is a step-by-step definition of a business process or conversation path. Flows specify what information to collect, what actions to perform, and how to branch or complete the conversation.
+Q: What is a story in Rasa?
+A: A story is a training example that shows how a conversation should flow — mapping user intents and actions in sequence. Stories help Rasa learn how to respond in multi-turn conversations.
+
+Q: What is a rule in Rasa?
+A: A rule is a strict conversation pattern that always applies regardless of context. Rules are used for predictable, single-turn interactions like greetings, farewells, or FAQ responses.
 
 Q: How do I customize what my agent asks or does?
-A: You can edit or add flows in the flows.yml file, providing clear descriptions for each flow and for each step. Slot descriptions help the agent extract the right information from the user.
+A: Edit the domain files in `domain/` to add responses, slots, and actions. Add training data in `data/nlu/` for intents, `data/stories/` for conversation flows, and `data/rules/` for fixed patterns. Implement custom logic in `actions/`.
 
-Q: How does Rasa use LLMs?
-A: Rasa uses LLMs to interpret user messages and generate high-level commands. These commands are then executed through flows and actions, ensuring reliable and controlled conversations.
-
-Q: What files are important in a CALM-based Rasa project?
-A: Key files include flows.yml (flows and their descriptions), domain.yml (slots, responses, and actions), and actions.py (custom business logic or integrations).
+Q: What files are important in this Rasa project?
+A: Key files include `config.yml` (NLU pipeline and policies), `domain/` (slots, responses, actions), `data/nlu/` (intent training examples), `data/stories/` (conversation flows), `data/rules/` (fixed patterns), and `actions/` (custom Python actions).
 
 Q: How do I test my agent?
-A: You can test your agent using the Rasa shell or Rasa Inspector, which lets you interact with your agent and debug flow execution.
+A: Run `rasa shell` for interactive testing, or use `rasa test` with test stories in `tests/`. The project also includes smoke tests in `scripts/smoke-maintenance-core.py`.
 
 Q: Can I extend my agent with custom logic?
-A: Yes, you can implement custom actions in Python in actions.py. These can be used for API calls, database checks, or any other business logic.
+A: Yes, implement custom actions in Python inside the `actions/` folder. These can call external APIs (Supabase, Daftra, WhatsApp), query databases, or run any business logic.
 
-Q: Do I need to define intents or entities?
-A: No, with CALM and flows, you do not need to define intents or entities unless you have a specific use case for them.
+Q: What channels does this bot support?
+A: The bot supports WhatsApp (via Meta API), Telegram, and a web chat widget (azabot embed). Channel credentials are configured in `credentials.yml`.

@@ -1,5 +1,15 @@
-## 📂 `docs/` – The Agent's Knowledge Base (optional)
+## 📂 `docs/` – وثائق المشروع التقنية
 
-If your agent answers knowledge-based questions (FAQs, policies, etc.), you can put markdown, PDFs, or text files in this folder. Rasa can use this content for retrieval-augmented responses if set up with a vector store [2](https://rasa.com/docs/pro/build/retrieval-actions).
+يحتوي هذا المجلد على الوثائق التقنية لمشروع AzaBot:
 
-**Edit here** to update what your agent can retrieve and summarize for users.
+| الملف | المحتوى |
+|-------|---------|
+| `BOTS_API_INTEGRATION_GUIDE.md` | دليل تكامل البوتات الثلاثة مع bot-gateway وmaintenance-gateway |
+| `API_GATEWAY_TESTING_COMMANDS.md` | أوامر curl لاختبار دورة حياة طلب الصيانة كاملة |
+| `PRODUCTION_DEPLOYMENT.md` | خطوات النشر على الإنتاج (Rasa + Actions + Supabase + Nginx) |
+| `daftra-module.md` | توثيق API نظام دفترة المحاسبي (Invoices, Clients, Auth) |
+| `daftra-module.html` | نسخة HTML من توثيق دفترة |
+| `daftra-module.json` | مواصفات OpenAPI لـ دفترة |
+| `template.txt` | قالب أسئلة وأجوبة عامة عن Rasa |
+
+> **ملاحظة**: هذا المجلد للوثائق التقنية وليس لملفات المعرفة (RAG). ملفات المعرفة للبوت موجودة في `knowledge/`.

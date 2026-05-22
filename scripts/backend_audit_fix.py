@@ -133,7 +133,7 @@ def scan_wildcard_cors(path: Path) -> list[Finding]:
     except OSError:
         return findings
 
-    if "--cors \"*\"" in content or "--cors '*'" in content:
+    if '--cors "*"' in content or "--cors '*'" in content:
         findings.append(
             Finding(
                 severity="high",
@@ -288,7 +288,10 @@ def audit(apply_fix: bool) -> dict[str, object]:
     for path in iter_files(BACKEND_DIRS):
         if not is_text_candidate(path):
             continue
-        if path.suffix in SECRET_SCAN_EXTENSIONS and path.name not in SKIP_SECRET_SCAN_FILES:
+        if (
+            path.suffix in SECRET_SCAN_EXTENSIONS
+            and path.name not in SKIP_SECRET_SCAN_FILES
+        ):
             findings.extend(scan_hardcoded_secrets(path))
         findings.extend(scan_wildcard_cors(path))
 
@@ -311,8 +314,12 @@ def audit(apply_fix: bool) -> dict[str, object]:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="Backend audit and safe auto-fix")
-    parser.add_argument("--apply", action="store_true", help="apply safe automatic fixes")
-    parser.add_argument("--output", type=Path, default=None, help="write report json file")
+    parser.add_argument(
+        "--apply", action="store_true", help="apply safe automatic fixes"
+    )
+    parser.add_argument(
+        "--output", type=Path, default=None, help="write report json file"
+    )
     args = parser.parse_args()
 
     result = audit(apply_fix=args.apply)

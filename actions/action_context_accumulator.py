@@ -25,9 +25,8 @@ actions/action_context_accumulator.py
 
 import json
 import logging
-import os
 import re
-from typing import Any, Dict, List, Optional, Text
+from typing import Any, Dict, List, Text
 
 from rasa_sdk import Action, Tracker
 from rasa_sdk.events import SlotSet
@@ -36,94 +35,102 @@ from rasa_sdk.types import DomainDict
 
 logger = logging.getLogger(__name__)
 
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
+# استخدام الـ GPT client المركزي بدلاً من استدعاء API مباشرة
+from .core.gpt import extract_json as gpt_extract_json
 
 # ──────────────────────────────────────────────────────────────
 #  استخراج السياق بـ GPT من كامل المحادثة
 # ──────────────────────────────────────────────────────────────
 
-EXTRACTION_PROMPT = """أنت محلل محادثات عربية ذكي متخصص في قطاع المقاولات، الصيانة، وتجهيز المحلات التجارية الكبرى (Shop Fitting & Brand Identity).
-مهمتك: استخرج كل المعلومات المفيدة من سجل المحادثة التالي بدقة عالية، مع التركيز على "جوهر الهوية" والمواصفات الفنية والمواد المطلوبة.
+EXTRACTION_PROMPT = """أنت محلل محادثات عربية ذكي متخصص في خدمات مجموعة العزب.
 
+البراند الحالي: {brand}
 سجل المحادثة:
 {conversation}
 
-استخرج هذه الحقول (اترك الحقل فارغاً إذا لم يُذكر):
-- user_name: اسم العميل أو الشركة (غالباً أصحاب سلاسل وفروع)
+استخرج المعلومات التالية (اترك فارغاً إذا لم يُذكر):
+- user_name: اسم العميل أو الشركة
 - user_phone: رقم الهاتف
-- location: الموقع أو العنوان (ادمج كل ذكر للموقع في رسائل مختلفة)
+- location: الموقع أو العنوان
 - branch_name: اسم الفرع إذا ذُكر
-- problem_description: وصف طلب "بناء الهوية" أو التجهيز أو الصيانة (مثال: فتح فرع جديد، صيانة تكييف، توريد كشافات)
-- service_type: نوع الخدمة (كهرباء وإضاءة / سباكة ومياه / تكييف وتهوية / نجارة وأثاث / دهانات وترميمات / رخام وأرضيات / أنظمة الحريق والسلامة / ترولي ومعدات / أبواب ونوافذ / لافتات وعلامات / تجهيز محلات تجارية)
+- problem_description: وصف الطلب أو المشكلة
 - urgency: مدى الإلحاح (طارئ / عادي / غير محدد)
-- brand: البراند (UberFix / Alazab / Luxury Finishing / Brand Identity / Laban Alasfour)
-- technical_specs: أي مواصفات فنية ذكرها العميل (مثل: قواطع 3 فاز، كابلات معزولة، تكييف Package، ماكينة غلق زجاج أوتوماتيك، برمجة لوحة حريق)
-- material_needed: أي خامات أو ماركات ذكرت (مثل: Schneider, Elsewedy, Philips, Venus, Al-Safa, Tank)
-- additional_notes: أي معلومات إضافية (مثل: الحاجة لتروليات ستانلس، وحدات تخزين مدرجة، أو صيانة أبواب شطر)
+{brand_specific_fields}
 
-قواعد ذهبية للمحلل الذكي:
-1. التقط الماركات المعتمدة بدقة (Schneider, Elsewedy, Philips, Al-Safa) لأنها جزء من "جوهر الهوية".
-2. صنف الطلب بدقة تحت أحد فئات `service_type` المذكورة أعلاه (مثل: "عجل الترولي" يندرج تحت "ترولي ومعدات").
-3. إذا طلب العميل صيانة، حاول استنتاج القطعة التالفة بدقة (مثل: ماكينة زجاج، مفصلة هيدروليك، عجلات ترولي، حساس حريق).
-4. افهم أن "Brand Identity" تعني اكتمال الهوية من التأسيس حتى تصنيع الأثاث (Island, Counters).
-5. ميز بين قطاع "الصيانة والتشغيل" (UberFix) وقطاع "تجهيز السلاسل" (Brand Identity).
+قواعد:
+1. لا تخترع معلومات — استخرج فقط ما ذُكر صراحةً.
+2. ادمج المعلومات المتفرقة في رسائل مختلفة.
+3. الأولوية للمعلومات الأحدث إذا تعارضت.
 
-أجب بـ JSON فقط بدون أي نص إضافي:
+أجب بـ JSON فقط:
 {{
   "user_name": "",
   "user_phone": "",
   "location": "",
   "branch_name": "",
   "problem_description": "",
-  "service_type": "",
   "urgency": "",
-  "brand": "",
-  "technical_specs": "",
-  "material_needed": "",
-  "additional_notes": "",
-  "summary": "ملخص لطلب بناء الهوية المتكاملة وتحديد الماركات المطلوبة"
+  {brand_specific_json}
+  "summary": ""
 }}"""
 
+# حقول خاصة بكل segment
+_BRAND_FIELDS: dict[str, tuple[str, str]] = {
+    "uberfix": (
+        "- service_type: نوع الخدمة (كهرباء / سباكة / تكييف / دهانات / نجارة / تنظيف / عام)\n"
+        "- technical_specs: مواصفات فنية (ماركة قاطع، نوع تكييف، إلخ)\n"
+        "- priority: أولوية (high/normal)",
+        '"service_type": "", "technical_specs": "", "priority": "normal",'
+    ),
+    "laban_alasfour": (
+        "- unit_type: نوع الوحدة المطلوبة (island / counter / shelving / cashier / display_wall)\n"
+        "- material_needed: الخامة أو الماركة المطلوبة\n"
+        "- quantity: الكمية إذا ذُكرت",
+        '"unit_type": "", "material_needed": "", "quantity": "",'
+    ),
+    "alazab_construction": (
+        "- project_type: نوع المشروع (سكني / تجاري / صناعي / خدمي)\n"
+        "- area_size: المساحة التقريبية\n"
+        "- project_stage: مرحلة المشروع (عظم / تشطيب / تجديد)",
+        '"project_type": "", "area_size": "", "project_stage": "",'
+    ),
+    "luxury_finishing": (
+        "- unit_type: نوع الوحدة (شقة / فيلا / مكتب / محل)\n"
+        "- area_size: المساحة التقريبية\n"
+        "- finishing_stage: مرحلة التشطيب (عظم / نص تشطيب / تجديد)\n"
+        "- style_preference: الذوق المطلوب (مودرن / كلاسيك / مختلط)",
+        '"unit_type": "", "area_size": "", "finishing_stage": "", "style_preference": "",'
+    ),
+    "brand_identity": (
+        "- business_type: نوع النشاط التجاري\n"
+        "- scope: نطاق المطلوب (شعار فقط / هوية كاملة / تجهيز مساحة)\n"
+        "- num_branches: عدد الفروع إذا ذُكر\n"
+        "- technical_specs: أي مواصفات (ماركات معتمدة، أبعاد، مواد)",
+        '"business_type": "", "scope": "", "num_branches": "", "technical_specs": "",'
+    ),
+}
 
-async def _extract_context_with_gpt(conversation_text: str) -> dict:
-    """استخدام GPT لاستخراج كل السياق من المحادثة كاملة."""
-    if not OPENAI_API_KEY:
-        return {}
+_DEFAULT_BRAND_FIELDS = (
+    "- service_type: نوع الخدمة المطلوبة",
+    '"service_type": "",'
+)
 
-    try:
-        import aiohttp
-        prompt = EXTRACTION_PROMPT.format(conversation=conversation_text)
 
-        payload = {
-            "model": "gpt-4o-mini",
-            "messages": [{"role": "user", "content": prompt}],
-            "temperature": 0.1,
-            "max_tokens": 800,
-        }
-        headers = {
-            "Authorization": f"Bearer {OPENAI_API_KEY}",
-            "Content-Type": "application/json",
-        }
-
-        async with aiohttp.ClientSession() as session:
-            async with session.post(
-                "https://api.openai.com/v1/chat/completions",
-                json=payload,
-                headers=headers,
-                timeout=aiohttp.ClientTimeout(total=12),
-            ) as resp:
-                if resp.status != 200:
-                    return {}
-                data = await resp.json()
-
-        raw = data["choices"][0]["message"]["content"].strip()
-        # إزالة ```json ... ``` إن وجدت
-        raw = re.sub(r"```json|```", "", raw).strip()
-        return json.loads(raw)
-
-    except Exception as exc:
-        logger.warning("GPT context extraction failed: %s", exc)
-        return {}
+async def _extract_context_with_gpt(conversation_text: str, brand: str = "") -> dict:
+    """استخدام GPT (core) لاستخراج السياق بحسب segment البراند."""
+    brand_fields, brand_json = _BRAND_FIELDS.get(brand, _DEFAULT_BRAND_FIELDS)
+    prompt = EXTRACTION_PROMPT.format(
+        brand=brand or "مجموعة العزب",
+        conversation=conversation_text,
+        brand_specific_fields=brand_fields,
+        brand_specific_json=brand_json,
+    )
+    result = await gpt_extract_json(
+        system_prompt="أنت محلل محادثات عربية متخصص. أجب بـ JSON فقط بدون أي نص إضافي.",
+        user_message=prompt,
+        max_tokens=600,
+    )
+    return result
 
 
 def _build_conversation_text(tracker: Tracker) -> str:
@@ -155,6 +162,7 @@ def _merge_contexts(old_ctx: dict, new_ctx: dict) -> dict:
 #  Action الرئيسي
 # ──────────────────────────────────────────────────────────────
 
+
 class ActionAccumulateContext(Action):
     """
     يُستدعى بعد كل رسالة من المستخدم.
@@ -170,14 +178,16 @@ class ActionAccumulateContext(Action):
         tracker: Tracker,
         domain: DomainDict,
     ) -> List[Dict[Text, Any]]:
+        # قراءة البراند من الـ slot — يُضبط من metadata عند بداية الجلسة
+        brand = (tracker.get_slot("brand") or "").strip().lower()
 
         # بناء نص المحادثة الكاملة
         conversation = _build_conversation_text(tracker)
         if not conversation:
             return []
 
-        # استخراج السياق بـ GPT
-        new_ctx = await _extract_context_with_gpt(conversation)
+        # استخراج السياق بـ GPT مع brand awareness
+        new_ctx = await _extract_context_with_gpt(conversation, brand)
         if not new_ctx:
             return []
 
@@ -195,9 +205,9 @@ class ActionAccumulateContext(Action):
 
         # إذا استخرجنا بيانات واضحة → حدّث الـ slots مباشرة
         slot_map = {
-            "user_name":    merged.get("user_name", ""),
-            "user_phone":   merged.get("user_phone", ""),
-            "location":     merged.get("location", ""),
+            "user_name": merged.get("user_name", ""),
+            "user_phone": merged.get("user_phone", ""),
+            "location": merged.get("location", ""),
             "service_type": merged.get("service_type", ""),
         }
         for slot_name, val in slot_map.items():
@@ -225,6 +235,7 @@ class ActionAccumulateContext(Action):
 #  Action: قرار ذكي بشأن الـ slots المحتاجة
 # ──────────────────────────────────────────────────────────────
 
+
 class ActionSmartSlotCheck(Action):
     """
     يفحص السياق المتراكم ويقرر أي slots تحتاج سؤالاً
@@ -240,7 +251,6 @@ class ActionSmartSlotCheck(Action):
         tracker: Tracker,
         domain: DomainDict,
     ) -> List[Dict[Text, Any]]:
-
         ctx_raw = tracker.get_slot("context_memory") or "{}"
         try:
             ctx = json.loads(ctx_raw)
@@ -251,11 +261,11 @@ class ActionSmartSlotCheck(Action):
 
         # تحقق من كل slot مطلوبة وملّئها من السياق
         checks = {
-            "user_name":    ctx.get("user_name", ""),
-            "user_phone":   ctx.get("user_phone", ""),
-            "location":     ctx.get("location", ""),
+            "user_name": ctx.get("user_name", ""),
+            "user_phone": ctx.get("user_phone", ""),
+            "location": ctx.get("location", ""),
             "service_type": ctx.get("service_type", ""),
-            "branch_name":  ctx.get("branch_name", ""),
+            "branch_name": ctx.get("branch_name", ""),
         }
 
         filled = []
@@ -271,7 +281,9 @@ class ActionSmartSlotCheck(Action):
                 parts.append(ctx["problem_description"])
             if ctx.get("branch_name"):
                 parts.append(f"الفرع: {ctx['branch_name']}")
-            if ctx.get("location") and ctx.get("location") not in (ctx.get("branch_name") or ""):
+            if ctx.get("location") and ctx.get("location") not in (
+                ctx.get("branch_name") or ""
+            ):
                 parts.append(f"الموقع: {ctx['location']}")
             if ctx.get("service_type"):
                 parts.append(f"نوع الخدمة: {ctx['service_type']}")
@@ -289,6 +301,7 @@ class ActionSmartSlotCheck(Action):
 #  Action: رد ذكي يؤكد الفهم قبل السؤال
 # ──────────────────────────────────────────────────────────────
 
+
 class ActionConfirmUnderstanding(Action):
     """
     عند الحاجة لمعلومة ناقصة، يُظهر ما فهمه البوت
@@ -304,7 +317,6 @@ class ActionConfirmUnderstanding(Action):
         tracker: Tracker,
         domain: DomainDict,
     ) -> List[Dict[Text, Any]]:
-
         ctx_raw = tracker.get_slot("context_memory") or "{}"
         try:
             ctx = json.loads(ctx_raw)
@@ -323,15 +335,14 @@ class ActionConfirmUnderstanding(Action):
 
         if parts:
             understood = " | ".join(parts)
-            dispatcher.utter_message(
-                text=f"✅ فهمت منك:\n{understood}\n\nهل هذا صحيح؟"
-            )
+            dispatcher.utter_message(text=f"✅ فهمت منك:\n{understood}\n\nهل هذا صحيح؟")
         return []
 
 
 # ──────────────────────────────────────────────────────────────
 #  Action: تجميع user_message الكامل من السياق
 # ──────────────────────────────────────────────────────────────
+
 
 class ActionBuildFullRequest(Action):
     """
@@ -348,7 +359,6 @@ class ActionBuildFullRequest(Action):
         tracker: Tracker,
         domain: DomainDict,
     ) -> List[Dict[Text, Any]]:
-
         ctx_raw = tracker.get_slot("context_memory") or "{}"
         try:
             ctx = json.loads(ctx_raw)

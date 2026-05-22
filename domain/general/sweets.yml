@@ -1,24 +1,30 @@
 version: "3.1"
+# domain/general/sweets.yml
+# خدمات قطاع المحلويات والكافيهات (أبو عوف وما شابهه)
+# ─────────────────────────────────────────────────────
 responses:
-  utter_ask_sweets:
+  utter_abo_auf_branch_coffee_mode:
     - text: |
-        ما هي المحلويات المتوفرة لديكم؟
-        ⚠️ سيتم تحديث القائمة بالبيانات الفعلية لاحقاً.
+        أهلاً يا مدير الفرع! 👋☕
+
+        مجموعة العزب عندها كل اللي محتاجه لفرعك:
+
+        🔧 *UberFix — الصيانة الفورية:*
+        صيانة تكييف، كهرباء، سباكة، نجارة
+
+        🪵 *Laban Alasfour — التوريدات:*
+        وحدات عرض، كاونترات، أثاث مخصص
+        🌐 laban-alasfour.alazab.com
+
+        🎨 *Brand Identity — الهوية:*
+        تجهيز واجهات وديكور الفروع
+
+        قولّي إيه اللي محتاجه وأوجّهك فوراً! 💪
+  utter_sweets_branch_redirect:
     - text: |
-        What sweets do you have?
-        ⚠️ The actual list will be updated later.
-  utter_sweets_info:
-    - text: |
-        هذه قائمة محلويات تجريبية فقط:
-        - كنافة نابلسية (50 جنيه)
-        - بسبوسة بالمكسرات (40 جنيه)
-        - بلح الشام (35 جنيه)
-        ⚠️ سيتم تحديث البيانات لاحقاً بمحتوى حقيقي.
-    - text: |
-        This is a sample sweets list only:
-        - Kunafa Nabulsia (EGP 50)
-        - Basbousa with nuts (EGP 40)
-        - Balah El Sham (EGP 35)
-        ⚠️ Real data will be updated soon.
+        للتوريدات والمنتجات المخصصة لفروع المحلويات،
+        زور موقعنا المتخصص: 🌐 laban-alasfour.alazab.com
+
+        أو اترك بياناتك وفريقنا يتواصل معاك. 📞
 actions:
   - action_send_sweets_info

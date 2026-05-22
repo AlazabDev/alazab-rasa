@@ -1,9 +1,12 @@
-# Python
+# ══════════════════════════════════════════════════════════════
+#  .gitignore — AzaBot / Alazab-Rasa
+# ══════════════════════════════════════════════════════════════
+
+# ── Python ────────────────────────────────────────────────────
 __pycache__/
 *.pyc
 *.pyo
 *.pyd
-.Python
 *.egg-info/
 dist/
 build/
@@ -12,53 +15,86 @@ build/
 .venv/
 venv/
 env/
+.Python
 
-# Rasa
+# ── Rasa ──────────────────────────────────────────────────────
 models/
 results/
 .rasa/
+.runtime/
 
-# Environment & secrets — NEVER commit these
+# ── Secrets & Credentials ─────────────────────────────────────
+# ⛔ NEVER COMMIT THESE
 .env
 .env.*
 !.env.example
 !.env.nodocker.example
+azabot/.env
 *.pem
 *.key
-gcp-f
+*.p12
 gcp-*.json
+service-account*.json
+RASA_LICENSE1
+RASA_LICENSE2
+RASA_LICENSE3
 
-# Runtime
-.runtime/
+# Session & runtime data
+.runtime/sessions.json
+.runtime/admin-data.json
+.runtime/pids/
+.runtime/admin-data.json
+
+# ── Logs & Temp ───────────────────────────────────────────────
 logs/
 *.log
 *.pid
+*.tmp
+*.bak
+*.swp
+*.orig
 
-# Frontend
+# ── Frontend ──────────────────────────────────────────────────
 azabot/node_modules/
 azabot/dist/
 azabot/.pnpm-store/
 azabot/tsconfig.*.tsbuildinfo
 azabot/supabase/.temp/
 
-# Uploads
+# ── Uploads ───────────────────────────────────────────────────
 webhook/static/uploads/
 
-# Piper voice models (large binary files)
-piper/voice/models/*.onnx
-piper/voice/samples/
-
-# OS
-.DS_Store
-Thumbs.db
-*.swp
+# ── Piper (large binary files) ────────────────────────────────
+# Models ONNX — تحميل من HuggingFace
+piper/*.onnx
+piper/voice/models/
+# Audio recordings — توليد بـ generate_brand_samples.py
+piper/voice/audio/
+# Cache
+piper/__pycache__/
+# Windows artifacts
+*Zone.Identifier
 *:Zone.Identifier
 
-# SSL (never commit real certs)
+# ── SSL (never commit real certs) ─────────────────────────────
 ssl/fullchain.pem
 ssl/privkey.pem
+ssl/*.pem
 
-# LICENSE
-RASA_LICENSE1
-RASA_LICENSE2
-RASA_LICENSE3
+# ── Scratch / Dev ─────────────────────────────────────────────
+scratch/
+reports/
+
+# ── OS ────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ── IDE ───────────────────────────────────────────────────────
+.vscode/settings.json
+.idea/
+*.iml
+
+# Auto-added by Merge-AzaBot
+data_backup_before_org/
+

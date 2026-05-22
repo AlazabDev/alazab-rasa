@@ -1,23 +1,59 @@
-version: "3.1"
-
+version: '3.1'
 stories:
 
-- story: help
+# ----------------------------------------------------
+# 1. مسارات الترحيب والمساعدة (Welcome & Help Flows)
+# ----------------------------------------------------
+- story: مسار الترحيب الكامل وتقديم المساعدة
   steps:
+  - intent: greet
+  - action: utter_greet
   - intent: ask_help
-  - action: utter_help
-  - intent: ask_help
-  - action: utter_handover
-  - action: action_reset_routing
+  - action: utter_ask_help
+  - intent: thanks
+  - action: utter_thanks
+  - intent: goodbye
+  - action: utter_goodbye
 
-- story: User interrupts the form and doesn't want to continue
+- story: مسار الترحيب المباشر ثم الخروج
   steps:
-  - intent: request_restaurant
-  - action: restaurant_form
-  - active_loop: restaurant_form
-  - intent: stop
-  - action: utter_ask_continue
-  - intent: stop
-  - action: action_deactivate_loop
-  - action: action_reset_routing
-  - active_loop: null
+  - intent: greet
+  - action: utter_greet
+  - intent: goodbye
+  - action: utter_goodbye
+
+# ----------------------------------------------------
+# 2. مسارات الشكر والوداع (Gratitude & Goodbye Flows)
+# ----------------------------------------------------
+- story: المستخدم يشكر البوت ويغادر
+  steps:
+  - intent: thanks
+  - action: utter_thanks
+  - intent: goodbye
+  - action: utter_goodbye
+
+- story: سؤال عن الخدمات ثم شكر ووداع
+  steps:
+  - intent: ask_help
+  - action: utter_ask_help
+  - intent: thanks
+  - action: utter_thanks
+  - intent: goodbye
+  - action: utter_goodbye
+
+# ----------------------------------------------------
+# 3. مسارات الحالات الخاصة (Edge Cases & Fallbacks)
+# ----------------------------------------------------
+- story: المستخدم يسأل البوت عن هويته ثم يشكره
+  steps:
+  - intent: bot_challenge
+  - action: utter_bot_challenge
+  - intent: thanks
+  - action: utter_thanks
+
+- story: مسار سؤال خارج النطاق وتوجيه المستخدم للخدمات
+  steps:
+  - intent: out_of_scope
+  - action: utter_out_of_scope
+  - intent: ask_help
+  - action: utter_ask_help

@@ -1,14 +1,8 @@
-slots:
-  feedback_rating:
-    type: text
-    influence_conversation: true
-responses:
-  utter_feedback_intro:
-    - text: |
-        نود معرفة رأيك في تجربتك معنا. من فضلك قيّم جودة الخدمة أو المحادثة (من 1 إلى 5، أو تعليق نصي).
-  utter_ask_feedback_rating:
-    - text: |
-        كيف تقيم تجربتك معنا؟ يرجى إدخال رقم من 1 إلى 5 أو تعليق نصي.
-  utter_feedback_thanks:
-    - text: |
-        شكرًا لتقييمك! نأخذ ملاحظاتك على محمل الجد لتحسين خدماتنا باستمرار.
+version: "3.1"
+# domain/general/feedback.yml
+# الـ responses موجودة في domain/general.yml:
+#   utter_ask_feedback, utter_ask_rating, utter_ask_feedback_details
+#   utter_ask_suggestion_details, utter_positive_feedback, utter_negative_apology
+#   utter_neutral_feedback, utter_ask_follow_up_contact, utter_thanks_for_feedback
+#   utter_thanks_for_suggestion, utter_ask_which_service
+# هذا الملف محجوز للـ slots المستقبلية الخاصة بالتقييم

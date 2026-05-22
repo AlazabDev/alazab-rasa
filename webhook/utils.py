@@ -21,7 +21,6 @@ from .config import (
     BRAND_PROFILES,
     PUBLIC_BASE_URL,
     SITE_BRAND_MAP,
-    UPLOADS_ROOT,
 )
 import os
 
@@ -90,7 +89,9 @@ def extract_path(value: Optional[str]) -> Optional[str]:
     first_value = value.split(",")[0].strip()
     if not first_value:
         return None
-    parsed = urlparse(first_value if "://" in first_value else f"https://bot.alazab.com{first_value}")
+    parsed = urlparse(
+        first_value if "://" in first_value else f"https://bot.alazab.com{first_value}"
+    )
     path = parsed.path or "/"
     return "/" + path.strip("/") if path != "/" else "/"
 
@@ -169,14 +170,18 @@ def serialize_attachment(attachment: dict[str, Any]) -> dict[str, Any]:
         "name": attachment.get("name"),
         "size": attachment.get("size"),
         "content_type": attachment.get("content_type"),
-        "download_url": f"/admin/uploads/{attachment['id']}/download" if attachment.get("id") else None,
+        "download_url": f"/admin/uploads/{attachment['id']}/download"
+        if attachment.get("id")
+        else None,
     }
     if attachment.get("url"):
         serialized["url"] = attachment["url"]
     return serialized
 
 
-def serialize_conversation_messages(messages: list[dict[str, Any]]) -> list[dict[str, Any]]:
+def serialize_conversation_messages(
+    messages: list[dict[str, Any]],
+) -> list[dict[str, Any]]:
     serialized_messages: list[dict[str, Any]] = []
     for message in messages:
         item = dict(message)
@@ -199,8 +204,17 @@ def build_file_prompt(
     site_host: Optional[str],
     message: Optional[str] = None,
 ) -> str:
-    user_note = f"رسالة المستخدم المصاحبة: {message.strip()}\n" if message and message.strip() else ""
-    ref = attachment.get("url") or attachment.get("path") or attachment.get("relative_path") or attachment["name"]
+    user_note = (
+        f"رسالة المستخدم المصاحبة: {message.strip()}\n"
+        if message and message.strip()
+        else ""
+    )
+    ref = (
+        attachment.get("url")
+        or attachment.get("path")
+        or attachment.get("relative_path")
+        or attachment["name"]
+    )
     return (
         "قام المستخدم برفع ملف جديد داخل محادثة الموقع.\n"
         f"البراند: {brand or 'غير محدد'}\n"
@@ -219,7 +233,12 @@ def build_audio_prompt(
     brand: Optional[str],
     site_host: Optional[str],
 ) -> str:
-    ref = attachment.get("url") or attachment.get("path") or attachment.get("relative_path") or attachment["name"]
+    ref = (
+        attachment.get("url")
+        or attachment.get("path")
+        or attachment.get("relative_path")
+        or attachment["name"]
+    )
     return (
         "هذه رسالة صوتية من المستخدم بعد تفريغها إلى نص.\n"
         f"البراند: {brand or 'غير محدد'}\n"

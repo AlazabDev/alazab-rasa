@@ -27,7 +27,6 @@ class ActionAlazabGetQuote(Action):
         tracker: Tracker,
         domain: DomainDict,
     ) -> List[Dict[Text, Any]]:
-
         dispatcher.utter_message(
             text=(
                 "سنجمع بياناتك لتحويلها لمهندس Alazab Construction "
@@ -49,12 +48,11 @@ class ActionAlazabShowProjects(Action):
         tracker: Tracker,
         domain: DomainDict,
     ) -> List[Dict[Text, Any]]:
-
         # قابل للتوسعة: جلب المشاريع من API أو قاعدة بيانات
         projects = [
-            {"name": "مجمع سكني — القاهرة الجديدة", "type": "سكني",  "units": 120},
-            {"name": "مركز تجاري — أكتوبر",           "type": "تجاري", "units": 40},
-            {"name": "مبنى إداري — مدينة نصر",         "type": "خدمي",  "units": 8},
+            {"name": "مجمع سكني — القاهرة الجديدة", "type": "سكني", "units": 120},
+            {"name": "مركز تجاري — أكتوبر", "type": "تجاري", "units": 40},
+            {"name": "مبنى إداري — مدينة نصر", "type": "خدمي", "units": 8},
         ]
 
         text = "🏗️ *أبرز مشاريع Alazab Construction:*\n\n"

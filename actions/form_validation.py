@@ -44,7 +44,9 @@ class ValidateCollectLeadForm(FormValidationAction):
     ) -> Dict[Text, Any]:
         value = str(slot_value or "").strip()
         if len(value) < 5:
-            dispatcher.utter_message(text="من فضلك اكتب الطلب أو المشكلة بشكل مختصر وواضح.")
+            dispatcher.utter_message(
+                text="من فضلك اكتب الطلب أو المشكلة بشكل مختصر وواضح."
+            )
             return {"user_message": None}
         return {"user_message": value}
 
@@ -72,6 +74,8 @@ class ValidateMaintenanceForm(FormValidationAction):
     def validate_branch_name(self, slot_value, dispatcher, tracker, domain):
         value = str(slot_value or "").strip()
         if len(value) < 3:
-            dispatcher.utter_message(text="من فضلك حدد اسم الفرع بوضوح (مثلاً: فرع المعادي).")
+            dispatcher.utter_message(
+                text="من فضلك حدد اسم الفرع بوضوح (مثلاً: فرع المعادي)."
+            )
             return {"branch_name": None}
         return {"branch_name": value}

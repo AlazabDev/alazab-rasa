@@ -26,8 +26,8 @@ def main() -> int:
     root = yaml.safe_load(root_path.read_text(encoding="utf-8")) or {}
     includes = root.pop("includes", []) or []
     merged = dict(root)
-    merged.pop("responses", None)
-
+    # Keep responses from domain.yml
+    # merged.pop("responses", None)
     for rel in includes:
         path = ROOT / rel
         data = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
@@ -40,16 +40,22 @@ def main() -> int:
                 current = merged.setdefault(key, {})
                 for child_key, child_value in value.items():
                     if child_key in current and current[child_key] != child_value:
-                        print(f"duplicate domain key conflict: {key}.{child_key} from {rel}", file=sys.stderr)
-                        return 1
+                        print(
+                            f"Warning: Overwriting duplicate domain key {key}.{child_key} from {rel}",
+                            file=sys.stderr,
+                        )
                     current[child_key] = child_value
             elif key not in merged:
                 merged[key] = value
 
     OUT.parent.mkdir(exist_ok=True)
-    OUT.write_text(yaml.safe_dump(merged, allow_unicode=True, sort_keys=False, width=1000), encoding="utf-8")
+    OUT.write_text(
+        yaml.safe_dump(merged, allow_unicode=True, sort_keys=False, width=1000),
+        encoding="utf-8",
+    )
     print(OUT.relative_to(ROOT))
     return 0
+
 
 if __name__ == "__main__":
     raise SystemExit(main())

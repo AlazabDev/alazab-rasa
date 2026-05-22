@@ -32,7 +32,9 @@ async def transcribe_audio(audio_path: str) -> Optional[str]:
         return None
 
     try:
-        client = AsyncOpenAI(api_key=api_key, organization=organization, project=project)
+        client = AsyncOpenAI(
+            api_key=api_key, organization=organization, project=project
+        )
         with open(audio_path, "rb") as audio_file:
             transcript = await client.audio.transcriptions.create(
                 model=AUDIO_TRANSCRIPTION_MODEL,
@@ -53,7 +55,9 @@ async def transcribe_audio(audio_path: str) -> Optional[str]:
         return None
 
 
-async def text_to_speech(text: str, voice: Optional[str], model: Optional[str]) -> bytes:
+async def text_to_speech(
+    text: str, voice: Optional[str], model: Optional[str]
+) -> bytes:
     """Convert text to speech using OpenAI TTS."""
     api_key = os.getenv("OPENAI_API_KEY", "").strip()
     organization = os.getenv("OPENAI_ORG_ID", "").strip() or None
@@ -65,7 +69,9 @@ async def text_to_speech(text: str, voice: Optional[str], model: Optional[str]) 
     selected_model = (model or AUDIO_TTS_MODEL).strip() or AUDIO_TTS_MODEL
 
     try:
-        client = AsyncOpenAI(api_key=api_key, organization=organization, project=project)
+        client = AsyncOpenAI(
+            api_key=api_key, organization=organization, project=project
+        )
         speech = await client.audio.speech.create(
             model=selected_model,
             voice=selected_voice,
@@ -99,7 +105,9 @@ def _load_tts_pronunciation_rules() -> list[tuple[str, str]]:
         return []
 
     try:
-        lines = PIPER_PRONUNCIATION_LEXICON_FILE.read_text(encoding="utf-8").splitlines()
+        lines = PIPER_PRONUNCIATION_LEXICON_FILE.read_text(
+            encoding="utf-8"
+        ).splitlines()
     except Exception:
         logger.exception("Failed to read TTS pronunciation lexicon")
         return []
@@ -126,7 +134,9 @@ def _load_tts_pronunciation_rules() -> list[tuple[str, str]]:
             continue
 
         if stripped.startswith("preferred_spoken:") and current_written:
-            rules.append((current_written, _yaml_scalar(stripped.split(":", 1)[1].strip())))
+            rules.append(
+                (current_written, _yaml_scalar(stripped.split(":", 1)[1].strip()))
+            )
             current_written = None
             continue
 

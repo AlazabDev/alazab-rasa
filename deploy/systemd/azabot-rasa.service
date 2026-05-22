@@ -1,55 +1,46 @@
 [Unit]
-Description=AzaBot — Rasa Pro Server (CALM)
+Description=AzaBot — Rasa Pro CALM Server
 Documentation=https://rasa.com/docs/rasa-pro/
-After=network.target azabot-actions.service
+After=network.target azabot-actions.service redis.service
 Requires=azabot-actions.service
+Wants=redis.service
 
 [Service]
 Type=simple
 User=azab
 Group=azab
 WorkingDirectory=/opt/azabot
-EnvironmentFile=/opt/azabot/.env
-Environment=PYTHONUTF8=1
-Environment=PYTHONUNBUFFERED=1
-Environment=RASA_TELEMETRY_ENABLED=false
-Environment=ACTION_SERVER_URL=http://127.0.0.1:5055/webhook
 
-# ── 2 vCPU: تثبيت Rasa على النواة الأولى ─────────────────────
+# تحميل متغيرات البيئة
+EnvironmentFile=/opt/azabot/.env
+
+# تفعيل venv — تشغيل Rasa
 ExecStart=/opt/azabot/.venv/bin/rasa run \
     --enable-api \
-    --host 127.0.0.1 \
+    --cors "*" \
     --port 5005 \
-    --credentials credentials.yml \
-    --endpoints endpoints.yml \
-    --cors "${ALLOWED_ORIGINS}" \
-    --num-threads 1
+    --endpoints .runtime/endpoints.generated.yml
 
-ExecStop=/bin/kill -SIGTERM $MAINPID
-KillMode=mixed
-KillSignal=SIGTERM
-TimeoutStopSec=60
-Restart=on-failure
+# انتظر حتى actions server جاهز
+ExecStartPre=/bin/bash -c 'for i in $(seq 1 15); do curl -fsS http://127.0.0.1:5055/health > /dev/null 2>&1 && break; echo "Waiting for actions..."; sleep 2; done'
+
+# إعادة التشغيل
+Restart=always
 RestartSec=15
-StartLimitIntervalSec=180
+StartLimitInterval=300
 StartLimitBurst=3
 
-# ── أولوية عالية للـ Rasa ─────────────────────────────────────
-CPUQuota=80%
-Nice=-5
-MemoryMax=6G
-MemoryHigh=5G
-TasksMax=128
+# Logging
+StandardOutput=append:/opt/azabot/logs/rasa.out.log
+StandardError=append:/opt/azabot/logs/rasa.err.log
 
-StandardOutput=journal
-StandardError=journal
-SyslogIdentifier=azabot-rasa
+# Timeout — Rasa يحتاج وقت للتحميل
+TimeoutStartSec=180
 
+# Security
 NoNewPrivileges=true
 PrivateTmp=true
-ProtectSystem=strict
-ProtectHome=true
-ReadWritePaths=/opt/azabot/logs /opt/azabot/.runtime /opt/azabot/models
+ProtectSystem=full
 
 [Install]
 WantedBy=multi-user.target

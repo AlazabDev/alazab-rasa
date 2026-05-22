@@ -26,6 +26,7 @@ def _utter_result(dispatcher: CollectingDispatcher, result: dict[str, Any]) -> N
 
 import json as _ctx_json
 
+
 def _from_ctx(tracker, field: str, fallback: str = "غير محدد") -> str:
     """سحب قيمة من context_memory أو الـ slot مباشرة."""
     direct = tracker.get_slot(field)
@@ -61,6 +62,7 @@ def _build_full_message(tracker) -> str:
     if ctx.get("urgency") and ctx["urgency"] not in ("غير محدد", ""):
         parts.append(f"الإلحاح: {ctx['urgency']}")
     return " | ".join(parts) if parts else "غير محدد"
+
 
 class ActionUberfixCreateRequest(Action):
     """Creates a maintenance request through the isolated maintenance service."""

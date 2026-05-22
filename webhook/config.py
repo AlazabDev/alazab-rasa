@@ -33,15 +33,32 @@ PIPER_PRONUNCIATION_LEXICON_FILE = ROOT_DIR / "piper" / "pronunciation_lexicon.y
 #  Public
 # ══════════════════════════════════════════════════════════════
 PUBLIC_BASE_URL = os.getenv("PUBLIC_BASE_URL", "https://bot.alazab.com").rstrip("/")
-UPLOADS_PUBLIC_ENABLED = os.getenv("UPLOADS_PUBLIC_ENABLED", "false").strip().lower() in {"1", "true", "yes", "on"}
+UPLOADS_PUBLIC_ENABLED = os.getenv(
+    "UPLOADS_PUBLIC_ENABLED", "false"
+).strip().lower() in {"1", "true", "yes", "on"}
 MAX_UPLOAD_BYTES = int(os.getenv("MAX_UPLOAD_BYTES", str(12 * 1024 * 1024)))
 
 ALLOWED_FILE_EXTENSIONS = {
-    ".pdf", ".doc", ".docx", ".xls", ".xlsx", ".ppt", ".pptx",
-    ".jpg", ".jpeg", ".png", ".webp", ".gif", ".txt", ".csv", ".zip",
+    ".pdf",
+    ".doc",
+    ".docx",
+    ".xls",
+    ".xlsx",
+    ".ppt",
+    ".pptx",
+    ".jpg",
+    ".jpeg",
+    ".png",
+    ".webp",
+    ".gif",
+    ".txt",
+    ".csv",
+    ".zip",
 }
 AUDIO_FILE_EXTENSIONS = {".mp3", ".wav", ".ogg", ".m4a", ".webm", ".aac", ".mp4"}
-AUDIO_TRANSCRIPTION_MODEL = os.getenv("AUDIO_TRANSCRIPTION_MODEL", "gpt-4o-mini-transcribe")
+AUDIO_TRANSCRIPTION_MODEL = os.getenv(
+    "AUDIO_TRANSCRIPTION_MODEL", "gpt-4o-mini-transcribe"
+)
 AUDIO_TTS_MODEL = os.getenv("AUDIO_TTS_MODEL", "gpt-4o-mini-tts")
 AUDIO_TTS_VOICE = os.getenv("AUDIO_TTS_VOICE", "nova")
 
@@ -146,12 +163,16 @@ TG_API_BASE = f"https://api.telegram.org/bot{TG_TOKEN}"
 ADMIN_API_KEY = os.getenv("ADMIN_API_KEY", "")
 ADMIN_EMAIL = os.getenv("ADMIN_EMAIL", "admin@alazab.com").strip().lower()
 ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "").strip()
-ADMIN_SESSION_TTL_SECONDS = int(os.getenv("ADMIN_SESSION_TTL_SECONDS", str(7 * 24 * 60 * 60)))
+ADMIN_SESSION_TTL_SECONDS = int(
+    os.getenv("ADMIN_SESSION_TTL_SECONDS", str(7 * 24 * 60 * 60))
+)
 ADMIN_SESSION_SECRET = os.getenv("ADMIN_SESSION_SECRET", "").strip()
 
 # UberFix
 UBERFIX_API_KEY = os.getenv("UBERFIX_API_KEY", "")
-UBERFIX_TRACK_BASE_URL = os.getenv("UBERFIX_TRACK_BASE_URL", "https://uberfix.shop/track").rstrip("/")
+UBERFIX_TRACK_BASE_URL = os.getenv(
+    "UBERFIX_TRACK_BASE_URL", "https://uberfix.shop/track"
+).rstrip("/")
 DB_HOST = os.getenv("DB_HOST", "127.0.0.1")
 DB_PORT = int(os.getenv("DB_PORT", "5432"))
 DB_NAME = os.getenv("DB_NAME", "")

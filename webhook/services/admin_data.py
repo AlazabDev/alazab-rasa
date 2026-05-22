@@ -47,7 +47,8 @@ def admin_stats_payload() -> dict[str, Any]:
         "messages": messages,
         "uploads": len(uploads),
         "today": sum(
-            1 for item in conversations
+            1
+            for item in conversations
             if str(item.get("created_at", "")).startswith(today_prefix)
         ),
         "message_counts": dict(_stats),
@@ -92,7 +93,9 @@ def load_admin_data() -> dict[str, Any]:
 def save_admin_data(data: dict[str, Any]) -> None:
     """Atomically save admin data to JSON file."""
     payload = json.dumps(data, ensure_ascii=False, indent=2)
-    tmp_path = ADMIN_DATA_FILE.with_name(f".{ADMIN_DATA_FILE.name}.{uuid.uuid4().hex}.tmp")
+    tmp_path = ADMIN_DATA_FILE.with_name(
+        f".{ADMIN_DATA_FILE.name}.{uuid.uuid4().hex}.tmp"
+    )
     with _admin_data_lock:
         try:
             tmp_path.write_text(payload, encoding="utf-8")
@@ -119,7 +122,9 @@ async def record_conversation(
     data = load_admin_data()
     conversations = data.setdefault("conversations", [])
     now = datetime.now(timezone.utc).isoformat()
-    conv = next((item for item in conversations if item.get("session_id") == sender_id), None)
+    conv = next(
+        (item for item in conversations if item.get("session_id") == sender_id), None
+    )
     is_new_conversation = conv is None
     if not conv:
         conv = {
@@ -221,5 +226,44 @@ def integration_conversation_payload(conversation: dict[str, Any]) -> dict[str, 
         "channel": conversation.get("channel"),
         "created_at": conversation.get("created_at"),
         "last_message_at": conversation.get("last_message_at"),
-        "message_count": conversation.get("message_count", len(conversation.get("messages", []))),
+        "message_count": conversation.get(
+            "message_count", len(conversation.get("messages", []))
+        ),
     }
+
+
+async def record_conversation_simple(
+    session_id: str,
+    brand: str,
+    channel: str,
+    messages: list[dict],
+) -> dict:
+    """
+    نسخة مبسّطة تُقبل قائمة رسائل جاهزة (للـ chat router الجديد).
+    تُعيد كائن المحادثة المُحدَّث.
+    """
+    data = load_admin_data()
+    conversations = data.setdefault("conversations", [])
+    now = datetime.now(timezone.utc).isoformat()
+
+    conv = next((c for c in conversations if c.get("session_id") == session_id), None)
+    if not conv:
+        conv = {
+            "id": str(uuid.uuid4()),
+            "session_id": session_id,
+            "brand": brand,
+            "channel": channel,
+            "created_at": now,
+            "last_message_at": now,
+            "messages": [],
+        }
+        conversations.insert(0, conv)
+
+    conv["last_message_at"] = now
+    conv["brand"] = brand or conv.get("brand")
+    conv["channel"] = channel or conv.get("channel")
+    conv.setdefault("messages", []).extend(messages)
+    conv["message_count"] = len(conv["messages"])
+    data["conversations"] = conversations[:500]
+    save_admin_data(data)
+    return conv

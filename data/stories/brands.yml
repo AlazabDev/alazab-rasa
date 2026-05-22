@@ -16,20 +16,9 @@ stories:
   - action: utter_luxury_portfolio
   - intent: ask_luxury_timeline
   - action: utter_luxury_timeline
-- story: طلب صيانة UberFix كامل (مع المحاسبة)
+- story: طلب صيانة UberFix كامل
   steps:
   - intent: ask_uberfix_request
-  - action: maintenance_form
-  - active_loop: maintenance_form
-  - slot_was_set:
-    - requested_slot: branch_name
-  - slot_was_set:
-    - requested_slot: service_item
-  - slot_was_set:
-    - requested_slot: user_name
-  - slot_was_set:
-    - requested_slot: user_phone
-  - active_loop: null
   - action: action_uberfix_create_request
   - action: action_daftra_sync_client
   - action: action_daftra_create_invoice
@@ -83,20 +72,6 @@ stories:
   - action: utter_alazab_projects
   - intent: ask_alazab_quote
   - action: utter_alazab_quote
-- story: محادثة قصيرة - تحية ووداع
-  steps:
-  - intent: greet
-  - action: utter_greet
-  - intent: goodbye
-  - action: utter_goodbye
-- story: سؤال عن الخدمات ثم وداع
-  steps:
-  - intent: ask_help
-  - action: utter_ask_help
-  - intent: thanks
-  - action: utter_thanks
-  - intent: goodbye
-  - action: utter_goodbye
 - story: سؤال عن منتجات Laban Alasfour
   steps:
   - intent: greet

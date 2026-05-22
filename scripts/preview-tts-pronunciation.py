@@ -21,11 +21,26 @@ DEFAULT_TEXTS = [
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Preview Alazab TTS pronunciation normalization.")
-    parser.add_argument("text", nargs="*", help="Optional text to normalize. If omitted, built-in samples are used.")
-    parser.add_argument("--tts-url", help="Optional TTS endpoint, for example http://127.0.0.1:8000/chat/tts")
-    parser.add_argument("--out-dir", default=str(ROOT_DIR / "piper" / "generated-samples"), help="Output directory for generated mp3 samples.")
-    parser.add_argument("--voice", default="nova", help="Server TTS voice when --tts-url is used.")
+    parser = argparse.ArgumentParser(
+        description="Preview Alazab TTS pronunciation normalization."
+    )
+    parser.add_argument(
+        "text",
+        nargs="*",
+        help="Optional text to normalize. If omitted, built-in samples are used.",
+    )
+    parser.add_argument(
+        "--tts-url",
+        help="Optional TTS endpoint, for example http://127.0.0.1:8000/chat/tts",
+    )
+    parser.add_argument(
+        "--out-dir",
+        default=str(ROOT_DIR / "piper" / "generated-samples"),
+        help="Output directory for generated mp3 samples.",
+    )
+    parser.add_argument(
+        "--voice", default="nova", help="Server TTS voice when --tts-url is used."
+    )
     args = parser.parse_args()
 
     rules = load_rules(LEXICON_FILE)
@@ -105,7 +120,9 @@ def yaml_scalar(value: str) -> str:
 
 def generate_tts_sample(tts_url: str, text: str, output_path: Path, voice: str) -> None:
     output_path.parent.mkdir(parents=True, exist_ok=True)
-    payload = json.dumps({"text": text, "voice": voice}, ensure_ascii=False).encode("utf-8")
+    payload = json.dumps({"text": text, "voice": voice}, ensure_ascii=False).encode(
+        "utf-8"
+    )
     request = urllib.request.Request(
         tts_url,
         data=payload,

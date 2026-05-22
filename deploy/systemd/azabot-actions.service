@@ -1,49 +1,37 @@
 [Unit]
 Description=AzaBot — Rasa Actions Server
-Documentation=https://rasa.com/docs/rasa-pro/
-After=network.target
-Wants=network.target
+Documentation=https://rasa.com/docs/rasa-sdk/
+After=network.target postgresql.service
+Wants=postgresql.service
 
 [Service]
 Type=simple
 User=azab
 Group=azab
 WorkingDirectory=/opt/azabot
+
+# تحميل متغيرات البيئة
 EnvironmentFile=/opt/azabot/.env
-Environment=PYTHONUTF8=1
-Environment=PYTHONUNBUFFERED=1
-Environment=RASA_TELEMETRY_ENABLED=false
 
-# ── Actions: خفيف — نواة مشتركة مع الـ webhook ───────────────
-ExecStart=/opt/azabot/.venv/bin/python -m rasa_sdk.endpoint \
+# تفعيل venv تلقائياً
+ExecStart=/opt/azabot/.venv/bin/python -m rasa_sdk \
     --actions actions \
-    --port 5055 \
-    --workers 1
+    --port 5055
 
-ExecStop=/bin/kill -SIGTERM $MAINPID
-KillMode=mixed
-KillSignal=SIGTERM
-TimeoutStopSec=30
-Restart=on-failure
+# إعادة التشغيل عند الفشل
+Restart=always
 RestartSec=10
-StartLimitIntervalSec=120
-StartLimitBurst=3
+StartLimitInterval=300
+StartLimitBurst=5
 
-# ── Resource limits ────────────────────────────────────────────
-CPUQuota=30%
-MemoryMax=512M
-MemoryHigh=400M
-TasksMax=32
+# Logging
+StandardOutput=append:/opt/azabot/logs/actions.out.log
+StandardError=append:/opt/azabot/logs/actions.err.log
 
-StandardOutput=journal
-StandardError=journal
-SyslogIdentifier=azabot-actions
-
+# Security
 NoNewPrivileges=true
 PrivateTmp=true
-ProtectSystem=strict
-ProtectHome=true
-ReadWritePaths=/opt/azabot/logs /opt/azabot/.runtime
+ProtectSystem=full
 
 [Install]
 WantedBy=multi-user.target

@@ -1,11 +1,13 @@
 version: "3.1"
-slots:
-  placeholder_slot:
-    type: text
-    influence_conversation: false
+# هذا الملف يحتوي على ردود احتياطية للحالات غير المتوقعة
 responses:
   utter_placeholder:
-    - text: "هذه رسالة مؤقتة (placeholder). استبدلها لاحقًا برد فعلي."
-actions:
-  - action_placeholder
-  # ⚠️ أضف هنا الأكشنات الفعلية لاحقًا
+    - text: |
+        عذراً، هذه الخاصية قيد التطوير.
+        يمكنني مساعدتك في خدمات مجموعة العزب مباشرة — فقط أخبرني بما تحتاجه.
+  utter_cannot_handle:
+    - text: |
+        لم أتمكن من معالجة طلبك بشكل صحيح.
+        جرّب إعادة الصياغة، أو اكتب «مساعدة» لأرى كيف أخدمك.
+  utter_ask_rephrase:
+    - text: "ممكن تعيد صياغة طلبك بشكل مختلف؟ حاول تكون أكثر تحديداً. 🙏"

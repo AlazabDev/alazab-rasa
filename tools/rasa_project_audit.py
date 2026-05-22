@@ -6,7 +6,7 @@ from pathlib import Path
 
 try:
     import yaml
-except Exception as e:
+except Exception:
     print("ERROR: PyYAML غير مثبت داخل البيئة الحالية.")
     print("نفذ: pip install pyyaml")
     sys.exit(2)
@@ -14,8 +14,17 @@ except Exception as e:
 ROOT = Path.cwd()
 
 EXCLUDED_DIRS = {
-    ".git", ".venv", "node_modules", "dist", "build", "__pycache__",
-    ".rasa", ".mypy_cache", ".pytest_cache", "models", "logs"
+    ".git",
+    ".venv",
+    "node_modules",
+    "dist",
+    "build",
+    "__pycache__",
+    ".rasa",
+    ".mypy_cache",
+    ".pytest_cache",
+    "models",
+    "logs",
 }
 
 SCAN_DIRS = [
@@ -46,14 +55,16 @@ def rel(path: Path) -> str:
 
 
 def add(severity, code, file, message, flow=None, step=None):
-    issues.append({
-        "severity": severity,
-        "code": code,
-        "file": rel(file) if file else None,
-        "flow": flow,
-        "step": step,
-        "message": message,
-    })
+    issues.append(
+        {
+            "severity": severity,
+            "code": code,
+            "file": rel(file) if file else None,
+            "flow": flow,
+            "step": step,
+            "message": message,
+        }
+    )
 
 
 def is_excluded(path: Path) -> bool:
@@ -124,11 +135,25 @@ def action_target_from_step(step):
 
 def validate_next_target(path, flow_id, step_id, target, step_ids):
     if target is None:
-        add("ERROR", "NULL_NEXT", path, "next: null غير صالح. استخدم END.", flow_id, step_id)
+        add(
+            "ERROR",
+            "NULL_NEXT",
+            path,
+            "next: null غير صالح. استخدم END.",
+            flow_id,
+            step_id,
+        )
         return
 
     if not isinstance(target, str):
-        add("ERROR", "BAD_NEXT_TARGET", path, f"قيمة next/then يجب أن تكون نصًا. القيمة الحالية: {target!r}", flow_id, step_id)
+        add(
+            "ERROR",
+            "BAD_NEXT_TARGET",
+            path,
+            f"قيمة next/then يجب أن تكون نصًا. القيمة الحالية: {target!r}",
+            flow_id,
+            step_id,
+        )
         return
 
     if target == "END":
@@ -147,7 +172,14 @@ def validate_next_target(path, flow_id, step_id, target, step_ids):
 
 def validate_next_block(path, flow_id, step_id, next_block, step_ids):
     if next_block is None:
-        add("ERROR", "NULL_NEXT", path, "next: null غير صالح. استخدم END.", flow_id, step_id)
+        add(
+            "ERROR",
+            "NULL_NEXT",
+            path,
+            "next: null غير صالح. استخدم END.",
+            flow_id,
+            step_id,
+        )
         return
 
     if isinstance(next_block, str):
@@ -159,7 +191,14 @@ def validate_next_block(path, flow_id, step_id, next_block, step_ids):
             branch_id = f"{step_id}.branch[{idx}]"
 
             if not isinstance(branch, dict):
-                add("ERROR", "BAD_NEXT_BRANCH", path, f"فرع next يجب أن يكون object وليس {type(branch).__name__}.", flow_id, branch_id)
+                add(
+                    "ERROR",
+                    "BAD_NEXT_BRANCH",
+                    path,
+                    f"فرع next يجب أن يكون object وليس {type(branch).__name__}.",
+                    flow_id,
+                    branch_id,
+                )
                 continue
 
             if "condition" in branch:
@@ -207,21 +246,36 @@ def validate_next_block(path, flow_id, step_id, next_block, step_ids):
                 )
 
             if has_else:
-                validate_next_target(path, flow_id, branch_id, branch.get("else"), step_ids)
+                validate_next_target(
+                    path, flow_id, branch_id, branch.get("else"), step_ids
+                )
 
             if has_then:
-                validate_next_target(path, flow_id, branch_id, branch.get("then"), step_ids)
+                validate_next_target(
+                    path, flow_id, branch_id, branch.get("then"), step_ids
+                )
 
             condition = branch.get("if")
             if isinstance(condition, str):
-                bare_slot_patterns = re.findall(r"\b(?!intent\b|slots\b|true\b|false\b|null\b)([a-zA-Z_][a-zA-Z0-9_]*)\b", condition)
+                bare_slot_patterns = re.findall(
+                    r"\b(?!intent\b|slots\b|true\b|false\b|null\b)([a-zA-Z_][a-zA-Z0-9_]*)\b",
+                    condition,
+                )
                 suspicious = []
                 for token in bare_slot_patterns:
-                    if token not in {"and", "or", "not", "in"} and f'"{token}"' not in condition and f"'{token}'" not in condition:
+                    if (
+                        token not in {"and", "or", "not", "in"}
+                        and f'"{token}"' not in condition
+                        and f"'{token}'" not in condition
+                    ):
                         if token not in {"affirm", "deny"}:
                             suspicious.append(token)
 
-                if suspicious and "slots." not in condition and "intent" not in condition:
+                if (
+                    suspicious
+                    and "slots." not in condition
+                    and "intent" not in condition
+                ):
                     add(
                         "WARNING",
                         "POSSIBLE_BARE_SLOT_CONDITION",
@@ -233,7 +287,14 @@ def validate_next_block(path, flow_id, step_id, next_block, step_ids):
 
         return
 
-    add("ERROR", "BAD_NEXT_BLOCK", path, f"next يجب أن يكون نص أو قائمة شروط. النوع الحالي: {type(next_block).__name__}", flow_id, step_id)
+    add(
+        "ERROR",
+        "BAD_NEXT_BLOCK",
+        path,
+        f"next يجب أن يكون نص أو قائمة شروط. النوع الحالي: {type(next_block).__name__}",
+        flow_id,
+        step_id,
+    )
 
 
 def validate_flows(path: Path, data):
@@ -250,12 +311,26 @@ def validate_flows(path: Path, data):
 
     for flow_id, flow_def in flows.items():
         if not isinstance(flow_def, dict):
-            add("ERROR", "BAD_FLOW_DEF", path, "تعريف flow يجب أن يكون object.", flow_id, None)
+            add(
+                "ERROR",
+                "BAD_FLOW_DEF",
+                path,
+                "تعريف flow يجب أن يكون object.",
+                flow_id,
+                None,
+            )
             continue
 
         steps = flow_def.get("steps")
         if not isinstance(steps, list):
-            add("ERROR", "BAD_STEPS_BLOCK", path, "steps يجب أن تكون list.", flow_id, None)
+            add(
+                "ERROR",
+                "BAD_STEPS_BLOCK",
+                path,
+                "steps يجب أن تكون list.",
+                flow_id,
+                None,
+            )
             continue
 
         step_ids = set()
@@ -263,7 +338,14 @@ def validate_flows(path: Path, data):
 
         for index, step in enumerate(steps, start=1):
             if not isinstance(step, dict):
-                add("ERROR", "BAD_STEP", path, f"الخطوة رقم {index} ليست object.", flow_id, f"index:{index}")
+                add(
+                    "ERROR",
+                    "BAD_STEP",
+                    path,
+                    f"الخطوة رقم {index} ليست object.",
+                    flow_id,
+                    f"index:{index}",
+                )
                 continue
 
             step_id = step.get("id") or f"index:{index}"
@@ -288,7 +370,14 @@ def validate_flows(path: Path, data):
 
         for sid, count in step_id_count.items():
             if count > 1:
-                add("ERROR", "DUPLICATE_STEP_ID", path, f"Step id مكرر داخل نفس flow: {sid}", flow_id, sid)
+                add(
+                    "ERROR",
+                    "DUPLICATE_STEP_ID",
+                    path,
+                    f"Step id مكرر داخل نفس flow: {sid}",
+                    flow_id,
+                    sid,
+                )
 
         for index, step in enumerate(steps, start=1):
             if not isinstance(step, dict):
@@ -316,7 +405,12 @@ def run_command(name, cmd):
         report_file.write_text(out, encoding="utf-8")
         print(out[-4000:])
         if proc.returncode != 0:
-            add("ERROR", "COMMAND_FAILED", report_file, f"الأمر فشل: {cmd} | exit={proc.returncode}")
+            add(
+                "ERROR",
+                "COMMAND_FAILED",
+                report_file,
+                f"الأمر فشل: {cmd} | exit={proc.returncode}",
+            )
         return proc.returncode
     except subprocess.TimeoutExpired:
         add("ERROR", "COMMAND_TIMEOUT", None, f"الأمر استغرق وقتًا طويلًا وتوقف: {cmd}")
@@ -432,19 +526,26 @@ def main():
         )
 
     severity_rank = {"ERROR": 0, "WARNING": 1, "INFO": 2}
-    issues_sorted = sorted(issues, key=lambda x: (severity_rank.get(x["severity"], 9), x["file"] or "", x["code"]))
+    issues_sorted = sorted(
+        issues,
+        key=lambda x: (severity_rank.get(x["severity"], 9), x["file"] or "", x["code"]),
+    )
 
     json_report = ROOT / "reports" / "rasa-project-audit.json"
     txt_report = ROOT / "reports" / "rasa-project-audit.txt"
 
     json_report.write_text(
-        json.dumps({
-            "project": str(ROOT),
-            "total_issues": len(issues_sorted),
-            "errors": sum(1 for i in issues_sorted if i["severity"] == "ERROR"),
-            "warnings": sum(1 for i in issues_sorted if i["severity"] == "WARNING"),
-            "issues": issues_sorted,
-        }, ensure_ascii=False, indent=2),
+        json.dumps(
+            {
+                "project": str(ROOT),
+                "total_issues": len(issues_sorted),
+                "errors": sum(1 for i in issues_sorted if i["severity"] == "ERROR"),
+                "warnings": sum(1 for i in issues_sorted if i["severity"] == "WARNING"),
+                "issues": issues_sorted,
+            },
+            ensure_ascii=False,
+            indent=2,
+        ),
         encoding="utf-8",
     )
 
@@ -452,7 +553,9 @@ def main():
     lines.append(f"PROJECT: {ROOT}")
     lines.append(f"TOTAL ISSUES: {len(issues_sorted)}")
     lines.append(f"ERRORS: {sum(1 for i in issues_sorted if i['severity'] == 'ERROR')}")
-    lines.append(f"WARNINGS: {sum(1 for i in issues_sorted if i['severity'] == 'WARNING')}")
+    lines.append(
+        f"WARNINGS: {sum(1 for i in issues_sorted if i['severity'] == 'WARNING')}"
+    )
     lines.append("")
 
     for i, item in enumerate(issues_sorted, start=1):
@@ -476,7 +579,9 @@ def main():
     if issues_sorted:
         print("\nأول 20 مشكلة:")
         for item in issues_sorted[:20]:
-            print(f"- [{item['severity']}] {item['code']} | {item['file']} | {item['message']}")
+            print(
+                f"- [{item['severity']}] {item['code']} | {item['file']} | {item['message']}"
+            )
 
     sys.exit(1 if any(i["severity"] == "ERROR" for i in issues_sorted) else 0)
 

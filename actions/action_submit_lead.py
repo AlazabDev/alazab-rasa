@@ -1,13 +1,13 @@
 """
 actions/action_submit_lead.py
 ==============================
-جمع بيانات العميل المحتمل، التحقق من صحتها، وإرسال إشعار لفريق المبيعات
-عبر Webhook أو WhatsApp Business API.
+جمع بيانات العميل المحتمل، التحقق من صحتها، وإرسال إشعار لفريق المبيعات.
+[محسّن] يستخدم core.whatsapp بدلاً من كود مكرر.
 """
 
-import os
-import re
+import json as _ctx_json
 import logging
+import re
 from typing import Any, Dict, List, Text
 
 from rasa_sdk import Action, Tracker
@@ -15,32 +15,30 @@ from rasa_sdk.executor import CollectingDispatcher
 from rasa_sdk.events import AllSlotsReset
 from rasa_sdk.types import DomainDict
 
+from .config import NOTIFY_PHONE
+from .core.whatsapp import send_text as wa_send
+
 logger = logging.getLogger(__name__)
 
-WEBHOOK_NOTIFY_URL = os.getenv("WEBHOOK_NOTIFY_URL", "")
-LEAD_RECEIVER_URL  = os.getenv("LEAD_RECEIVER_URL", WEBHOOK_NOTIFY_URL)
-WHATSAPP_API_URL   = os.getenv("WHATSAPP_API_URL", "")
-WHATSAPP_TOKEN     = os.getenv("WHATSAPP_TOKEN", "")
-NOTIFY_PHONE       = os.getenv("NOTIFY_PHONE", "")
+import os
+LEAD_RECEIVER_URL = os.getenv("LEAD_RECEIVER_URL", os.getenv("WEBHOOK_NOTIFY_URL", ""))
 
 
-# ──────────────────────────────────────────────────────────────
-#  Action: إرسال بيانات العميل
-# ──────────────────────────────────────────────────────────────
-import json as _ctx_json
+# ── Context Helpers ───────────────────────────────────────────
 
-def _ctx_get(tracker, field: str, fallback: str = "غير محدد") -> str:
+def _ctx_get(tracker: Tracker, field: str, fallback: str = "غير محدد") -> str:
     direct = tracker.get_slot(field)
     if direct:
-        return direct
+        return str(direct)
     raw = tracker.get_slot("context_memory") or "{}"
     try:
         ctx = _ctx_json.loads(raw)
     except Exception:
         ctx = {}
-    return ctx.get(field) or fallback
+    return str(ctx.get(field) or fallback)
 
-def _ctx_build_message(tracker) -> str:
+
+def _ctx_build_message(tracker: Tracker) -> str:
     raw = tracker.get_slot("context_memory") or "{}"
     try:
         ctx = _ctx_json.loads(raw)
@@ -51,16 +49,24 @@ def _ctx_build_message(tracker) -> str:
         parts.append(tracker.get_slot("user_message"))
     elif ctx.get("problem_description"):
         parts.append(ctx["problem_description"])
-    for key, label in [("branch_name","الفرع"),("location","الموقع"),("service_type","نوع الخدمة")]:
+    for key, label in [
+        ("branch_name", "الفرع"),
+        ("location", "الموقع"),
+        ("service_type", "نوع الخدمة"),
+        ("technical_specs", "المواصفات الفنية"),
+        ("material_needed", "الخامات المطلوبة"),
+    ]:
         if ctx.get(key):
             parts.append(f"{label}: {ctx[key]}")
     return " | ".join(parts) if parts else "غير محدد"
 
+
+# ══════════════════════════════════════════════════════════════
+#  Action
+# ══════════════════════════════════════════════════════════════
+
 class ActionSubmitLead(Action):
-    """
-    يُنفَّذ بعد اكتمال collect_lead flow.
-    يحفظ البيانات ويرسل إشعارًا فوريًا لفريق المبيعات.
-    """
+    """يُنفَّذ بعد اكتمال collect_lead flow."""
 
     def name(self) -> Text:
         return "action_submit_lead"
@@ -71,11 +77,13 @@ class ActionSubmitLead(Action):
         tracker: Tracker,
         domain: DomainDict,
     ) -> List[Dict[Text, Any]]:
-
         user_name    = _ctx_get(tracker, "user_name")
         user_phone   = _ctx_get(tracker, "user_phone")
         user_message = _ctx_build_message(tracker)
-        brand        = tracker.get_slot("brand") or _detect_brand(tracker)
+
+        # البراند من slot مباشرة — يُضبط من action_session_start في بداية الجلسة
+        # لا نستخدم intent detection لأنه fragile
+        brand = tracker.get_slot("brand") or "مجموعة العزب"
 
         lead_data = {
             "brand":           brand,
@@ -83,76 +91,63 @@ class ActionSubmitLead(Action):
             "user_phone":      user_phone,
             "user_message":    user_message,
             "conversation_id": tracker.sender_id,
+            "channel":         "rasa",
         }
 
         logger.info(
-            "New lead collected | brand=%s | conversation_id=%s | phone_suffix=%s",
+            "Lead collected | brand=%s | phone_suffix=%s | conversation=%s",
             brand,
-            tracker.sender_id,
             _phone_suffix(user_phone),
+            tracker.sender_id[:8],
         )
-        await _send_notification(lead_data)
 
+        await _send_notification(lead_data)
         dispatcher.utter_message(response="utter_lead_submitted")
         return [AllSlotsReset()]
 
 
-# ──────────────────────────────────────────────────────────────
-#  أداة: إرسال إشعار داخلي (Webhook / WhatsApp)
-# ──────────────────────────────────────────────────────────────
-async def _send_notification(data: dict) -> bool:
-    """يرسل بيانات العميل إلى webhook داخلي أو WhatsApp Business API."""
-    try:
-        import httpx
+# ══════════════════════════════════════════════════════════════
+#  Notification
+# ══════════════════════════════════════════════════════════════
 
-        if LEAD_RECEIVER_URL:
+async def _send_notification(data: dict) -> bool:
+    """يُرسل بيانات العميل عبر Webhook أو WhatsApp."""
+    # 1. محاولة webhook أولاً
+    if LEAD_RECEIVER_URL:
+        try:
+            import httpx
             async with httpx.AsyncClient(timeout=8) as client:
                 r = await client.post(LEAD_RECEIVER_URL, json=data)
                 r.raise_for_status()
-            logger.info("Lead notification sent via lead receiver webhook.")
+            logger.info("Lead sent via webhook")
             return True
+        except Exception as exc:
+            logger.warning("Lead webhook failed: %s — falling back to WhatsApp", exc)
 
-        if WHATSAPP_API_URL and WHATSAPP_TOKEN and NOTIFY_PHONE:
-            msg = (
-                f"🔔 *عميل جديد — {data.get('brand', 'غير محدد')}*\n"
-                f"الاسم: {data.get('user_name')}\n"
-                f"الهاتف: {data.get('user_phone')}\n"
-                f"الطلب: {data.get('user_message')}\n"
-                f"المحادثة: {data.get('conversation_id')}"
-            )
-            payload = {
-                "messaging_product": "whatsapp",
-                "to":   NOTIFY_PHONE,
-                "type": "text",
-                "text": {"body": msg},
-            }
-            async with httpx.AsyncClient(timeout=8) as client:
-                r = await client.post(
-                    WHATSAPP_API_URL,
-                    headers={"Authorization": f"Bearer {WHATSAPP_TOKEN}"},
-                    json=payload,
-                )
-                r.raise_for_status()
-            logger.info("Lead notification sent via WhatsApp.")
-            return True
+    # 2. WhatsApp كـ fallback
+    if NOTIFY_PHONE:
+        msg = (
+            f"🔔 *عميل جديد — {data.get('brand', 'غير محدد')}*\n"
+            f"الاسم: {data.get('user_name')}\n"
+            f"الهاتف: {data.get('user_phone')}\n"
+            f"الطلب: {data.get('user_message', '')[:300]}\n"
+            f"المحادثة: {data.get('conversation_id')}"
+        )
+        return await wa_send(NOTIFY_PHONE, msg)
 
-    except Exception as e:
-        logger.error(f"Notification error: {e}")
-
+    logger.warning("No notification channel configured for leads")
     return False
 
 
-# ──────────────────────────────────────────────────────────────
-#  أداة: اكتشاف العلامة التجارية من سياق المحادثة
-# ──────────────────────────────────────────────────────────────
+# ── Helpers ───────────────────────────────────────────────────
+
 def _detect_brand(tracker: Tracker) -> str:
-    """يستنتج العلامة التجارية من آخر intent في المحادثة."""
     intent_map = {
-        "alazab":  "Alazab Construction",
-        "luxury":  "Luxury Finishing",
-        "brand":   "Brand Identity",
+        "alazab": "Alazab Construction",
+        "luxury": "Luxury Finishing",
+        "brand": "Brand Identity",
         "uberfix": "UberFix",
-        "laban":   "Laban Alasfour",
+        "laban": "Laban Alasfour",
     }
     for event in reversed(tracker.events):
         if event.get("event") == "user":
@@ -166,3 +161,5 @@ def _detect_brand(tracker: Tracker) -> str:
 def _phone_suffix(value: Any) -> str:
     digits = re.sub(r"\D", "", str(value or ""))
     return digits[-4:] if len(digits) >= 4 else "unknown"
+
+

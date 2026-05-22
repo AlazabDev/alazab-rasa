@@ -1,50 +1,74 @@
-version: "3.1"
-
+version: '3.1'
 rules:
-
-- rule: greeting
+# ----------------------------------------------------
+# 1. Fallback & Session Management (إدارة الجلسات والأخطاء)
+# ----------------------------------------------------
+- rule: التعامل مع الطلبات غير المفهومة (NLU Fallback)
   steps:
-  - intent: greet
-  - action: utter_greet
+  - intent: nlu_fallback
+  - action: utter_default_fallback
+  wait_for_user_input: true
 
-- rule: goodbye
-  steps:
-  - intent: goodbye
-  - action: utter_goodbye
-
-- rule: list restaurants
-  steps:
-  - intent: list_restaurants
-  - action: action_list_restaurants
-  - action: action_reset_routing
-
-- rule: health advice
-  steps:
-    - intent: health_advice
-    - action: utter_cant_advice_on_health
-    - action: action_reset_routing
-
-- rule: hotel search
-  steps:
-    - intent: hotel_search
-    - action: action_search_hotel
-    - action: utter_hotel_inform_rating
-    - action: action_reset_routing
-
-- rule: activate restaurant form
-  steps:
-  - intent: request_restaurant
-  - action: restaurant_form
-  - active_loop: restaurant_form
-
-- rule: submit restaurant form
+# ----------------------------------------------------
+# 2. General Conversation (المحادثات العامة)
+# ----------------------------------------------------
+- rule: مساعدة عامة (فقط عندما لا يكون هناك فورم نشط)
   condition:
-  - active_loop: restaurant_form
-  steps:
-  - action: restaurant_form
   - active_loop: null
-  - slot_was_set:
-    - requested_slot: null
-  - action: utter_restaurant_form_submit
-  - action: utter_restaurant_available
-  - action: action_reset_routing
+  steps:
+  - intent: ask_help
+  - action: utter_ask_help
+  wait_for_user_input: true
+
+- rule: تحدي البوت (Bot Challenge)
+  condition:
+  - active_loop: null
+  steps:
+  - intent: bot_challenge
+  - action: utter_bot_challenge
+  wait_for_user_input: true
+
+- rule: التعامل مع أسئلة خارج النطاق (Out of Scope)
+  steps:
+  - intent: out_of_scope
+  - action: utter_out_of_scope
+  wait_for_user_input: true
+
+- rule: تقييم الخدمة
+  steps:
+  - intent: give_feedback
+  - action: utter_ask_feedback
+  wait_for_user_input: true
+
+# ----------------------------------------------------
+# 3. FAQs (الأسئلة الشائعة - يتم الرد عليها بغض النظر عن السياق)
+# ----------------------------------------------------
+- rule: FAQs الأسعار
+  steps:
+  - intent: ask_faq_prices
+  - action: utter_faq_prices
+  wait_for_user_input: true
+
+- rule: FAQs المدة الزمنية
+  steps:
+  - intent: ask_faq_timing
+  - action: utter_faq_timing
+  wait_for_user_input: true
+
+- rule: FAQs الضمان
+  steps:
+  - intent: ask_faq_warranty
+  - action: utter_faq_warranty
+  wait_for_user_input: true
+
+- rule: FAQs الدفع
+  steps:
+  - intent: ask_faq_payment
+  - action: utter_faq_payment
+  wait_for_user_input: true
+
+- rule: FAQs الموقع
+  steps:
+  - intent: ask_faq_location
+  - action: utter_faq_location
+  wait_for_user_input: true

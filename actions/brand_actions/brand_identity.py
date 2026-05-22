@@ -27,7 +27,6 @@ class ActionBrandGetQuote(Action):
         tracker: Tracker,
         domain: DomainDict,
     ) -> List[Dict[Text, Any]]:
-
         dispatcher.utter_message(
             text=(
                 "🎨 رائع! أخبرنا بنوع نشاطك وحجم المساحة وسنقدم لك "
@@ -49,13 +48,12 @@ class ActionBrandShowProcess(Action):
         tracker: Tracker,
         domain: DomainDict,
     ) -> List[Dict[Text, Any]]:
-
         steps = [
             ("1️⃣ الاستشارة", "نفهم نشاطك وجمهورك وأهدافك"),
-            ("2️⃣ التصميم",   "نصمم الهوية البصرية ونقدم عدة خيارات"),
-            ("3️⃣ الموافقة",  "تختار التصميم وتوافق على التفاصيل"),
-            ("4️⃣ التنفيذ",   "ننفذ كل عناصر الهوية داخل المساحة"),
-            ("5️⃣ التسليم",   "تستلم مشروعك مكتملًا 100٪"),
+            ("2️⃣ التصميم", "نصمم الهوية البصرية ونقدم عدة خيارات"),
+            ("3️⃣ الموافقة", "تختار التصميم وتوافق على التفاصيل"),
+            ("4️⃣ التنفيذ", "ننفذ كل عناصر الهوية داخل المساحة"),
+            ("5️⃣ التسليم", "تستلم مشروعك مكتملًا 100٪"),
         ]
 
         text = "🎨 *مراحل العمل في Brand Identity:*\n\n"
@@ -78,7 +76,6 @@ class ActionBrandShowIndustries(Action):
         tracker: Tracker,
         domain: DomainDict,
     ) -> List[Dict[Text, Any]]:
-
         industries = [
             "🍔 مطاعم وكافيهات",
             "💊 صيدليات وعيادات",

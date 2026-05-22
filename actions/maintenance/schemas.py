@@ -107,9 +107,7 @@ def normalize_ticket(data: dict[str, Any], track_base_url: str) -> MaintenanceTi
         or result.get("tracking_number")
     )
     request_id = clean_text(
-        data.get("request_id")
-        or result.get("request_id")
-        or result.get("id")
+        data.get("request_id") or result.get("request_id") or result.get("id")
     )
     track_url = clean_text(data.get("track_url") or result.get("track_url"))
     if not track_url:
@@ -164,12 +162,16 @@ def infer_service_type(description: str) -> str:
 
 def infer_priority(description: str) -> str:
     text = description.lower()
-    return "high" if any(keyword in text for keyword in HIGH_PRIORITY_KEYWORDS) else "normal"
+    return (
+        "high"
+        if any(keyword in text for keyword in HIGH_PRIORITY_KEYWORDS)
+        else "normal"
+    )
 
 
 def infer_title(description: str) -> str:
     text = clean_text(description)
-    return (text[:80] if text else "طلب صيانة من عزبوت")
+    return text[:80] if text else "طلب صيانة من عزبوت"
 
 
 def infer_location(description: str) -> str:

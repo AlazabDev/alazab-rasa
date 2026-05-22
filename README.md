@@ -1,111 +1,82 @@
-<div align="center">
+# AzaBot v4.0 — مجموعة العزب
 
-# 🤖 AzaBot — مجموعة العزب الذكي
-
-**Rasa Pro CALM · Python FastAPI · React 18 · Arabic NLU**
-
-[![Python](https://img.shields.io/badge/Python-3.11-blue)](https://python.org)
-[![Rasa](https://img.shields.io/badge/Rasa-Pro_3.16-purple)](https://rasa.com)
-[![React](https://img.shields.io/badge/React-18-61dafb)](https://react.dev)
-[![FastAPI](https://img.shields.io/badge/FastAPI-0.110-green)](https://fastapi.tiangolo.com)
-
-</div>
+بوت ذكي متكامل يخدم شرائح عملاء مجموعة العزب عبر **Rasa Pro CALM**.
 
 ---
 
-## البراندات المدعومة
+## الخدمات
 
-| البراند | الخدمة | النطاق |
+| البراند | الخدمة | الموقع |
 |---------|--------|--------|
-| 🏢 Alazab Construction | مقاولات وبناء | alazab.com |
-| ✨ Luxury Finishing | تشطيبات فاخرة | luxury.alazab.com |
-| 🎨 Brand Identity | هوية تجارية | brand.alazab.com |
-| 🔧 UberFix | صيانة منزلية | uberfix.shop |
-| 🌿 Laban Alasfour | توريدات ألبان | labanalasfour.com |
+| 🏗️ Alazab Construction | مقاولات وتنفيذ مشروعات | alazab.com |
+| ✨ Luxury Finishing | تشطيبات فاخرة | luxury-finishingalazab.com |
+| 🎨 Brand Identity | هوية تجارية وتجهيز مساحات | brand-identityalazab.com |
+| 🔧 UberFix | صيانة ذكية وتشغيل | uberfix.alazab.com |
+| 🪵 Laban Alasfour | توريدات وخامات | laban-alasfour.alazab.com |
 
 ---
 
-## التشغيل السريع (WSL / Linux)
+## البنية
+
+```
+actions/
+  core/           ← DB Pool · GPT · WhatsApp (مشترك)
+  brand_actions/  ← actions كل براند
+  maintenance/    ← UberFix Gateway layer
+
+webhook/
+  server.py       ← 270 سطر فقط
+  auth.py         ← مصادقة داخلية (4 users)
+  routers/        ← admin · chat · channels
+  services/       ← integrations · notifications · audio · uploads
+
+data/
+  brands/         ← flows كل براند
+  general/        ← flows مشتركة (handoff · feedback · faqs)
+  flows/          ← flows إضافية (maintenance · brands nav)
+  nlu/            ← بيانات التدريب
+```
+
+---
+
+## التشغيل السريع
 
 ```bash
-# 1. إعداد البيئة (مرة واحدة)
-bash wsl-setup.sh
+# 1. الإعداد
+make setup
+# ← عدّل .env بقيمك الحقيقية
 
-# 2. أضف الـ credentials
-nano .env   # RASA_PRO_LICENSE + OPENAI_API_KEY
+# 2. قاعدة البيانات
+make db-init
 
-# 3. تدريب الموديل
-bash scripts/botctl.sh train
+# 3. التدريب (20-40 دقيقة)
+make train
 
-# 4. تشغيل كل شيء
-bash dev.sh
-```
+# 4. التشغيل
+make run
 
-**بعدها:** http://localhost:8080
-
----
-
-## النشر على الإنتاج (bot.alazab.com)
-
-```bash
-# على السيرفر (مرة واحدة)
-sudo bash deploy/production/server-setup.md   # راجع الملف أولاً
-
-# نشر / تحديث
-sudo bash deploy/production/deploy-production.sh
+# 5. اختبار
+make test-chat
 ```
 
 ---
 
-## البنية التقنية
+## المستخدمون الإداريون
 
 ```
-المستخدم
-    │
-    ▼ HTTPS
-  Nginx (bot.alazab.com)
-    │
-    ├── /assets/ → azabot/dist/ (React SPA, immutable cache)
-    │
-    ├── /chat → FastAPI :8000
-    ├── /admin → FastAPI :8000
-    └── /* → React SPA (index.html)
-
-FastAPI :8000
-    │
-    └── Rasa Pro :5005
-            │
-            └── Actions Server :5055
+admin@alazab.com   | devops@alazab.com
+ceo@alazab.com     | mohamed@alazab.com
+كلمة المرور: من .env → ADMIN_PASSWORD
 ```
+
+لوحة التحكم: `http://localhost:8000/admin/`
 
 ---
 
-## Widget / Embed
+## المتطلبات
 
-- Local demo widget: `webhook/static/widget/demo.html`
-- Embed script served by FastAPI/Nginx: `/embed/azabot-embed.js`
-- Source file: `azabot/embed/azabot-embed.js`
-
----
-
-## أوامر رئيسية
-
-```bash
-bash dev.sh                   # تشغيل كل شيء
-bash dev.sh stop              # إيقاف
-bash dev.sh status            # الحالة
-bash dev.sh logs all          # السجلات
-bash scripts/botctl.sh train  # تدريب الموديل
-make help                     # كل الأوامر
-```
-
----
-
-## المنافذ
-
-| الخدمة | المنفذ |
-|--------|--------|
-| Frontend (Vite dev) | 8080 |
-| Webhook API (FastAPI) | 8000 |
-| Rasa Pro | 5005 |
-| Actions Server | 5055 |
+- Python 3.10+
+- Rasa Pro CALM license
+- PostgreSQL 14+
+- Redis 7+
+- OpenAI API key

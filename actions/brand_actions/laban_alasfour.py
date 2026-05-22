@@ -27,12 +27,11 @@ class ActionLabanShowCatalog(Action):
         tracker: Tracker,
         domain: DomainDict,
     ) -> List[Dict[Text, Any]]:
-
         catalog = {
-            "🧱 مواد البناء":    ["طوب أحمر", "طوب أبيض", "اسمنت", "رمل", "زلط"],
-            "🪟 مواد التشطيب":   ["بلاط", "سيراميك", "رخام", "جبس", "دهانات"],
-            "🔩 مواد الصيانة":   ["أنابيب PVC", "كابلات كهربائية", "مواسير نحاس"],
-            "🏗️ مواد العزل":    ["عزل حراري", "عزل مائي", "فوم", "مواد خاصة"],
+            "🧱 مواد البناء": ["طوب أحمر", "طوب أبيض", "اسمنت", "رمل", "زلط"],
+            "🪟 مواد التشطيب": ["بلاط", "سيراميك", "رخام", "جبس", "دهانات"],
+            "🔩 مواد الصيانة": ["أنابيب PVC", "كابلات كهربائية", "مواسير نحاس"],
+            "🏗️ مواد العزل": ["عزل حراري", "عزل مائي", "فوم", "مواد خاصة"],
             "🚪 تشطيبات داخلية": ["أبواب خشب", "شبابيك ألومنيوم", "أسطح مطبخ"],
         }
 
@@ -58,7 +57,6 @@ class ActionLabanBulkQuote(Action):
         tracker: Tracker,
         domain: DomainDict,
     ) -> List[Dict[Text, Any]]:
-
         dispatcher.utter_message(
             text=(
                 "🧱 للطلبات بالجملة نقدم:\n"
@@ -83,7 +81,6 @@ class ActionLabanCheckDelivery(Action):
         tracker: Tracker,
         domain: DomainDict,
     ) -> List[Dict[Text, Any]]:
-
         dispatcher.utter_message(
             text=(
                 "🚛 *خدمة التوصيل — Laban Alasfour:*\n\n"

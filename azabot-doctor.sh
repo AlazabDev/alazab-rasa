@@ -361,16 +361,15 @@ check_paths() {
     # Webhook
     ["webhook/server.py"]="FastAPI server"
     # Data
-    ["data/general/nlu.yml"]="NLU عام"
-    ["data/general/rules.yml"]="Rules عامة"
-    ["data/general/collect_lead.yml"]="Flow جمع البيانات"
-    ["data/brands/uberfix.yml"]="UberFix flows"
-    ["data/brands/nlu.yml"]="UberFix NLU"
-    ["data/brands/stories.yml"]="UberFix stories"
+    ["data/nlu/general_nlu.yml"]="NLU عام"
+    ["data/rules/classic_rules.yml"]="Rules عامة"
+    ["data/flows/general_flows.yml"]="Flows عامة"
+    ["data/flows/brands_flows.yml"]="Alazab/UberFix flows"
+    ["data/nlu/brands_nlu.yml"]="Alazab/UberFix NLU"
+    ["data/stories/classic_stories.yml"]="Stories عامة"
     ["data/system/patterns/patterns.yml"]="CALM patterns"
     # Domain
-    ["domain/general.yml"]="domain عام"
-    ["domain/uberfix.yml"]="domain UberFix"
+    ["domain/general.yml"]="domain الموحد"
     # Frontend
     ["azabot/package.json"]="Frontend dependencies"
     ["azabot/vite.config.ts"]="Vite config"

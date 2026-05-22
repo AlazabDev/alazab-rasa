@@ -3,24 +3,29 @@ actions/action_human_handoff.py
 ================================
 يلخص المحادثة بالكامل باستخدام GPT ويرسل الملخص لفريق الدعم،
 ثم يُبلغ المستخدم بموعد التحويل.
+
+[محسّن] يستخدم core.gpt و core.whatsapp بدلاً من استدعاء مباشر.
 """
 
-import os
 import logging
 from typing import Any, Dict, List, Text
 
-import openai
 from rasa_sdk import Action, Tracker
 from rasa_sdk.executor import CollectingDispatcher
 from rasa_sdk.types import DomainDict
 
+from .core.gpt import complete as gpt_complete
+from .core.whatsapp import send_notification
+
 logger = logging.getLogger(__name__)
 
-OPENAI_MODEL = os.getenv("OPENAI_HANDOFF_MODEL", "gpt-4o-mini")
+_SUMMARY_SYSTEM = (
+    "أنت مساعد ذكي لخدمة العملاء. مهمتك تلخيص المحادثات باختصار "
+    "باللغة العربية ليفهم الموظف البشري السياق فوراً."
+)
 
 
 class ActionHumanHandoff(Action):
-
     def name(self) -> Text:
         return "action_human_handoff"
 
@@ -30,7 +35,6 @@ class ActionHumanHandoff(Action):
         tracker: Tracker,
         domain: DomainDict,
     ) -> List[Dict[Text, Any]]:
-
         # ── بناء سجل المحادثة ───────────────────────────────
         convo: List[str] = []
         for event in tracker.events:
@@ -43,32 +47,30 @@ class ActionHumanHandoff(Action):
                 if text:
                     convo.append(f"البوت: {text}")
 
-        brand        = tracker.get_slot("brand") or "مجموعة العزب"
-        user_name    = tracker.get_slot("user_name") or "غير محدد"
-        user_phone   = tracker.get_slot("user_phone") or "غير محدد"
+        brand = tracker.get_slot("brand") or "مجموعة العزب"
+        user_name = tracker.get_slot("user_name") or "غير محدد"
+        user_phone = tracker.get_slot("user_phone") or "غير محدد"
 
-        # ── تلخيص المحادثة باستخدام GPT ────────────────────
+        # ── تلخيص بـ core.gpt (مع cache ومنع الطوفان) ──────
         summary = "لا يوجد ملخص متاح."
         if convo:
-            try:
-                prompt = (
-                    "المحادثة التالية جرت بين بوت خدمة عملاء ومستخدم. "
-                    "لخّصها باختصار باللغة العربية في 3-5 جمل ليتمكن "
-                    "الموظف البشري من فهم السياق والطلب الرئيسي فورًا:\n\n"
-                    + "\n".join(convo[-20:])  # آخر 20 رسالة فقط لتوفير التوكنز
-                )
-                client = openai.AsyncOpenAI()
-                response = await client.chat.completions.create(
-                    model=OPENAI_MODEL,
-                    messages=[{"role": "user", "content": prompt}],
-                    max_tokens=250,
-                    temperature=0.3,
-                )
-                summary = response.choices[0].message.content or summary
-            except Exception as e:
-                logger.error(f"GPT summarization error: {e}")
+            user_msg = (
+                "المحادثة التالية جرت بين بوت خدمة عملاء ومستخدم. "
+                "لخّصها باختصار في 3-5 جمل ليتمكن الموظف البشري من فهم "
+                "السياق والطلب الرئيسي فورًا:\n\n"
+                + "\n".join(convo[-20:])
+            )
+            result = await gpt_complete(
+                system_prompt=_SUMMARY_SYSTEM,
+                user_message=user_msg,
+                max_tokens=250,
+                temperature=0.3,
+                use_cache=False,  # الملخصات ديناميكية — لا نُخزّنها
+            )
+            if result:
+                summary = result
 
-        # ── إرسال الملخص لفريق الدعم ─────────────────────────
+        # ── إشعار فريق الدعم عبر core.whatsapp ──────────────
         await _notify_support_team(brand, user_name, user_phone, summary, tracker.sender_id)
 
         dispatcher.utter_message(
@@ -85,36 +87,19 @@ async def _notify_support_team(
     summary: str,
     conversation_id: str,
 ) -> None:
-    """يرسل إشعار التحويل لفريق الدعم عبر WhatsApp."""
-    wa_url   = os.getenv("WHATSAPP_API_URL", "")
-    wa_token = os.getenv("WHATSAPP_TOKEN", "")
-    phone    = os.getenv("NOTIFY_PHONE", "")
-
-    if not (wa_url and wa_token and phone):
-        logger.warning("WhatsApp notification not configured — skipping handoff alert.")
-        return
+    """يرسل إشعار التحويل لفريق الدعم عبر core.whatsapp."""
+    brand_emoji = {
+        "uberfix": "🔧", "laban_alasfour": "🪵",
+        "alazab_construction": "🏗️", "luxury_finishing": "✨",
+        "brand_identity": "🎨",
+    }.get((brand or "").lower(), "🏢")
 
     msg = (
-        f"🙋 *طلب تحويل لموظف بشري*\n"
-        f"البراند: {brand}\n"
-        f"الاسم: {user_name}\n"
-        f"الهاتف: {user_phone}\n"
-        f"المحادثة: {conversation_id}\n\n"
-        f"📋 *ملخص المحادثة:*\n{summary}"
+        f"🙋 *تحويل لموظف بشري*\n"
+        f"{brand_emoji} البراند: {brand}\n"
+        f"👤 الاسم: {user_name}\n"
+        f"📱 الهاتف: {user_phone}\n"
+        f"💬 المحادثة: `{conversation_id}`\n\n"
+        f"📋 *ملخص:*\n{summary}"
     )
-
-    try:
-        import httpx
-        async with httpx.AsyncClient(timeout=8) as client:
-            await client.post(
-                wa_url,
-                headers={"Authorization": f"Bearer {wa_token}"},
-                json={
-                    "messaging_product": "whatsapp",
-                    "to":   phone,
-                    "type": "text",
-                    "text": {"body": msg},
-                },
-            )
-    except Exception as e:
-        logger.error(f"Handoff WhatsApp notification error: {e}")
+    await send_notification(msg)

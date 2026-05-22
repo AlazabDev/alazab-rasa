@@ -47,6 +47,9 @@
     stream: null,
     chunks: [],
     recording: false,
+    // [جديد] حالة الاتصال لمنع الطلبات المتزامنة وإظهار مؤشر خطأ
+    sending: false,
+    retryCount: 0,
   };
 
   injectStyles();
@@ -275,25 +278,65 @@
   async function sendText(text) {
     const value = String(text || el.text.value || '').trim();
     if (!value) return;
+    // [جديد] منع إرسال رسالة جديدة أثناء انتظار رد
+    if (state.sending) return;
     el.text.value = '';
     syncSendState();
     state.nav = false;
     syncNav();
     addMessage({ sender: 'user', kind: 'text', text: value });
     typing(true);
-    try {
-      const response = await fetch(`${apiOrigin}/chat`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ sender_id: state.senderId, message: value, brand: site.brand, channel: 'website', site_host: host, site_path: path }),
-      });
-      const payload = await response.json();
-      if (!response.ok) throw new Error(payload.detail || 'chat failed');
-      typing(false);
-      pushBot(payload.responses);
-    } catch {
-      typing(false);
-      addMessage({ sender: 'bot', kind: 'text', text: 'حدثت مشكلة مؤقتة أثناء الاتصال. حاول مرة أخرى خلال لحظات.' });
+    state.sending = true;
+    el.send.disabled = true;
+
+    // [جديد] Retry logic: حاول 2 مرات قبل إظهار رسالة الخطأ
+    let lastError = null;
+    for (let attempt = 0; attempt < 2; attempt++) {
+      try {
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), 30000);
+        const response = await fetch(`${apiOrigin}/chat`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ sender_id: state.senderId, message: value, brand: site.brand, channel: 'website', site_host: host, site_path: path }),
+          signal: controller.signal,
+        });
+        clearTimeout(timer);
+        const payload = await response.json();
+        if (!response.ok) throw new Error(payload.detail || 'chat failed');
+        typing(false);
+        state.sending = false;
+        state.retryCount = 0;
+        pushBot(payload.responses);
+        return;
+      } catch (err) {
+        lastError = err;
+        if (attempt < 1) await new Promise(r => setTimeout(r, 1500)); // انتظر 1.5s ثم أعد
+      }
+    }
+
+    // فشلت كل المحاولات
+    typing(false);
+    state.sending = false;
+    state.retryCount = (state.retryCount || 0) + 1;
+
+    // [جديد] رسائل خطأ مفيدة بحسب نوع المشكلة
+    const isTimeout = lastError?.name === 'AbortError';
+    const errText = isTimeout
+      ? 'استغرق الرد وقتاً طويلاً. يبدو أن الخادم مشغول، حاول مرة أخرى.'
+      : (state.retryCount > 2
+          ? 'يبدو أن هناك مشكلة في الاتصال. تأكد من إنترنتك وحاول لاحقاً.'
+          : 'حدثت مشكلة مؤقتة أثناء الاتصال. حاول مرة أخرى خلال لحظات.');
+    addMessage({ sender: 'bot', kind: 'text', text: errText });
+
+    // [جديد] زر إعادة المحاولة بعد فشلين متتاليين
+    if (state.retryCount >= 2) {
+      const retryRow = state.history[state.history.length - 1];
+      if (retryRow) {
+        retryRow.buttons = [{ title: '🔄 إعادة المحاولة', payload: value }];
+        save(storageKey, state.history);
+        render();
+      }
     }
   }
 

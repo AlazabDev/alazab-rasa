@@ -1,10 +1,4 @@
 version: "3.1"
-responses:
-  utter_hello:
-    - text: "مرحبًا بك في شبكة العزب لصيانة المحلات! كيف أقدر أخدمك اليوم؟"
-      metadata:
-        rephrase: True
-    - text: "Welcome to Alazab Maintenance Network! How can I help you today?"
-      channel: "browser_audio"
-      metadata:
-        rephrase: True
+# domain/general/hello.yml
+# الـ responses موجودة في domain/general.yml (utter_greet, utter_session_start)
+# هذا الملف محجوز للـ slots المستقبلية الخاصة بالترحيب

@@ -11,7 +11,12 @@ from urllib.parse import quote
 import httpx
 
 from .errors import MaintenanceConfigError, MaintenanceGatewayError
-from .schemas import MaintenanceRequest, MaintenanceTicket, build_track_url, normalize_ticket
+from .schemas import (
+    MaintenanceRequest,
+    MaintenanceTicket,
+    build_track_url,
+    normalize_ticket,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -34,10 +39,11 @@ class MaintenanceGatewayConfig:
             bot_gateway_url=os.getenv("UBERFIX_BOT_GATEWAY_URL", "").rstrip("/"),
             status_api_url=os.getenv("UBERFIX_STATUS_API_URL", "").rstrip("/"),
             api_key=(
-                os.getenv("MAINTENANCE_API_KEY", "")
-                or os.getenv("UBERFIX_API_KEY", "")
+                os.getenv("MAINTENANCE_API_KEY", "") or os.getenv("UBERFIX_API_KEY", "")
             ).strip(),
-            track_base_url=os.getenv("UBERFIX_TRACK_BASE_URL", "https://uberfix.shop/track").rstrip("/"),
+            track_base_url=os.getenv(
+                "UBERFIX_TRACK_BASE_URL", "https://uberfix.shop/track"
+            ).rstrip("/"),
         )
 
 
@@ -74,9 +80,13 @@ class MaintenanceGatewayClient:
                 )
                 if data.get("success"):
                     return self._format_status_response(normalized, data)
-                logger.warning("UberFix status gateway rejected request | request=%s", normalized)
+                logger.warning(
+                    "UberFix status gateway rejected request | request=%s", normalized
+                )
             except MaintenanceGatewayError:
-                logger.exception("UberFix status gateway failed | request=%s", normalized)
+                logger.exception(
+                    "UberFix status gateway failed | request=%s", normalized
+                )
 
         if self.config.status_api_url:
             try:
@@ -90,11 +100,15 @@ class MaintenanceGatewayClient:
                 if isinstance(data, dict):
                     return self._format_status_response(normalized, data)
             except Exception:
-                logger.exception("UberFix legacy status failed | request=%s", normalized)
+                logger.exception(
+                    "UberFix legacy status failed | request=%s", normalized
+                )
 
         return self._track_link_message(normalized)
 
-    def _create_via_maintenance_gateway(self, request: MaintenanceRequest) -> MaintenanceTicket:
+    def _create_via_maintenance_gateway(
+        self, request: MaintenanceRequest
+    ) -> MaintenanceTicket:
         payload = {
             "channel": request.channel,
             "client_name": request.client_name,
@@ -112,7 +126,9 @@ class MaintenanceGatewayClient:
             idempotency_key=request.idempotency_key,
         )
         if not data.get("success"):
-            raise MaintenanceGatewayError(str(data.get("error") or data.get("message") or "Create request failed"))
+            raise MaintenanceGatewayError(
+                str(data.get("error") or data.get("message") or "Create request failed")
+            )
         return normalize_ticket(data, self.config.track_base_url)
 
     def _create_via_bot_gateway(self, request: MaintenanceRequest) -> MaintenanceTicket:
@@ -141,7 +157,9 @@ class MaintenanceGatewayClient:
             idempotency_key=request.idempotency_key,
         )
         if not data.get("success"):
-            raise MaintenanceGatewayError(str(data.get("error") or data.get("message") or "Create request failed"))
+            raise MaintenanceGatewayError(
+                str(data.get("error") or data.get("message") or "Create request failed")
+            )
         return normalize_ticket(data, self.config.track_base_url)
 
     def _post_json(
@@ -176,7 +194,9 @@ class MaintenanceGatewayClient:
     def _format_status_response(self, order_id: str, data: dict[str, Any]) -> str:
         result: Any = data.get("data")
         if isinstance(result, dict):
-            items = result.get("items") or result.get("requests") or result.get("results")
+            items = (
+                result.get("items") or result.get("requests") or result.get("results")
+            )
             if isinstance(items, list) and items:
                 result = items[0]
         elif isinstance(result, list) and result:
@@ -184,13 +204,35 @@ class MaintenanceGatewayClient:
 
         if not isinstance(result, dict):
             message = str(data.get("message") or "").strip()
-            return f"{message}\n{build_track_url(self.config.track_base_url, order_id)}" if message else self._track_link_message(order_id)
+            return (
+                f"{message}\n{build_track_url(self.config.track_base_url, order_id)}"
+                if message
+                else self._track_link_message(order_id)
+            )
 
-        status = result.get("status") or result.get("workflow_stage") or result.get("stage") or "غير محدد"
-        request_number = result.get("request_number") or result.get("tracking_number") or order_id
-        tech = result.get("technician_name") or result.get("assigned_technician_name") or ""
-        eta = result.get("eta") or result.get("scheduled_at") or result.get("appointment_time") or ""
-        track_url = result.get("track_url") or build_track_url(self.config.track_base_url, str(request_number))
+        status = (
+            result.get("status")
+            or result.get("workflow_stage")
+            or result.get("stage")
+            or "غير محدد"
+        )
+        request_number = (
+            result.get("request_number") or result.get("tracking_number") or order_id
+        )
+        tech = (
+            result.get("technician_name")
+            or result.get("assigned_technician_name")
+            or ""
+        )
+        eta = (
+            result.get("eta")
+            or result.get("scheduled_at")
+            or result.get("appointment_time")
+            or ""
+        )
+        track_url = result.get("track_url") or build_track_url(
+            self.config.track_base_url, str(request_number)
+        )
 
         msg = f"الحالة: *{status}*"
         if tech:
@@ -200,6 +242,25 @@ class MaintenanceGatewayClient:
         if track_url:
             msg += f"\nرابط التتبع: {track_url}"
         return msg
+
+    def transition_stage(self, request_number: str, to_stage: str) -> None:
+        """ينقل طلباً لمرحلة محددة عبر Bot Gateway."""
+        if not self.config.bot_gateway_url:
+            raise MaintenanceConfigError("Bot gateway not configured")
+        self._post_json(
+            self.config.bot_gateway_url,
+            {
+                "action": "transition_stage",
+                "payload": {
+                    "request_number": request_number.strip().upper(),
+                    "to_stage": to_stage,
+                    "reason": f"bot_action:{to_stage}",
+                },
+                "session_id": f"transition_{request_number}",
+                "metadata": {"source": "azabot", "locale": "ar"},
+            },
+            timeout=10,
+        )
 
     def _track_link_message(self, order_id: str) -> str:
         track_url = build_track_url(self.config.track_base_url, order_id)

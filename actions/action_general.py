@@ -8,14 +8,11 @@ actions/action_general.py
 - FAQ search
 """
 
-import hmac
 import logging
-import os
 import re
 import time
 from typing import Any, Dict, List, Text
 
-import aiohttp
 from rasa_sdk import Action, Tracker
 from rasa_sdk.events import SlotSet
 from rasa_sdk.executor import CollectingDispatcher
@@ -23,53 +20,26 @@ from rasa_sdk.types import DomainDict
 
 logger = logging.getLogger(__name__)
 
-from .config import DB_CONFIG, WHATSAPP_TOKEN, WHATSAPP_API_URL, NOTIFY_PHONE
+from .config import NOTIFY_PHONE
+from .core import insert, send_notification
 
-# ── Helpers ────────────────────────────────────────────────────
+# ── Backward-compat shim (أي كود يستدعي _send_whatsapp_text مباشرة) ─────────
 
 async def _send_whatsapp_text(phone: str, text: str) -> bool:
-    """إرسال إشعار واتساب (بشكل غير متزامن)."""
-    if not (WHATSAPP_TOKEN and WHATSAPP_API_URL and phone):
-        logger.warning("WhatsApp not configured — skip notification")
-        return False
-    payload = {
-        "messaging_product": "whatsapp",
-        "to": phone.lstrip("+"),
-        "type": "text",
-        "text": {"body": text},
-    }
-    headers = {"Authorization": f"Bearer {WHATSAPP_TOKEN}", "Content-Type": "application/json"}
-    try:
-        async with aiohttp.ClientSession() as session:
-            async with session.post(WHATSAPP_API_URL, json=payload, headers=headers, timeout=aiohttp.ClientTimeout(total=8)) as r:
-                ok = r.status < 300
-                if not ok:
-                    logger.error("WhatsApp send failed: %s %s", r.status, await r.text())
-                return ok
-    except Exception as exc:
-        logger.error("WhatsApp send error: %s", exc)
-        return False
+    """⚠️ Deprecated — استخدم core.send_whatsapp مباشرة."""
+    from .core.whatsapp import send_text
+    return await send_text(phone, text)
 
 
 async def _save_to_db(table: str, data: dict) -> bool:
-    """حفظ البيانات في قاعدة البيانات PostgreSQL."""
-    try:
-        import asyncpg  # type: ignore
-        conn = await asyncpg.connect(**DB_CONFIG)
-        cols   = ", ".join(data.keys())
-        vals   = ", ".join(f"${i+1}" for i in range(len(data)))
-        query  = f"INSERT INTO {table} ({cols}) VALUES ({vals})"
-        await conn.execute(query, *data.values())
-        await conn.close()
-        return True
-    except Exception as exc:
-        logger.error("DB save error [%s]: %s", table, exc)
-        return False
+    """⚠️ Deprecated — استخدم core.insert مباشرة."""
+    return await insert(table, data)
 
 
 # ═══════════════════════════════════════════════════════════════
 #  LEAD COLLECTION
 # ═══════════════════════════════════════════════════════════════
+
 
 class ActionSaveLeadToCRM(Action):
     """حفظ بيانات العميل في قاعدة البيانات (CRM)."""
@@ -83,22 +53,21 @@ class ActionSaveLeadToCRM(Action):
         tracker: Tracker,
         domain: DomainDict,
     ) -> List[Dict[Text, Any]]:
-
         lead = {
-            "name":         tracker.get_slot("user_name") or "غير محدد",
-            "phone":        tracker.get_slot("user_phone") or "",
-            "location":     tracker.get_slot("location") or "",
+            "name": tracker.get_slot("user_name") or "غير محدد",
+            "phone": tracker.get_slot("user_phone") or "",
+            "location": tracker.get_slot("location") or "",
             "service_type": tracker.get_slot("service_type") or "",
-            "brand":        tracker.get_slot("brand") or "AzaBot",
-            "sender_id":    tracker.sender_id,
-            "created_at":   time.strftime("%Y-%m-%d %H:%M:%S"),
-            "source":       "chatbot",
-            "status":       "new",
-            "metadata":     {
+            "brand": tracker.get_slot("brand") or "AzaBot",
+            "sender_id": tracker.sender_id,
+            "created_at": time.strftime("%Y-%m-%d %H:%M:%S"),
+            "source": "chatbot",
+            "status": "new",
+            "metadata": {
                 "urgency": tracker.get_slot("urgency") or "normal",
-                "budget":  tracker.get_slot("budget") or "not_specified",
-                "property_type": tracker.get_slot("property_type") or "unknown"
-            }
+                "budget": tracker.get_slot("budget") or "not_specified",
+                "property_type": tracker.get_slot("property_type") or "unknown",
+            },
         }
 
         saved = await _save_to_db("leads", lead)
@@ -120,12 +89,11 @@ class ActionNotifySalesTeam(Action):
         tracker: Tracker,
         domain: DomainDict,
     ) -> List[Dict[Text, Any]]:
-
-        name    = tracker.get_slot("user_name") or "?"
-        phone   = tracker.get_slot("user_phone") or "?"
-        loc     = tracker.get_slot("location") or "?"
+        name = tracker.get_slot("user_name") or "?"
+        phone = tracker.get_slot("user_phone") or "?"
+        loc = tracker.get_slot("location") or "?"
         service = tracker.get_slot("service_type") or "?"
-        brand   = tracker.get_slot("brand") or "AzaBot"
+        brand = tracker.get_slot("brand") or "AzaBot"
 
         msg = (
             f"🔔 *عميل جديد — {brand}*\n"
@@ -145,6 +113,7 @@ class ActionNotifySalesTeam(Action):
 # ═══════════════════════════════════════════════════════════════
 #  HUMAN HANDOFF
 # ═══════════════════════════════════════════════════════════════
+
 
 class ActionReceiveHandoffReason(Action):
     """استقبال سبب طلب التحويل وحفظه في slot."""
@@ -252,11 +221,7 @@ class ActionTransferToAgent(Action):
         domain: DomainDict,
     ) -> List[Dict[Text, Any]]:
         dispatcher.utter_message(
-            text=(
-                "✅ تم التحويل.\n"
-                "ستكون المحادثة مع ممثلنا مباشرة.\n"
-                "شكراً لصبرك!"
-            )
+            text=("✅ تم التحويل.\n" "ستكون المحادثة مع ممثلنا مباشرة.\n" "شكراً لصبرك!")
         )
         return []
 
@@ -282,6 +247,7 @@ class ActionNotifyTeamViaWhatsapp(Action):
 # ═══════════════════════════════════════════════════════════════
 #  ESCALATION
 # ═══════════════════════════════════════════════════════════════
+
 
 class ActionCollectEscalationDetails(Action):
     """جمع تفاصيل التصعيد."""
@@ -312,18 +278,20 @@ class ActionCreateEscalationTicket(Action):
         domain: DomainDict,
     ) -> List[Dict[Text, Any]]:
         ticket = {
-            "sender_id":  tracker.sender_id,
-            "details":    tracker.get_slot("escalation_details") or "غير محدد",
-            "brand":      tracker.get_slot("brand") or "AzaBot",
-            "status":     "open",
+            "sender_id": tracker.sender_id,
+            "details": tracker.get_slot("escalation_details") or "غير محدد",
+            "brand": tracker.get_slot("brand") or "AzaBot",
+            "status": "open",
             "created_at": time.strftime("%Y-%m-%d %H:%M:%S"),
         }
         await _save_to_db("escalation_tickets", ticket)
         return []
 
+
 # ═══════════════════════════════════════════════════════════════
 #  PROJECT TRACKING (Construction & Finishing)
 # ═══════════════════════════════════════════════════════════════
+
 
 class ActionCreateProject(Action):
     """إنشاء مشروع جديد في قاعدة البيانات للمقاولات والتشطيب."""
@@ -339,17 +307,19 @@ class ActionCreateProject(Action):
     ) -> List[Dict[Text, Any]]:
         project = {
             "project_number": f"PRJ-{int(time.time())}",
-            "client_name":    tracker.get_slot("user_name") or "غير محدد",
-            "client_phone":   tracker.get_slot("user_phone") or "",
-            "brand":          tracker.get_slot("brand") or "alazab",
-            "project_type":   tracker.get_slot("service_type") or "construction",
-            "status":         "planning",
+            "client_name": tracker.get_slot("user_name") or "غير محدد",
+            "client_phone": tracker.get_slot("user_phone") or "",
+            "brand": tracker.get_slot("brand") or "alazab",
+            "project_type": tracker.get_slot("service_type") or "construction",
+            "status": "planning",
             "progress_percentage": 0,
             "daftra_client_id": tracker.get_slot("daftra_client_id") or "",
-            "created_at":     time.strftime("%Y-%m-%d %H:%M:%S"),
+            "created_at": time.strftime("%Y-%m-%d %H:%M:%S"),
         }
         await _save_to_db("projects", project)
-        dispatcher.utter_message(text=f"🏗️ تم فتح ملف مشروع جديد برقم: {project['project_number']}. جاري المتابعة معك...")
+        dispatcher.utter_message(
+            text=f"🏗️ تم فتح ملف مشروع جديد برقم: {project['project_number']}. جاري المتابعة معك..."
+        )
         return []
 
 
@@ -381,6 +351,7 @@ class ActionNotifyManager(Action):
 #  FEEDBACK
 # ═══════════════════════════════════════════════════════════════
 
+
 class ActionReceiveFeedbackService(Action):
     """استقبال اسم الخدمة المُقيَّمة."""
 
@@ -393,7 +364,9 @@ class ActionReceiveFeedbackService(Action):
         tracker: Tracker,
         domain: DomainDict,
     ) -> List[Dict[Text, Any]]:
-        service = tracker.get_slot("feedback_service") or tracker.latest_message.get("text", "غير محدد")
+        service = tracker.get_slot("feedback_service") or tracker.latest_message.get(
+            "text", "غير محدد"
+        )
         return [SlotSet("feedback_service", service)]
 
 
@@ -465,12 +438,12 @@ class ActionSaveFeedback(Action):
         domain: DomainDict,
     ) -> List[Dict[Text, Any]]:
         record = {
-            "sender_id":       tracker.sender_id,
-            "service":         tracker.get_slot("feedback_service") or "general",
-            "rating":          tracker.get_slot("rating") or 3,
-            "feedback_text":   tracker.get_slot("feedback_text") or "",
-            "brand":           tracker.get_slot("brand") or "AzaBot",
-            "created_at":      time.strftime("%Y-%m-%d %H:%M:%S"),
+            "sender_id": tracker.sender_id,
+            "service": tracker.get_slot("feedback_service") or "general",
+            "rating": tracker.get_slot("rating") or 3,
+            "feedback_text": tracker.get_slot("feedback_text") or "",
+            "brand": tracker.get_slot("brand") or "AzaBot",
+            "created_at": time.strftime("%Y-%m-%d %H:%M:%S"),
         }
         await _save_to_db("feedback", record)
         return []
@@ -489,10 +462,10 @@ class ActionSaveSuggestion(Action):
         domain: DomainDict,
     ) -> List[Dict[Text, Any]]:
         record = {
-            "sender_id":   tracker.sender_id,
-            "suggestion":  tracker.get_slot("suggestion_text") or "",
-            "brand":       tracker.get_slot("brand") or "AzaBot",
-            "created_at":  time.strftime("%Y-%m-%d %H:%M:%S"),
+            "sender_id": tracker.sender_id,
+            "suggestion": tracker.get_slot("suggestion_text") or "",
+            "brand": tracker.get_slot("brand") or "AzaBot",
+            "created_at": time.strftime("%Y-%m-%d %H:%M:%S"),
         }
         await _save_to_db("suggestions", record)
         return []
@@ -522,9 +495,11 @@ class ActionCollectFollowUpContact(Action):
 
 try:
     from .knowledge_search import KnowledgeSearch
+
     ks = KnowledgeSearch()
 except ImportError:
     ks = None
+
 
 class ActionSearchFaqByKeyword(Action):
     """البحث الذكي في قاعدة بيانات الإنتاج (آل عزب)."""
@@ -538,25 +513,22 @@ class ActionSearchFaqByKeyword(Action):
         tracker: Tracker,
         domain: DomainDict,
     ) -> List[Dict[Text, Any]]:
-        
         keyword = tracker.get_slot("keyword") or tracker.latest_message.get("text", "")
-        
+
         if not ks:
             dispatcher.utter_message(text="عذراً، نظام البحث غير متصل حالياً.")
             return []
 
         # Perform smart search
         results = ks.search_items(keyword)
-        
+
         if results:
             response = ks.format_results(results)
             dispatcher.utter_message(text=response)
-            return [
-                SlotSet("search_found", True),
-                SlotSet("keyword", keyword)
-            ]
-        
-        # Fallback to general chitchat or help
-        dispatcher.utter_message(text="لم أجد تفاصيل محددة لهذا البند، لكن يمكنك التواصل مع فريقنا الفني للمساعدة المباشرة.")
-        return [SlotSet("search_found", False)]
+            return [SlotSet("search_found", True), SlotSet("keyword", keyword)]
 
+        # Fallback to general chitchat or help
+        dispatcher.utter_message(
+            text="لم أجد تفاصيل محددة لهذا البند، لكن يمكنك التواصل مع فريقنا الفني للمساعدة المباشرة."
+        )
+        return [SlotSet("search_found", False)]

@@ -9,10 +9,7 @@ from .schemas import MaintenanceTicket
 
 def create_success(ticket: MaintenanceTicket) -> dict[str, Any]:
     request_number = ticket.display_number
-    text = (
-        "✅ تم تسجيل طلب الصيانة بنجاح!\n"
-        f"رقم طلبك: *{request_number}*\n"
-    )
+    text = "✅ تم تسجيل طلب الصيانة بنجاح!\n" f"رقم طلبك: *{request_number}*\n"
     if ticket.track_url:
         text += f"رابط التتبع: {ticket.track_url}\n"
     text += "سيتواصل معك الفني في أقرب وقت."

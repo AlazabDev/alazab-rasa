@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { adminApi, adminToken } from "@/lib/adminApi";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { LogOut, Settings, Plug, MessageSquare, FileText, BarChart3, Paperclip, BookOpen, Brain, ShieldCheck } from "lucide-react";
@@ -31,7 +32,8 @@ export default function Admin() {
       .catch(() => nav("/admin/login", { replace: true }));
   }, [nav]);
 
-  const logout = () => {
+  const logout = async () => {
+    await supabase.auth.signOut();
     adminToken.clear();
     toast.success("تم تسجيل الخروج");
     nav("/admin/login");
