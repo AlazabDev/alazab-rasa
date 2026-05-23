@@ -1,79 +1,53 @@
 """
-webhook/_uberfix_gateway.py — UberFix Gateway Proxy
-=====================================================
-يُحوّل كل طلبات bot-gateway إلى Supabase Edge Function (uberfix).
-
-قبل: كان يتصل بـ PostgreSQL مباشرة عبر psycopg2 (37KB من الكود)
-بعد: HTTP call واحد لـ Edge Function على Supabase
-
-Edge Function URL:
-  https://fjojyzvulhvqeitnaenv.supabase.co/functions/v1/uberfix
+webhook/_uberfix_gateway.py
+============================
+يُوجّه طلبات /uberfix/bot-gateway للـ bot-gateway الموحّد.
+يُوجّه طلبات /uberfix/transition للـ maintenance-gateway.
 """
-from __future__ import annotations
-
-import logging
-import os
-from typing import Any, Optional
-
+import logging, os
 import httpx
 from fastapi import HTTPException, Request
 from fastapi.responses import JSONResponse
 
-logger = logging.getLogger("alazab.webhook.uberfix_gateway")
+logger = logging.getLogger("alazab.uberfix")
 
-# ── Config ────────────────────────────────────────────────────
-_SUPABASE_URL  = os.getenv("SUPABASE_URL", "").rstrip("/")
-_API_KEY       = (
-    os.getenv("UBERFIX_API_KEY", "")
-    or os.getenv("MAINTENANCE_API_KEY", "")
-)
-_EDGE_URL      = f"{_SUPABASE_URL}/functions/v1/uberfix"
-_TIMEOUT       = 15.0
+_BOT_GW   = os.getenv("BOT_GATEWAY_URL",
+    "https://zrrffsjbfkphridqyais.supabase.co/functions/v1/bot-gateway")
+_MAINT_GW = os.getenv("MAINTENANCE_GATEWAY_URL",
+    "https://zrrffsjbfkphridqyais.supabase.co/functions/v1/maintenance-gateway")
+_API_KEY  = os.getenv("BOT_API_KEY", os.getenv("UBERFIX_API_KEY", ""))
+_TIMEOUT  = 20.0
 
 
-def _headers() -> dict:
-    return {
-        "Content-Type":  "application/json",
-        "x-api-key":     _API_KEY,
-        "Authorization": f"Bearer {_API_KEY}",
-    }
+def _headers():
+    return {"Content-Type": "application/json", "x-api-key": _API_KEY}
 
 
 async def handle_uberfix_gateway(request: Request) -> JSONResponse:
-    """
-    النقطة الرئيسية — تستقبل طلب POST /uberfix/bot-gateway
-    وتُعيد تحويله للـ Edge Function على Supabase.
-    """
-    if not _SUPABASE_URL:
-        raise HTTPException(503, "SUPABASE_URL غير مضبوط")
-
+    """POST /uberfix/bot-gateway → bot-gateway"""
     try:
         body = await request.json()
     except Exception:
-        raise HTTPException(400, "Request body يجب أن يكون JSON")
+        raise HTTPException(400, "JSON مطلوب")
+    return await _forward(_BOT_GW, body)
 
-    # إضافة معلومات الطلب الأصلي
-    body.setdefault("metadata", {})
-    body["metadata"]["source"]     = "bot_gateway"
-    body["metadata"]["user_agent"] = request.headers.get("user-agent", "")
 
+async def handle_uberfix_transition(request: Request) -> JSONResponse:
+    """POST /uberfix/transition → maintenance-gateway"""
+    try:
+        body = await request.json()
+    except Exception:
+        raise HTTPException(400, "JSON مطلوب")
+    return await _forward(_MAINT_GW, body)
+
+
+async def _forward(url: str, body: dict) -> JSONResponse:
     try:
         async with httpx.AsyncClient(timeout=_TIMEOUT) as client:
-            resp = await client.post(_EDGE_URL, json=body, headers=_headers())
-
-        data = resp.json()
-
-        if resp.status_code >= 500:
-            logger.error("UberFix Edge Function error %s: %s", resp.status_code, data)
-            raise HTTPException(502, "خطأ في خدمة UberFix")
-
-        return JSONResponse(content=data, status_code=resp.status_code)
-
+            resp = await client.post(url, json=body, headers=_headers())
+        return JSONResponse(content=resp.json(), status_code=resp.status_code)
     except httpx.TimeoutException:
-        logger.error("UberFix Edge Function timeout")
-        raise HTTPException(504, "انتهت مهلة الاستجابة من خدمة UberFix")
-    except HTTPException:
-        raise
+        raise HTTPException(504, "timeout")
     except Exception as exc:
-        logger.error("UberFix gateway error: %s", exc)
-        raise HTTPException(500, "خطأ غير متوقع في بوابة UberFix")
+        logger.error("uberfix gateway: %s", exc)
+        raise HTTPException(500, str(exc))

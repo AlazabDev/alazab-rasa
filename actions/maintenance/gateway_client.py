@@ -1,271 +1,251 @@
-"""Gateway client for UberFix maintenance operations."""
+"""
+actions/maintenance/gateway_client.py
+=======================================
+Client يتصل بـ bot-gateway الموحّد.
 
+Gateway: https://zrrffsjbfkphridqyais.supabase.co/functions/v1/bot-gateway
+Auth:    x-api-key header فقط
+
+Actions المدعومة (من BOTS_API_INTEGRATION_GUIDE.md):
+  create_request, check_status, get_request_details,
+  update_request, cancel_request, add_note,
+  list_technicians, assign_technician,
+  list_services, list_categories, get_branches,
+  find_nearest_branch, get_quote, collect_customer_info,
+  daftra_sync_client, daftra_create_invoice, brand_navigator
+"""
 from __future__ import annotations
 
 import logging
 import os
-from dataclasses import dataclass
-from typing import Any
-from urllib.parse import quote
+from typing import Any, Optional
 
 import httpx
 
-from .errors import MaintenanceConfigError, MaintenanceGatewayError
-from .schemas import (
-    MaintenanceRequest,
-    MaintenanceTicket,
-    build_track_url,
-    normalize_ticket,
-)
-
 logger = logging.getLogger(__name__)
 
+_BOT_GATEWAY    = os.getenv("BOT_GATEWAY_URL",
+    "https://zrrffsjbfkphridqyais.supabase.co/functions/v1/bot-gateway"
+).rstrip("/")
 
-@dataclass(frozen=True)
-class MaintenanceGatewayConfig:
-    maintenance_gateway_url: str
-    bot_gateway_url: str
-    status_api_url: str
-    api_key: str
-    track_base_url: str
+_MAINT_GATEWAY  = os.getenv("MAINTENANCE_GATEWAY_URL",
+    "https://zrrffsjbfkphridqyais.supabase.co/functions/v1/maintenance-gateway"
+).rstrip("/")
 
-    @classmethod
-    def from_env(cls) -> "MaintenanceGatewayConfig":
-        return cls(
-            maintenance_gateway_url=(
-                os.getenv("MAINTENANCE_GATEWAY_URL", "")
-                or os.getenv("UBERFIX_API_URL", "")
-            ).rstrip("/"),
-            bot_gateway_url=os.getenv("UBERFIX_BOT_GATEWAY_URL", "").rstrip("/"),
-            status_api_url=os.getenv("UBERFIX_STATUS_API_URL", "").rstrip("/"),
-            api_key=(
-                os.getenv("MAINTENANCE_API_KEY", "") or os.getenv("UBERFIX_API_KEY", "")
-            ).strip(),
-            track_base_url=os.getenv(
-                "UBERFIX_TRACK_BASE_URL", "https://uberfix.shop/track"
-            ).rstrip("/"),
-        )
+_API_KEY        = os.getenv("BOT_API_KEY", os.getenv("UBERFIX_API_KEY", "")).strip()
+_TIMEOUT        = 20.0
 
 
-class MaintenanceGatewayClient:
-    def __init__(self, config: MaintenanceGatewayConfig | None = None):
-        self.config = config or MaintenanceGatewayConfig.from_env()
+def _headers() -> dict:
+    return {"Content-Type": "application/json", "x-api-key": _API_KEY}
 
-    def create_request(self, request: MaintenanceRequest) -> MaintenanceTicket:
-        if self.config.maintenance_gateway_url and not self.config.bot_gateway_url:
-            return self._create_via_maintenance_gateway(request)
-        if self.config.bot_gateway_url:
-            return self._create_via_bot_gateway(request)
-        raise MaintenanceConfigError("Maintenance gateway is not configured")
 
-    def get_status_text(self, request_number: str) -> str:
-        normalized = (request_number or "").strip().upper()
-        if not normalized:
-            return "من فضلك أرسل رقم الطلب كاملًا وسأتحقق منه فورًا."
+def _call(action: str, payload: dict,
+          session_id: Optional[str] = None,
+          source: str = "azabot") -> dict:
+    """استدعاء bot-gateway بأي action."""
+    body: dict[str, Any] = {
+        "action":   action,
+        "payload":  payload,
+        "metadata": {"source": source},
+    }
+    if session_id:
+        body["session_id"] = session_id
+    try:
+        with httpx.Client(timeout=_TIMEOUT) as client:
+            r = client.post(_BOT_GATEWAY, json=body, headers=_headers())
+            r.raise_for_status()
+            return r.json()
+    except httpx.HTTPStatusError as exc:
+        logger.error("bot-gateway %s → HTTP %s: %s", action, exc.response.status_code, exc.response.text[:200])
+        return {"success": False, "error": str(exc)}
+    except Exception as exc:
+        logger.error("bot-gateway %s → %s", action, exc)
+        return {"success": False, "error": str(exc)}
 
-        if self.config.bot_gateway_url:
-            try:
-                data = self._post_json(
-                    self.config.bot_gateway_url,
-                    {
-                        "action": "check_status",
-                        "payload": {
-                            "search_term": normalized,
-                            "search_type": "request_number",
-                        },
-                        "session_id": f"track_{normalized}",
-                        "metadata": {"source": "azabot", "locale": "ar"},
-                    },
-                    timeout=12,
-                )
-                if data.get("success"):
-                    return self._format_status_response(normalized, data)
-                logger.warning(
-                    "UberFix status gateway rejected request | request=%s", normalized
-                )
-            except MaintenanceGatewayError:
-                logger.exception(
-                    "UberFix status gateway failed | request=%s", normalized
-                )
 
-        if self.config.status_api_url:
-            try:
-                response = httpx.get(
-                    f"{self.config.status_api_url}/{quote(normalized, safe='')}",
-                    headers=self._headers(),
-                    timeout=8,
-                )
-                response.raise_for_status()
-                data = response.json()
-                if isinstance(data, dict):
-                    return self._format_status_response(normalized, data)
-            except Exception:
-                logger.exception(
-                    "UberFix legacy status failed | request=%s", normalized
-                )
+async def _async_call(action: str, payload: dict,
+                      session_id: Optional[str] = None,
+                      source: str = "azabot") -> dict:
+    """نسخة async من _call."""
+    body: dict[str, Any] = {
+        "action":   action,
+        "payload":  payload,
+        "metadata": {"source": source},
+    }
+    if session_id:
+        body["session_id"] = session_id
+    try:
+        async with httpx.AsyncClient(timeout=_TIMEOUT) as client:
+            r = await client.post(_BOT_GATEWAY, json=body, headers=_headers())
+            r.raise_for_status()
+            return r.json()
+    except httpx.HTTPStatusError as exc:
+        logger.error("bot-gateway %s → HTTP %s", action, exc.response.status_code)
+        return {"success": False, "error": str(exc)}
+    except Exception as exc:
+        logger.error("bot-gateway %s → %s", action, exc)
+        return {"success": False, "error": str(exc)}
 
-        return self._track_link_message(normalized)
 
-    def _create_via_maintenance_gateway(
-        self, request: MaintenanceRequest
-    ) -> MaintenanceTicket:
-        payload = {
-            "channel": request.channel,
-            "client_name": request.client_name,
-            "client_phone": request.client_phone,
-            "service_type": request.service_type,
-            "description": request.description,
-            "priority": request.priority,
-            "location": request.location,
-            "idempotency_key": request.idempotency_key,
-        }
-        data = self._post_json(
-            self.config.maintenance_gateway_url,
-            payload,
-            timeout=10,
-            idempotency_key=request.idempotency_key,
-        )
-        if not data.get("success"):
-            raise MaintenanceGatewayError(
-                str(data.get("error") or data.get("message") or "Create request failed")
-            )
-        return normalize_ticket(data, self.config.track_base_url)
+# ══════════════════════════════════════════════════════════════
+# A. إدارة الطلبات
+# ══════════════════════════════════════════════════════════════
 
-    def _create_via_bot_gateway(self, request: MaintenanceRequest) -> MaintenanceTicket:
-        data = self._post_json(
-            self.config.bot_gateway_url,
-            {
-                "action": "create_request",
-                "payload": {
-                    "client_name": request.client_name,
-                    "client_phone": request.client_phone,
-                    "location": request.location,
-                    "service_type": request.service_type,
-                    "title": request.title,
-                    "description": request.description,
-                    "priority": request.priority,
-                    "idempotency_key": request.idempotency_key,
-                },
-                "session_id": request.session_id,
-                "metadata": {
-                    "source": "azabot",
-                    "locale": "ar",
-                    "idempotency_key": request.idempotency_key,
-                },
-            },
-            timeout=12,
-            idempotency_key=request.idempotency_key,
-        )
-        if not data.get("success"):
-            raise MaintenanceGatewayError(
-                str(data.get("error") or data.get("message") or "Create request failed")
-            )
-        return normalize_ticket(data, self.config.track_base_url)
+async def create_request(
+    client_name: str, client_phone: str, service_type: str,
+    description: str, location: str = "",
+    title: str = "", priority: str = "medium",
+    session_id: Optional[str] = None,
+) -> dict:
+    return await _async_call("create_request", {
+        "client_name":  client_name,
+        "client_phone": client_phone,
+        "service_type": service_type,
+        "title":        title or description[:80],
+        "description":  description,
+        "location":     location,
+        "priority":     priority,
+    }, session_id)
 
-    def _post_json(
-        self,
-        url: str,
-        payload: dict[str, Any],
-        *,
-        timeout: int,
-        idempotency_key: str | None = None,
-    ) -> dict[str, Any]:
-        try:
-            headers = self._headers()
-            if idempotency_key:
-                headers["Idempotency-Key"] = idempotency_key
-            response = httpx.post(url, json=payload, headers=headers, timeout=timeout)
-            response.raise_for_status()
-            data = response.json()
-            if not isinstance(data, dict):
-                raise MaintenanceGatewayError("Invalid gateway response")
-            return data
-        except MaintenanceGatewayError:
-            raise
-        except Exception as exc:
-            raise MaintenanceGatewayError(str(exc)) from exc
 
-    def _headers(self) -> dict[str, str]:
-        headers = {"Content-Type": "application/json"}
-        if self.config.api_key:
-            headers["x-api-key"] = self.config.api_key
-        return headers
+async def check_status(search_term: str, search_type: str = "request_number") -> dict:
+    return await _async_call("check_status", {
+        "search_term": search_term,
+        "search_type": search_type,
+    })
 
-    def _format_status_response(self, order_id: str, data: dict[str, Any]) -> str:
-        result: Any = data.get("data")
-        if isinstance(result, dict):
-            items = (
-                result.get("items") or result.get("requests") or result.get("results")
-            )
-            if isinstance(items, list) and items:
-                result = items[0]
-        elif isinstance(result, list) and result:
-            result = result[0]
 
-        if not isinstance(result, dict):
-            message = str(data.get("message") or "").strip()
-            return (
-                f"{message}\n{build_track_url(self.config.track_base_url, order_id)}"
-                if message
-                else self._track_link_message(order_id)
-            )
+async def get_request_details(request_number: str, client_phone: str = "") -> dict:
+    return await _async_call("get_request_details", {
+        "request_number": request_number,
+        "client_phone":   client_phone,
+    })
 
-        status = (
-            result.get("status")
-            or result.get("workflow_stage")
-            or result.get("stage")
-            or "غير محدد"
-        )
-        request_number = (
-            result.get("request_number") or result.get("tracking_number") or order_id
-        )
-        tech = (
-            result.get("technician_name")
-            or result.get("assigned_technician_name")
-            or ""
-        )
-        eta = (
-            result.get("eta")
-            or result.get("scheduled_at")
-            or result.get("appointment_time")
-            or ""
-        )
-        track_url = result.get("track_url") or build_track_url(
-            self.config.track_base_url, str(request_number)
-        )
 
-        msg = f"الحالة: *{status}*"
-        if tech:
-            msg += f" | الفني: {tech}"
-        if eta:
-            msg += f" | الموعد: {eta}"
-        if track_url:
-            msg += f"\nرابط التتبع: {track_url}"
-        return msg
+async def cancel_request(request_id: str, client_phone: str, reason: str = "") -> dict:
+    return await _async_call("cancel_request", {
+        "request_id":   request_id,
+        "client_phone": client_phone,
+        "reason":       reason or "إلغاء بطلب العميل",
+    })
 
-    def transition_stage(self, request_number: str, to_stage: str) -> None:
-        """ينقل طلباً لمرحلة محددة عبر Bot Gateway."""
-        if not self.config.bot_gateway_url:
-            raise MaintenanceConfigError("Bot gateway not configured")
-        self._post_json(
-            self.config.bot_gateway_url,
-            {
-                "action": "transition_stage",
-                "payload": {
-                    "request_number": request_number.strip().upper(),
-                    "to_stage": to_stage,
-                    "reason": f"bot_action:{to_stage}",
-                },
-                "session_id": f"transition_{request_number}",
-                "metadata": {"source": "azabot", "locale": "ar"},
-            },
-            timeout=10,
-        )
 
-    def _track_link_message(self, order_id: str) -> str:
-        track_url = build_track_url(self.config.track_base_url, order_id)
-        return (
-            "رقم الطلب صحيح وتم التعرف عليه.\n"
-            "متابعة الحالة تتم من رابط التتبع المباشر:\n"
-            f"{track_url}"
-        )
+async def add_note(request_id: str, note: str) -> dict:
+    return await _async_call("add_note", {
+        "request_id": request_id,
+        "note":       note,
+    })
+
+
+async def update_request(request_id: str, client_phone: str, updates: dict) -> dict:
+    return await _async_call("update_request", {
+        "request_id":   request_id,
+        "client_phone": client_phone,
+        "updates":      updates,
+    })
+
+
+# ══════════════════════════════════════════════════════════════
+# B. الفنيون
+# ══════════════════════════════════════════════════════════════
+
+async def list_technicians(specialization: str = "", limit: int = 10) -> dict:
+    payload: dict = {"limit": limit}
+    if specialization:
+        payload["specialization"] = specialization
+    return await _async_call("list_technicians", payload)
+
+
+async def assign_technician(request_id: str, auto: bool = True,
+                             technician_id: Optional[str] = None) -> dict:
+    payload: dict = {"request_id": request_id}
+    if auto:
+        payload["auto"] = True
+    elif technician_id:
+        payload["technician_id"] = technician_id
+    return await _async_call("assign_technician", payload)
+
+
+# ══════════════════════════════════════════════════════════════
+# C. الكاتالوج
+# ══════════════════════════════════════════════════════════════
+
+async def list_services() -> dict:
+    return await _async_call("list_services", {})
+
+
+async def list_categories() -> dict:
+    return await _async_call("list_categories", {})
+
+
+async def get_branches() -> dict:
+    return await _async_call("get_branches", {})
+
+
+async def find_nearest_branch(lat: float, lng: float) -> dict:
+    return await _async_call("find_nearest_branch", {"latitude": lat, "longitude": lng})
+
+
+async def get_quote(service_type: str, description: str = "") -> dict:
+    return await _async_call("get_quote", {
+        "service_type": service_type,
+        "description":  description,
+    })
+
+
+# ══════════════════════════════════════════════════════════════
+# D. العميل والمحاسبة
+# ══════════════════════════════════════════════════════════════
+
+async def collect_customer_info(client_phone: str, client_name: str = "",
+                                  location: str = "",
+                                  session_id: Optional[str] = None) -> dict:
+    return await _async_call("collect_customer_info", {
+        "client_phone": client_phone,
+        "client_name":  client_name,
+        "location":     location,
+    }, session_id)
+
+
+async def daftra_sync_client(client_name: str, client_phone: str,
+                               request_id: str = "") -> dict:
+    return await _async_call("daftra_sync_client", {
+        "client_name":  client_name,
+        "client_phone": client_phone,
+        "request_id":   request_id,
+    })
+
+
+async def daftra_create_invoice(request_id: str, amount: float,
+                                  status: str = "draft") -> dict:
+    return await _async_call("daftra_create_invoice", {
+        "request_id": request_id,
+        "amount":     amount,
+        "status":     status,
+    })
+
+
+async def brand_navigator(interest: str, session_id: Optional[str] = None) -> dict:
+    return await _async_call("brand_navigator", {"interest": interest}, session_id)
+
+
+# ══════════════════════════════════════════════════════════════
+# transition_stage — عبر maintenance-gateway (للإدارة الداخلية)
+# ══════════════════════════════════════════════════════════════
+
+def transition_stage(request_id: str, to_stage: str, reason: str = "") -> dict:
+    """تغيير مرحلة الطلب — عبر maintenance-gateway (للاستخدام الإداري)."""
+    try:
+        with httpx.Client(timeout=_TIMEOUT) as client:
+            r = client.post(_MAINT_GATEWAY, json={
+                "action":     "transition_stage",
+                "request_id": request_id,
+                "to_stage":   to_stage,
+                "reason":     reason,
+                "channel":    "azabot",
+            }, headers=_headers())
+            return r.json()
+    except Exception as exc:
+        logger.error("transition_stage %s: %s", to_stage, exc)
+        return {"success": False, "error": str(exc)}

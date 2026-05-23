@@ -891,6 +891,8 @@ actions:
 - action_uberfix_create_request
 - action_uberfix_track_request
 - action_uberfix_show_subscriptions
+- action_uberfix_get_quote
+- action_uberfix_get_services
 - action_uberfix_triage_request
 - action_daftra_sync_client
 - action_daftra_create_invoice
@@ -906,6 +908,8 @@ actions:
 - action_triage_maintenance_request
 - action_assign_maintenance_request
 - action_session_start
+- action_clarify_flows
+- action_trigger_search
 entities:
 - brand
 - service_type

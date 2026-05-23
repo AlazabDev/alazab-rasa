@@ -1,34 +1,46 @@
 # ══════════════════════════════════════════════════════════════
 # endpoints.yml — Rasa Pro CALM
-# قاعدة البيانات: Supabase PostgreSQL
 # ══════════════════════════════════════════════════════════════
 
 action_endpoint:
   url: "http://127.0.0.1:5055/webhook"
 
-# Tracker Store → Supabase PostgreSQL (direct connection)
+# Tracker Store → Supabase PostgreSQL
 tracker_store:
   type: SQL
   dialect: postgresql
   url: "postgresql://postgres.fjojyzvulhvqeitnaenv:${SUPABASE_DB_PASSWORD}@aws-0-eu-central-1.pooler.supabase.com:5432/postgres"
 
-# Lock Store → in-memory (بسيط للمحلي)
-# في الإنتاج يمكن استخدام Redis Cloud أو Supabase Realtime
+# Lock Store
 lock_store:
   type: in_memory
 
+# ── Model Groups (مطلوبة لـ CALM) ─────────────────────────────
 model_groups:
-  - id: openai-gpt-4o-mini
+  # Command Generator — يفهم الـ flows والسياق
+  - id: command_generator_llm
+    models:
+      - provider: openai
+        model: gpt-4o-mini
+        timeout: 25
+
+  # Enterprise Search Generation — يصيغ الإجابات
+  - id: enterprise_search_generation
     models:
       - provider: openai
         model: gpt-4o-mini
         timeout: 20
+
+  # Embeddings — للـ vector search في قاعدة المعرفة
+  - id: enterprise_search_embeddings
+    models:
+      - provider: openai
+        model: text-embedding-3-large
+        timeout: 15
+
+  # General Purpose
   - id: openai-gpt-4o
     models:
       - provider: openai
         model: gpt-4o
-        timeout: 20
-  - id: openai-embeddings
-    models:
-      - provider: openai
-        model: text-embedding-3-large
+        timeout: 30

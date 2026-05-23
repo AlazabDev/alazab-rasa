@@ -66,3 +66,17 @@ TELEGRAM_BOT_TOKEN = (
 # ── Backward compat — يُحذف لاحقاً ───────────────────────────
 # DB_CONFIG باقي فارغ لمنع ImportError في action_daftra_ops
 DB_CONFIG: dict = {}
+
+# ── Bot Gateway (موحّد — كل عمليات UberFix للبوت) ────────────
+BOT_GATEWAY_URL = os.getenv(
+    "BOT_GATEWAY_URL",
+    "https://zrrffsjbfkphridqyais.supabase.co/functions/v1/bot-gateway"
+).rstrip("/")
+
+BOT_API_KEY = os.getenv("BOT_API_KEY", os.getenv("UBERFIX_API_KEY", "")).strip()
+
+# maintenance-gateway (لتغيير المراحل من الخارج فقط)
+MAINTENANCE_GATEWAY_URL = os.getenv(
+    "MAINTENANCE_GATEWAY_URL",
+    "https://zrrffsjbfkphridqyais.supabase.co/functions/v1/maintenance-gateway"
+).rstrip("/")
