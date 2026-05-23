@@ -141,6 +141,17 @@ ALLOWED_ORIGINS: list[str] = [
     origin.strip().rstrip("/") for origin in _raw_origins.split(",") if origin.strip()
 ]
 
+
+# ══════════════════════════════════════════════════════════════
+#  Supabase (قاعدة البيانات الموحدة)
+# ══════════════════════════════════════════════════════════════
+SUPABASE_URL              = os.getenv("SUPABASE_URL", "").strip()
+SUPABASE_SERVICE_ROLE_KEY = (
+    os.getenv("SUPABASE_SERVICE_ROLE_KEY", "")
+    or os.getenv("SUPABASE_SECRET_KEY", "")
+).strip()
+SUPABASE_ANON_KEY         = os.getenv("SUPABASE_ANON_KEY", "").strip()
+
 # ══════════════════════════════════════════════════════════════
 #  Service URLs
 # ══════════════════════════════════════════════════════════════
@@ -173,11 +184,12 @@ UBERFIX_API_KEY = os.getenv("UBERFIX_API_KEY", "")
 UBERFIX_TRACK_BASE_URL = os.getenv(
     "UBERFIX_TRACK_BASE_URL", "https://uberfix.shop/track"
 ).rstrip("/")
-DB_HOST = os.getenv("DB_HOST", "127.0.0.1")
-DB_PORT = int(os.getenv("DB_PORT", "5432"))
-DB_NAME = os.getenv("DB_NAME", "")
-DB_USER = os.getenv("DB_USER", "")
-DB_PASSWORD = os.getenv("DB_PASSWORD", "")
+# DB vars مُحتفَظ بهم للـ backward compat مع endpoints.yml
+DB_HOST     = os.getenv("DB_HOST", "aws-0-eu-central-1.pooler.supabase.com")
+DB_PORT     = int(os.getenv("DB_PORT", "5432"))
+DB_NAME     = os.getenv("DB_NAME", "postgres")
+DB_USER     = os.getenv("DB_USER", "postgres")
+DB_PASSWORD = os.getenv("SUPABASE_DB_PASSWORD", os.getenv("DB_PASSWORD", ""))
 
 UBERFIX_SERVICE_TYPES: list[dict[str, str]] = [
     {"key": "plumbing", "label": "سباكة"},

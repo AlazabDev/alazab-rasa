@@ -1,123 +1,168 @@
 """
-actions/core/db.py
-==================
-Connection pool مركزي لجميع الـ actions.
+actions/core/db.py — Supabase Database Layer
+=============================================
+قاعدة بيانات موحدة: Supabase (PostgreSQL Cloud).
 
-المشكلة القديمة:
-  كل action كانت تفتح connection جديد وتغلقه
-  → بطء، وضياع connections عند ضغط عالي
+الاستخدام:
+    from actions.core.db import sb, insert, fetch_one, fetch_all, upsert
 
-الحل:
-  asyncpg Pool واحد يُنشأ مرة وحدة، يُعاد استخدامه
-  بحد أقصى 10 connections موازية
+جداول Supabase المستخدمة:
+    conversations       محادثات البوت
+    messages            رسائل كل محادثة
+    maintenance_requests طلبات الصيانة (UberFix)
+    integrations        التكاملات الخارجية
+    webhook_logs        سجل التكاملات
+    bot_settings        إعدادات البوت
+    leads               العملاء المحتملين (جدول مضاف)
+    laban_orders        طلبات Laban (جدول مضاف)
 """
 from __future__ import annotations
 
 import logging
-from contextlib import asynccontextmanager
-from typing import Any, AsyncGenerator
+import os
+from typing import Any, Optional
 
 logger = logging.getLogger(__name__)
 
-_pool = None  # asyncpg.Pool | None
+_client = None
 
 
-async def get_pool():
-    """يُنشئ الـ pool عند أول استخدام (lazy init)."""
-    global _pool
-    if _pool is not None:
-        return _pool
+def _sb():
+    """Supabase client singleton — service_role للعمليات server-side."""
+    global _client
+    if _client is not None:
+        return _client
     try:
-        import asyncpg  # type: ignore
-
-        from ..config import DB_CONFIG
-
-        _pool = await asyncpg.create_pool(
-            host=DB_CONFIG["host"],
-            port=DB_CONFIG["port"],
-            database=DB_CONFIG["database"],
-            user=DB_CONFIG["user"],
-            password=DB_CONFIG["password"],
-            min_size=2,
-            max_size=10,
-            command_timeout=15,
-        )
-        logger.info("DB pool created (min=2, max=10)")
+        from supabase import create_client  # type: ignore
+        url = os.getenv("SUPABASE_URL", "").strip()
+        key = (
+            os.getenv("SUPABASE_SERVICE_ROLE_KEY", "")
+            or os.getenv("SUPABASE_SECRET_KEY", "")
+        ).strip()
+        if not (url and key):
+            logger.warning("SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY not set")
+            return None
+        _client = create_client(url, key)
     except Exception as exc:
-        logger.error("DB pool creation failed: %s", exc)
-        _pool = None
-    return _pool
+        logger.error("Supabase client init failed: %s", exc)
+    return _client
 
 
-@asynccontextmanager
-async def acquire() -> AsyncGenerator[Any, None]:
-    """Context manager يُعطي connection من الـ pool."""
-    pool = await get_pool()
-    if pool is None:
-        raise RuntimeError("Database pool is not available")
-    async with pool.acquire() as conn:
-        yield conn
+# ── Public alias ─────────────────────────────────────────────
+def sb():
+    """يُعيد Supabase client — يُستخدم في الكود مباشرة."""
+    return _sb()
 
+
+# ── CRUD Helpers ─────────────────────────────────────────────
 
 async def insert(table: str, data: dict) -> bool:
-    """
-    INSERT صف واحد في الجدول المحدد.
-    يُرجع True عند النجاح، False عند الفشل.
-
-    مثال:
-        await insert("leads", {"name": "أحمد", "phone": "01012345678"})
-    """
+    """INSERT صف واحد في Supabase."""
     if not data:
-        logger.warning("insert(%s): empty data dict — skipped", table)
         return False
-
-    # تأكد من أن الأعمدة safe (لا SQL injection)
-    cols = ", ".join(f'"{k}"' for k in data.keys())
-    placeholders = ", ".join(f"${i + 1}" for i in range(len(data)))
-    query = f'INSERT INTO "{table}" ({cols}) VALUES ({placeholders})'
-
     try:
-        async with acquire() as conn:
-            await conn.execute(query, *data.values())
+        client = _sb()
+        if not client:
+            return False
+        client.table(table).insert(data).execute()
         return True
     except Exception as exc:
-        logger.error("DB insert error [%s]: %s", table, exc)
+        logger.error("Supabase insert [%s]: %s", table, exc)
         return False
 
 
-async def fetch_one(query: str, *args) -> dict | None:
-    """
-    تُنفّذ SELECT وتُرجع أول صف كـ dict أو None.
-
-    مثال:
-        row = await fetch_one("SELECT * FROM leads WHERE phone=$1", "01012345678")
-    """
+async def upsert(table: str, data: dict, on_conflict: str = "id") -> bool:
+    """INSERT or UPDATE في Supabase."""
+    if not data:
+        return False
     try:
-        async with acquire() as conn:
-            row = await conn.fetchrow(query, *args)
-            return dict(row) if row else None
+        client = _sb()
+        if not client:
+            return False
+        client.table(table).upsert(data, on_conflict=on_conflict).execute()
+        return True
     except Exception as exc:
-        logger.error("DB fetch_one error: %s", exc)
+        logger.error("Supabase upsert [%s]: %s", table, exc)
+        return False
+
+
+async def fetch_one(table: str, filters: dict) -> Optional[dict]:
+    """SELECT صف واحد بـ filter."""
+    try:
+        client = _sb()
+        if not client:
+            return None
+        query = client.table(table).select("*")
+        for k, v in filters.items():
+            query = query.eq(k, v)
+        res = query.limit(1).execute()
+        return res.data[0] if res.data else None
+    except Exception as exc:
+        logger.error("Supabase fetch_one [%s]: %s", table, exc)
         return None
 
 
-async def fetch_all(query: str, *args) -> list[dict]:
-    """
-    تُنفّذ SELECT وتُرجع كل الصفوف كـ list[dict].
-    """
+async def fetch_all(table: str, filters: Optional[dict] = None,
+                    order: Optional[str] = None, limit: int = 500) -> list[dict]:
+    """SELECT قائمة من Supabase."""
     try:
-        async with acquire() as conn:
-            rows = await conn.fetch(query, *args)
-            return [dict(r) for r in rows]
+        client = _sb()
+        if not client:
+            return []
+        query = client.table(table).select("*")
+        for k, v in (filters or {}).items():
+            query = query.eq(k, v)
+        if order:
+            query = query.order(order, desc=True)
+        res = query.limit(limit).execute()
+        return res.data or []
     except Exception as exc:
-        logger.error("DB fetch_all error: %s", exc)
+        logger.error("Supabase fetch_all [%s]: %s", table, exc)
         return []
 
 
-async def close_pool() -> None:
-    """يُغلق الـ pool عند إيقاف الخادم (اختياري)."""
-    global _pool
-    if _pool is not None:
-        await _pool.close()
-        _pool = None
-        logger.info("DB pool closed")
+async def update(table: str, filters: dict, data: dict) -> bool:
+    """UPDATE صفوف بـ filter."""
+    if not data:
+        return False
+    try:
+        client = _sb()
+        if not client:
+            return False
+        query = client.table(table).update(data)
+        for k, v in filters.items():
+            query = query.eq(k, v)
+        query.execute()
+        return True
+    except Exception as exc:
+        logger.error("Supabase update [%s]: %s", table, exc)
+        return False
+
+
+async def delete(table: str, filters: dict) -> bool:
+    """DELETE صفوف بـ filter."""
+    try:
+        client = _sb()
+        if not client:
+            return False
+        query = client.table(table).delete()
+        for k, v in filters.items():
+            query = query.eq(k, v)
+        query.execute()
+        return True
+    except Exception as exc:
+        logger.error("Supabase delete [%s]: %s", table, exc)
+        return False
+
+
+def rpc(function_name: str, params: dict) -> Any:
+    """استدعاء Supabase RPC (stored procedure)."""
+    try:
+        client = _sb()
+        if not client:
+            return None
+        res = client.rpc(function_name, params).execute()
+        return res.data
+    except Exception as exc:
+        logger.error("Supabase rpc [%s]: %s", function_name, exc)
+        return None

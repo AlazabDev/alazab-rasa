@@ -3,19 +3,26 @@
 Professional Migration Script: alazab-rasa → rasa-calm-demo
 Converts Rasa Classic (NLU/Stories/Rules) → Rasa CALM (Flows/LLM)
 """
-import os, shutil, yaml, re
+
+import shutil
+import yaml
+import re
 from pathlib import Path
 from datetime import datetime
 
 SRC = Path("/home/azab/azabot/alazab-rasa")
 DST = Path("/home/azab/azabot/rasa-calm-demo")
-BACKUP = Path(f"/home/azab/azabot/rasa-calm-demo-backup-{datetime.now().strftime('%Y%m%d_%H%M%S')}")
+BACKUP = Path(
+    f"/home/azab/azabot/rasa-calm-demo-backup-{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+)
+
 
 # ── 1. Backup target project ──────────────────────────────────────────────────
 def backup():
     print(f"📦 Backing up {DST} → {BACKUP}")
     shutil.copytree(DST, BACKUP, dirs_exist_ok=False)
     print(f"✅ Backup done: {BACKUP}")
+
 
 # ── 2. Copy actions ────────────────────────────────────────────────────────────
 def copy_actions():
@@ -27,6 +34,7 @@ def copy_actions():
             dest = dst_actions / f"alazab_{f.name}"
             shutil.copy2(f, dest)
             print(f"  📄 Action: {f.name} → alazab_{f.name}")
+
 
 # ── 3. Merge domain responses into _shared.yml ────────────────────────────────
 def merge_domain():
@@ -68,9 +76,12 @@ def merge_domain():
 
     dst_shared.write_text(
         yaml.safe_dump(dst_data, allow_unicode=True, sort_keys=False, width=1000),
-        encoding="utf-8"
+        encoding="utf-8",
     )
-    print(f"  ✅ Merged {added} responses, {len(src_slots)} slots, {len(src_intents)} intents into _shared.yml")
+    print(
+        f"  ✅ Merged {added} responses, {len(src_slots)} slots, {len(src_intents)} intents into _shared.yml"
+    )
+
 
 # ── 4. Convert Rules/Stories → CALM Flows ─────────────────────────────────────
 def convert_rules_to_flows():
@@ -101,10 +112,12 @@ def convert_rules_to_flows():
                     if action.startswith("utter_"):
                         flow_steps.append({"action": action})
                     elif action.endswith("_form"):
-                        flow_steps.append({
-                            "collect": action.replace("_form", ""),
-                            "description": f"Collect data for {action}"
-                        })
+                        flow_steps.append(
+                            {
+                                "collect": action.replace("_form", ""),
+                                "description": f"Collect data for {action}",
+                            }
+                        )
                     else:
                         flow_steps.append({"action": action})
 
@@ -114,15 +127,16 @@ def convert_rules_to_flows():
             flows["flows"][flow_id] = {
                 "description": name,
                 "nlu_trigger": [{"intent": first_intent}] if first_intent else [],
-                "steps": flow_steps or [{"action": "utter_ask_help"}]
+                "steps": flow_steps or [{"action": "utter_ask_help"}],
             }
 
         out_file = output_dir / f"alazab_{rules_file.stem}.yml"
         out_file.write_text(
             yaml.safe_dump(flows, allow_unicode=True, sort_keys=False, width=1000),
-            encoding="utf-8"
+            encoding="utf-8",
         )
         print(f"  🔄 Converted {len(rules)} rules → {out_file.name}")
+
 
 # ── 5. Copy NLU training data ─────────────────────────────────────────────────
 def copy_nlu():
@@ -139,6 +153,7 @@ def copy_nlu():
         shutil.copy2(brands_nlu, dest)
         print(f"  📚 NLU: brands/nlu.yml → {dest.name}")
 
+
 # ── 6. Copy domain sub-files as alazab_*.yml ──────────────────────────────────
 def copy_domain_files():
     dst_domain_dir = DST / "domain" / "alazab"
@@ -149,13 +164,15 @@ def copy_domain_files():
         shutil.copy2(yf, dest)
         print(f"  🗂️  Domain: {yf.name} → alazab/{dest.name}")
 
+
 # ── 7. Copy .env (without overwrite) ─────────────────────────────────────────
 def copy_env():
     src_env = SRC / ".env"
     dst_env = DST / ".env.alazab"
     if src_env.exists():
         shutil.copy2(src_env, dst_env)
-        print(f"  🔑 .env copied → .env.alazab (won't overwrite main .env)")
+        print("  🔑 .env copied → .env.alazab (won't overwrite main .env)")
+
 
 # ── 8. Copy webhook & scripts ─────────────────────────────────────────────────
 def copy_extras():
@@ -176,6 +193,7 @@ def copy_extras():
                             target.parent.mkdir(parents=True, exist_ok=True)
                             shutil.copy2(f, target)
                 print(f"  📁 Merged new files into /{name}")
+
 
 # ── Main ───────────────────────────────────────────────────────────────────────
 if __name__ == "__main__":

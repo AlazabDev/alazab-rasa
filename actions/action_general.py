@@ -22,17 +22,10 @@ logger = logging.getLogger(__name__)
 
 from .config import NOTIFY_PHONE
 from .core import insert, send_notification
-
-# ── Backward-compat shim (أي كود يستدعي _send_whatsapp_text مباشرة) ─────────
-
-async def _send_whatsapp_text(phone: str, text: str) -> bool:
-    """⚠️ Deprecated — استخدم core.send_whatsapp مباشرة."""
-    from .core.whatsapp import send_text
-    return await send_text(phone, text)
-
+from .core.whatsapp import send_text as _send_whatsapp_text
 
 async def _save_to_db(table: str, data: dict) -> bool:
-    """⚠️ Deprecated — استخدم core.insert مباشرة."""
+    """Thin wrapper → Supabase insert."""
     return await insert(table, data)
 
 

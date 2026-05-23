@@ -1,33 +1,32 @@
+# ══════════════════════════════════════════════════════════════
+# endpoints.yml — Rasa Pro CALM
+# قاعدة البيانات: Supabase PostgreSQL
+# ══════════════════════════════════════════════════════════════
+
 action_endpoint:
   url: "http://127.0.0.1:5055/webhook"
 
+# Tracker Store → Supabase PostgreSQL (direct connection)
 tracker_store:
-  type: redis
-  url: "127.0.0.1"
-  port: 6379
-  db: 0
-  password: ""
-  key_prefix: "alazab"
-  use_ssl: false
+  type: SQL
+  dialect: postgresql
+  url: "postgresql://postgres.fjojyzvulhvqeitnaenv:${SUPABASE_DB_PASSWORD}@aws-0-eu-central-1.pooler.supabase.com:5432/postgres"
 
+# Lock Store → in-memory (بسيط للمحلي)
+# في الإنتاج يمكن استخدام Redis Cloud أو Supabase Realtime
 lock_store:
-  type: redis
-  url: "127.0.0.1"
-  port: 6379
-  db: 1
-  password: ""
-  use_ssl: false
+  type: in_memory
 
 model_groups:
-  - id: openai-gpt-4o
-    models:
-      - provider: openai
-        model: gpt-4o
-        timeout: 20
   - id: openai-gpt-4o-mini
     models:
       - provider: openai
         model: gpt-4o-mini
+        timeout: 20
+  - id: openai-gpt-4o
+    models:
+      - provider: openai
+        model: gpt-4o
         timeout: 20
   - id: openai-embeddings
     models:

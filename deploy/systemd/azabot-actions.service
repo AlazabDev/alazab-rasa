@@ -6,15 +6,15 @@ Wants=postgresql.service
 
 [Service]
 Type=simple
-User=azab
+User=azureuser
 Group=azab
-WorkingDirectory=/opt/azabot
+WorkingDirectory=/mnt/apps/alazab-rasa
 
 # تحميل متغيرات البيئة
-EnvironmentFile=/opt/azabot/.env
+EnvironmentFile=/mnt/apps/alazab-rasa/.env
 
 # تفعيل venv تلقائياً
-ExecStart=/opt/azabot/.venv/bin/python -m rasa_sdk \
+ExecStart=/mnt/apps/alazab-rasa/.venv/bin/python -m rasa_sdk \
     --actions actions \
     --port 5055
 
@@ -25,8 +25,8 @@ StartLimitInterval=300
 StartLimitBurst=5
 
 # Logging
-StandardOutput=append:/opt/azabot/logs/actions.out.log
-StandardError=append:/opt/azabot/logs/actions.err.log
+StandardOutput=append:/mnt/apps/alazab-rasa/logs/actions.out.log
+StandardError=append:/mnt/apps/alazab-rasa/logs/actions.err.log
 
 # Security
 NoNewPrivileges=true

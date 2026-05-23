@@ -8,11 +8,14 @@ Deep Migration: Alazab Knowledge Base → rasa-calm-demo RAG Structure
 - Updates rag.jinja2 with Arabic support
 - Creates proper action_trigger_alazab_search.py
 """
-import json, shutil, yaml, os
+
+import shutil
+import yaml
 from pathlib import Path
 
 SRC = Path("/home/azab/azabot/alazab-rasa")
 DST = Path("/home/azab/azabot/rasa-calm-demo")
+
 
 # ── 1. Copy entire knowledge directory ────────────────────────────────────────
 def copy_knowledge():
@@ -22,6 +25,7 @@ def copy_knowledge():
         shutil.rmtree(dst_kb)
     shutil.copytree(src_kb, dst_kb)
     print(f"  ✅ Copied knowledge/ → {dst_kb}")
+
 
 # ── 2. Create Qdrant loader for Arabic KB ─────────────────────────────────────
 def create_qdrant_loader():
@@ -192,20 +196,34 @@ if __name__ == "__main__":
     out.write_text(script, encoding="utf-8")
     print(f"  ✅ Created {out.name}")
 
+
 # ── 3. Create CALM search domain for alazab KB ────────────────────────────────
 def create_search_domain():
     domain = {
         "version": "3.1",
         "responses": {
-            "utter_alazab_search_intro": [{"text": "سأبحث في قاعدة بيانات مجموعة العزب عن هذا الطلب..."}],
-            "utter_alazab_no_results": [{"text": "لم أجد نتائج مطابقة في قاعدة البيانات. يمكنني تحويل طلبك للفريق المختص."}],
-            "utter_alazab_search_error": [{"text": "حدث خطأ أثناء البحث. برجاء المحاولة مرة أخرى أو التواصل مع الفريق مباشرة."}],
-        }
+            "utter_alazab_search_intro": [
+                {"text": "سأبحث في قاعدة بيانات مجموعة العزب عن هذا الطلب..."}
+            ],
+            "utter_alazab_no_results": [
+                {
+                    "text": "لم أجد نتائج مطابقة في قاعدة البيانات. يمكنني تحويل طلبك للفريق المختص."
+                }
+            ],
+            "utter_alazab_search_error": [
+                {
+                    "text": "حدث خطأ أثناء البحث. برجاء المحاولة مرة أخرى أو التواصل مع الفريق مباشرة."
+                }
+            ],
+        },
     }
     out = DST / "domain" / "search" / "alazab_kb.yml"
     out.parent.mkdir(parents=True, exist_ok=True)
-    out.write_text(yaml.safe_dump(domain, allow_unicode=True, sort_keys=False), encoding="utf-8")
-    print(f"  ✅ Created domain/search/alazab_kb.yml")
+    out.write_text(
+        yaml.safe_dump(domain, allow_unicode=True, sort_keys=False), encoding="utf-8"
+    )
+    print("  ✅ Created domain/search/alazab_kb.yml")
+
 
 # ── 4. Create CALM flows for alazab services ──────────────────────────────────
 def create_alazab_flows():
@@ -220,12 +238,28 @@ def create_alazab_flows():
                     {"intent": "uberfix_specific_repair"},
                 ],
                 "steps": [
-                    {"collect": "branch_name", "description": "اسم الفرع أو الموقع المطلوب الصيانة فيه", "ask_before_filling": True},
-                    {"collect": "service_item", "description": "وصف العطل أو البند المطلوب", "ask_before_filling": True},
-                    {"collect": "user_name", "description": "اسم المسؤول عن الفرع", "ask_before_filling": True},
-                    {"collect": "user_phone", "description": "رقم التواصل", "ask_before_filling": True},
+                    {
+                        "collect": "branch_name",
+                        "description": "اسم الفرع أو الموقع المطلوب الصيانة فيه",
+                        "ask_before_filling": True,
+                    },
+                    {
+                        "collect": "service_item",
+                        "description": "وصف العطل أو البند المطلوب",
+                        "ask_before_filling": True,
+                    },
+                    {
+                        "collect": "user_name",
+                        "description": "اسم المسؤول عن الفرع",
+                        "ask_before_filling": True,
+                    },
+                    {
+                        "collect": "user_phone",
+                        "description": "رقم التواصل",
+                        "ask_before_filling": True,
+                    },
                     {"action": "alazab_action_create_maintenance_request"},
-                ]
+                ],
             },
             "alazab_kb_search": {
                 "description": "بحث في قاعدة معرفة مجموعة العزب عن خدمات، أسعار، أو مواصفات",
@@ -234,9 +268,13 @@ def create_alazab_flows():
                     {"intent": "request_quote"},
                 ],
                 "steps": [
-                    {"collect": "keyword", "description": "كلمة البحث أو الخدمة المطلوبة", "ask_before_filling": True},
+                    {
+                        "collect": "keyword",
+                        "description": "كلمة البحث أو الخدمة المطلوبة",
+                        "ask_before_filling": True,
+                    },
                     {"action": "action_trigger_search"},
-                ]
+                ],
             },
             "alazab_brand_identity": {
                 "description": "استفسارات Brand Identity — تجهيز فروع وهوية تجارية",
@@ -248,7 +286,7 @@ def create_alazab_flows():
                 ],
                 "steps": [
                     {"action": "utter_brand_services"},
-                ]
+                ],
             },
             "alazab_luxury_finishing": {
                 "description": "استفسارات Luxury Finishing — تشطيبات فاخرة",
@@ -257,7 +295,7 @@ def create_alazab_flows():
                 ],
                 "steps": [
                     {"action": "utter_luxury_services"},
-                ]
+                ],
             },
             "alazab_human_handoff": {
                 "description": "تحويل المحادثة لممثل بشري",
@@ -265,9 +303,13 @@ def create_alazab_flows():
                     {"intent": "request_human_handoff"},
                 ],
                 "steps": [
-                    {"collect": "handoff_reason", "description": "سبب طلب التواصل مع الفريق", "ask_before_filling": True},
+                    {
+                        "collect": "handoff_reason",
+                        "description": "سبب طلب التواصل مع الفريق",
+                        "ask_before_filling": True,
+                    },
                     {"action": "alazab_action_human_handoff"},
-                ]
+                ],
             },
             "alazab_lead_capture": {
                 "description": "تسجيل بيانات عميل جديد وإرسالها لفريق المبيعات",
@@ -276,18 +318,40 @@ def create_alazab_flows():
                     {"intent": "ask_alazab_contact"},
                 ],
                 "steps": [
-                    {"collect": "user_name", "description": "اسم العميل", "ask_before_filling": True},
-                    {"collect": "user_phone", "description": "رقم التواصل", "ask_before_filling": True},
-                    {"collect": "location", "description": "المنطقة أو المحافظة", "ask_before_filling": True},
-                    {"collect": "service_type", "description": "نوع الخدمة المطلوبة", "ask_before_filling": True},
+                    {
+                        "collect": "user_name",
+                        "description": "اسم العميل",
+                        "ask_before_filling": True,
+                    },
+                    {
+                        "collect": "user_phone",
+                        "description": "رقم التواصل",
+                        "ask_before_filling": True,
+                    },
+                    {
+                        "collect": "location",
+                        "description": "المنطقة أو المحافظة",
+                        "ask_before_filling": True,
+                    },
+                    {
+                        "collect": "service_type",
+                        "description": "نوع الخدمة المطلوبة",
+                        "ask_before_filling": True,
+                    },
                     {"action": "alazab_action_submit_lead"},
-                ]
+                ],
             },
-        }
+        },
     }
     out = DST / "data" / "flows" / "alazab_services.yml"
-    out.write_text(yaml.safe_dump(flows_data, allow_unicode=True, sort_keys=False, width=1000), encoding="utf-8")
-    print(f"  ✅ Created data/flows/alazab_services.yml ({len(flows_data['flows'])} flows)")
+    out.write_text(
+        yaml.safe_dump(flows_data, allow_unicode=True, sort_keys=False, width=1000),
+        encoding="utf-8",
+    )
+    print(
+        f"  ✅ Created data/flows/alazab_services.yml ({len(flows_data['flows'])} flows)"
+    )
+
 
 # ── 5. Update rag.jinja2 with Arabic support ──────────────────────────────────
 def create_arabic_rag_template():
@@ -330,7 +394,8 @@ Given the following information from Alazab Group knowledge base, answer the use
 """
     out = DST / "rag.jinja2"
     out.write_text(template, encoding="utf-8")
-    print(f"  ✅ Updated rag.jinja2 with Arabic/bilingual support")
+    print("  ✅ Updated rag.jinja2 with Arabic/bilingual support")
+
 
 # ── 6. Create custom alazab search action ─────────────────────────────────────
 def create_search_action():
@@ -424,7 +489,8 @@ class ActionTriggerAlazabSearch(Action):
 '''
     out = DST / "actions" / "action_trigger_alazab_search.py"
     out.write_text(action_code, encoding="utf-8")
-    print(f"  ✅ Created actions/action_trigger_alazab_search.py")
+    print("  ✅ Created actions/action_trigger_alazab_search.py")
+
 
 # ── 7. Update domain/_shared.yml slots for CALM ───────────────────────────────
 def add_calm_slots():
@@ -458,9 +524,10 @@ def add_calm_slots():
     data["slots"] = existing
     shared_path.write_text(
         yaml.safe_dump(data, allow_unicode=True, sort_keys=False, width=1000),
-        encoding="utf-8"
+        encoding="utf-8",
     )
     print(f"  ✅ Added/updated {added} CALM slots in _shared.yml")
+
 
 # ── Main ───────────────────────────────────────────────────────────────────────
 if __name__ == "__main__":

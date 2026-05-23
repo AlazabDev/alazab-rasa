@@ -1,20 +1,20 @@
 [Unit]
 Description=AzaBot — FastAPI Webhook Server
 Documentation=https://fastapi.tiangolo.com/
-After=network.target azabot-rasa.service postgresql.service redis.service
-Wants=azabot-rasa.service postgresql.service redis.service
+After=network.target azabot-rasa.service 
+Wants=azabot-rasa.service 
 
 [Service]
 Type=simple
-User=azab
+User=azureuser
 Group=azab
-WorkingDirectory=/opt/azabot
+WorkingDirectory=/mnt/apps/alazab-rasa
 
 # تحميل متغيرات البيئة
-EnvironmentFile=/opt/azabot/.env
+EnvironmentFile=/mnt/apps/alazab-rasa/.env
 
 # تفعيل venv — تشغيل Uvicorn
-ExecStart=/opt/azabot/.venv/bin/uvicorn webhook.server:app \
+ExecStart=/mnt/apps/alazab-rasa/.venv/bin/uvicorn webhook.server:app \
     --host 127.0.0.1 \
     --port 8000 \
     --workers 2 \
@@ -29,14 +29,14 @@ StartLimitInterval=120
 StartLimitBurst=5
 
 # Logging
-StandardOutput=append:/opt/azabot/logs/webhook.out.log
-StandardError=append:/opt/azabot/logs/webhook.err.log
+StandardOutput=append:/mnt/apps/alazab-rasa/logs/webhook.out.log
+StandardError=append:/mnt/apps/alazab-rasa/logs/webhook.err.log
 
 # Security — أقوى من actions/rasa لأنه يستقبل طلبات خارجية
 NoNewPrivileges=true
 PrivateTmp=true
 ProtectSystem=strict
-ReadWritePaths=/opt/azabot/logs /opt/azabot/.runtime /opt/azabot/webhook/static/uploads
+ReadWritePaths=/mnt/apps/alazab-rasa/logs /mnt/apps/alazab-rasa/.runtime /mnt/apps/alazab-rasa/webhook/static/uploads
 ProtectHome=true
 CapabilityBoundingSet=
 AmbientCapabilities=

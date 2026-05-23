@@ -1,9 +1,9 @@
 import yaml
 import sys
 
-file_path = '/home/azab/azabot/alazab-rasa/data/nlu/brands_nlu.yml'
+file_path = "/home/azab/azabot/alazab-rasa/data/nlu/brands_nlu.yml"
 
-with open(file_path, 'r', encoding='utf-8') as f:
+with open(file_path, "r", encoding="utf-8") as f:
     try:
         data = yaml.safe_load(f)
     except Exception as e:
@@ -15,23 +15,23 @@ with open(file_path, 'r', encoding='utf-8') as f:
         new_lines = []
         for line in lines:
             stripped = line.lstrip()
-            if stripped.startswith('- intent:'):
-                new_lines.append('  ' + stripped)
-            elif stripped.startswith('examples:'):
-                new_lines.append('    ' + stripped)
-            elif stripped.startswith('- ') and not stripped.startswith('- intent:'):
-                new_lines.append('      ' + stripped)
-            elif stripped.strip() == 'nlu:':
-                new_lines.append('nlu:\n')
-            elif stripped.startswith('version:'):
+            if stripped.startswith("- intent:"):
+                new_lines.append("  " + stripped)
+            elif stripped.startswith("examples:"):
+                new_lines.append("    " + stripped)
+            elif stripped.startswith("- ") and not stripped.startswith("- intent:"):
+                new_lines.append("      " + stripped)
+            elif stripped.strip() == "nlu:":
+                new_lines.append("nlu:\n")
+            elif stripped.startswith("version:"):
                 new_lines.append(line)
             else:
                 new_lines.append(line)
-        
-        with open(file_path, 'w', encoding='utf-8') as f2:
+
+        with open(file_path, "w", encoding="utf-8") as f2:
             f2.writelines(new_lines)
         sys.exit(0)
 
 # If it loaded successfully, we can just dump it back.
-with open(file_path, 'w', encoding='utf-8') as f:
+with open(file_path, "w", encoding="utf-8") as f:
     yaml.dump(data, f, allow_unicode=True, sort_keys=False)

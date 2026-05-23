@@ -94,7 +94,3 @@ desktop.ini
 .vscode/settings.json
 .idea/
 *.iml
-
-# Auto-added by Merge-AzaBot
-data_backup_before_org/
-

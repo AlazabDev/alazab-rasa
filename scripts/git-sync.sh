@@ -182,6 +182,9 @@ if [[ "$CMD" == "push" ]]; then
         .gitignore \
         .env.example \
         azabot/.env \
+        azabot/supabase/functions/uberfix/ \
+        scripts/deploy-production.sh \
+        
         Makefile \
         README.md \
         SETUP_GUIDE.md \

@@ -288,17 +288,16 @@ async def on_shutdown():
 #  Helpers
 # ══════════════════════════════════════════════════════════════
 async def _check_db_health() -> bool:
-    if not all([DB_HOST, DB_NAME, DB_USER]):
-        return False
+    """يفحص اتصال Supabase بدلاً من PostgreSQL المحلي."""
     try:
-        import asyncpg
-        conn = await asyncpg.connect(
-            host=DB_HOST, port=DB_PORT,
-            database=DB_NAME, user=DB_USER, password=DB_PASSWORD,
-            timeout=3,
-        )
-        await conn.fetchval("SELECT 1")
-        await conn.close()
+        import os
+        from supabase import create_client  # type: ignore
+        url = os.getenv("SUPABASE_URL", "").strip()
+        key = (os.getenv("SUPABASE_SERVICE_ROLE_KEY","") or os.getenv("SUPABASE_SECRET_KEY","")).strip()
+        if not (url and key):
+            return False
+        client = create_client(url, key)
+        client.table("bot_settings").select("id").limit(1).execute()
         return True
     except Exception:
         return False

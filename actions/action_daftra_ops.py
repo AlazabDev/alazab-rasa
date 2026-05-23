@@ -14,7 +14,8 @@ from rasa_sdk import Action, Tracker
 from rasa_sdk.executor import CollectingDispatcher
 from rasa_sdk.events import SlotSet
 
-from .config import DAFTRA_API_KEY, DAFTRA_BASE_URL, DB_CONFIG
+from .config import DAFTRA_API_KEY, DAFTRA_BASE_URL
+from .core.db import update as db_update
 
 logger = logging.getLogger(__name__)
 
@@ -35,31 +36,21 @@ def _invoice_url(invoice_id: Any) -> str:
 # ── مساعد: تحديث قاعدة البيانات ────────────────────────────────────────────
 
 
-def _update_request_invoice(request_id: str, invoice_id: Any, doc_url: str) -> None:
-    """
-    يحدّث سجل الطلب في PostgreSQL بمعرف الفاتورة ورابطها.
-    [محسّن] يستخدم psycopg2 فقط هنا لأن الدالة sync — الـ action نفسه sync.
-    """
-    try:
-        import psycopg2  # type: ignore
-
-        with psycopg2.connect(**DB_CONFIG) as conn:
-            with conn.cursor() as cur:
-                cur.execute(
-                    """
-                    UPDATE maintenance_requests
-                       SET daftra_invoice_id   = %s,
-                           daftra_document_url = %s,
-                           payment_status      = 'pending',
-                           updated_at          = NOW()
-                     WHERE id = %s
-                    """,
-                    (str(invoice_id), doc_url, request_id),
-                )
-                conn.commit()
+async def _update_request_invoice(request_id: str, invoice_id: Any, doc_url: str) -> None:
+    """يحدّث طلب الصيانة في Supabase بمعلومات الفاتورة."""
+    ok = await db_update(
+        "maintenance_requests",
+        {"id": request_id},
+        {
+            "daftra_invoice_id":   str(invoice_id),
+            "daftra_document_url": doc_url,
+            "payment_status":      "pending",
+        },
+    )
+    if ok:
         logger.info("Invoice %s linked to request %s", invoice_id, request_id)
-    except Exception as exc:
-        logger.error("DB update for invoice failed: %s", exc)
+    else:
+        logger.error("Supabase update for invoice failed: request=%s", request_id)
 
 
 # ═══════════════════════════════════════════════════════════════════════════

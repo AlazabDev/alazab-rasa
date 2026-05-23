@@ -7,37 +7,24 @@ import logging
 import httpx
 from typing import Dict, Any, List, Optional
 
-try:
-    from supabase import create_client, Client
-except Exception:
-    create_client = None
-    Client = object
-
-# ============================================================================
-# إعدادات التسجيل
-# ============================================================================
 logger = logging.getLogger(__name__)
 
-# ============================================================================
-# متغيرات البيئة
-# ============================================================================
-WHATSAPP_TOKEN = os.environ.get("META_TOKEN", "")
+WHATSAPP_TOKEN  = os.environ.get("META_TOKEN", "") or os.environ.get("WHATSAPP_TOKEN", "")
 PHONE_NUMBER_ID = os.environ.get("PHONE_NUMBER_ID", "873908352481274")
-WABA_ID = os.environ.get("WABA_ID", "459851797218855")
-API_VERSION = "v24.0"
-BASE_URL = f"https://graph.facebook.com/{API_VERSION}"
+WABA_ID         = os.environ.get("WABA_ID", "459851797218855")
+API_VERSION     = "v24.0"
+BASE_URL        = f"https://graph.facebook.com/{API_VERSION}"
 
-# Supabase
-SUPABASE_URL = os.environ.get("SUPABASE_URL", "")
-SUPABASE_KEY = os.environ.get("SUPABASE_API_KEY", "")
+def _sb():
+    """Supabase client من core.db."""
+    try:
+        from .core.db import _sb as _core_sb
+        return _core_sb()
+    except Exception:
+        return None
 
-# ============================================================================
-# اتصال Supabase
-# ============================================================================
-supabase: Optional[Client] = None
-if SUPABASE_URL and SUPABASE_KEY:
-    supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
-    logger.info("✅ Supabase connected")
+# compat alias
+supabase = None  # يُعيَّن عند الاستخدام
 
 # ============================================================================
 # فئات البيانات (Data Classes)
