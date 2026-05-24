@@ -249,3 +249,79 @@ def transition_stage(request_id: str, to_stage: str, reason: str = "") -> dict:
     except Exception as exc:
         logger.error("transition_stage %s: %s", to_stage, exc)
         return {"success": False, "error": str(exc)}
+
+
+# ══════════════════════════════════════════════════════════════
+# MaintenanceGatewayClient — Class wrapper
+# يُستخدم من service.py للتوافق مع النمط الكائني
+# ══════════════════════════════════════════════════════════════
+
+class MaintenanceGatewayClient:
+    """
+    Wrapper كائني حول دوال bot-gateway.
+    يُنشأ في MaintenanceService ويُستدعى بشكل متزامن.
+    """
+
+    def create_request(
+        self,
+        client_name: str,
+        client_phone: str,
+        description: str,
+        service_type: str = "general",
+        location: str = "",
+        priority: str = "medium",
+        session_id: Optional[str] = None,
+    ) -> dict:
+        import asyncio
+        return asyncio.get_event_loop().run_until_complete(
+            create_request(
+                client_name=client_name,
+                client_phone=client_phone,
+                description=description,
+                service_type=service_type,
+                location=location,
+                priority=priority,
+                session_id=session_id,
+            )
+        )
+
+    def check_status(self, search_term: str, search_type: str = "request_number") -> dict:
+        import asyncio
+        return asyncio.get_event_loop().run_until_complete(
+            check_status(search_term, search_type)
+        )
+
+    def get_request_details(self, request_number: str, client_phone: str = "") -> dict:
+        import asyncio
+        return asyncio.get_event_loop().run_until_complete(
+            get_request_details(request_number, client_phone)
+        )
+
+    def cancel_request(self, request_id: str, client_phone: str, reason: str = "") -> dict:
+        import asyncio
+        return asyncio.get_event_loop().run_until_complete(
+            cancel_request(request_id, client_phone, reason)
+        )
+
+    def add_note(self, request_id: str, note: str) -> dict:
+        import asyncio
+        return asyncio.get_event_loop().run_until_complete(
+            add_note(request_id, note)
+        )
+
+    def transition_stage(self, request_id: str, to_stage: str, reason: str = "") -> dict:
+        return transition_stage(request_id, to_stage, reason)
+
+    def list_services(self) -> dict:
+        import asyncio
+        return asyncio.get_event_loop().run_until_complete(list_services())
+
+    def list_categories(self) -> dict:
+        import asyncio
+        return asyncio.get_event_loop().run_until_complete(list_categories())
+
+    def get_quote(self, service_type: str, description: str = "") -> dict:
+        import asyncio
+        return asyncio.get_event_loop().run_until_complete(
+            get_quote(service_type, description)
+        )

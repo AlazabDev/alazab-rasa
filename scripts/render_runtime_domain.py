@@ -59,3 +59,11 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
+
+
+# ── توليد endpoints.generated.yml ────────────────────────────
+import shutil
+ENDPOINTS_OUT = ROOT / ".runtime" / "endpoints.generated.yml"
+ENDPOINTS_SRC = ROOT / "endpoints.nodocker.yml"
+if ENDPOINTS_SRC.exists():
+    shutil.copy(ENDPOINTS_SRC, ENDPOINTS_OUT)

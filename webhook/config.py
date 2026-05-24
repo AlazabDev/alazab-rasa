@@ -162,8 +162,15 @@ RASA_REQUEST_TIMEOUT = float(os.getenv("RASA_REQUEST_TIMEOUT", "45"))
 META_VERIFY = os.getenv("FB_VERIFY_TOKEN", "").strip()
 META_SECRET = os.getenv("FB_APP_SECRET", "")
 META_TOKEN = os.getenv("FB_PAGE_ACCESS_TOKEN", "")
-WA_URL = os.getenv("WHATSAPP_API_URL", "")
-WA_TOKEN = os.getenv("WHATSAPP_TOKEN", "")
+# WhatsApp Business API
+_PHONE_NUMBER_ID = os.getenv("PHONE_NUMBER_ID", "873908352481274").strip()
+_META_API_VER    = os.getenv("META_API_VERSION", "v18.0")
+WA_URL   = f"https://graph.facebook.com/{_META_API_VER}/{_PHONE_NUMBER_ID}/messages"
+WA_TOKEN = (
+    os.getenv("WHATSAPP_TOKEN", "")
+    or os.getenv("META_TOKEN", "")
+    or os.getenv("FB_PAGE_ACCESS_TOKEN", "")
+).strip()
 
 # Telegram
 TG_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "")

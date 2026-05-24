@@ -1,34 +1,21 @@
 [Unit]
 Description=AzaBot — Rasa Actions Server
-Documentation=https://rasa.com/docs/rasa-sdk/
-After=network.target postgresql.service
-Wants=postgresql.service
+After=network.target
 
 [Service]
 Type=simple
 User=azureuser
-Group=azab
 WorkingDirectory=/mnt/apps/alazab-rasa
-
-# تحميل متغيرات البيئة
 EnvironmentFile=/mnt/apps/alazab-rasa/.env
-
-# تفعيل venv تلقائياً
 ExecStart=/mnt/apps/alazab-rasa/.venv/bin/python -m rasa_sdk \
     --actions actions \
     --port 5055
-
-# إعادة التشغيل عند الفشل
 Restart=always
 RestartSec=10
 StartLimitInterval=300
 StartLimitBurst=5
-
-# Logging
 StandardOutput=append:/mnt/apps/alazab-rasa/logs/actions.out.log
 StandardError=append:/mnt/apps/alazab-rasa/logs/actions.err.log
-
-# Security
 NoNewPrivileges=true
 PrivateTmp=true
 ProtectSystem=full

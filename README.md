@@ -9,8 +9,8 @@
 | البراند | الخدمة | الموقع |
 |---------|--------|--------|
 | 🏗️ Alazab Construction | مقاولات وتنفيذ مشروعات | alazab.com |
-| ✨ Luxury Finishing | تشطيبات فاخرة | luxury-finishingalazab.com |
-| 🎨 Brand Identity | هوية تجارية وتجهيز مساحات | brand-identityalazab.com |
+| ✨ Luxury Finishing | تشطيبات فاخرة | luxury-finishing.alazab.com |
+| 🎨 Brand Identity | هوية تجارية وتجهيز مساحات | brand-identity.alazab.com |
 | 🔧 UberFix | صيانة ذكية وتشغيل | uberfix.alazab.com |
 | 🪵 Laban Alasfour | توريدات وخامات | laban-alasfour.alazab.com |
 

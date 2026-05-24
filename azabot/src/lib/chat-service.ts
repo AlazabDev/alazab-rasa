@@ -89,7 +89,7 @@ export async function speechToText(audioBlob: Blob): Promise<string> {
   form.append("channel", "website");
   form.append("site_host", window.location.hostname);
   form.append("site_path", window.location.pathname || "/");
-  form.append("file", audioBlob, "recording.webm");
+  form.append("audio", audioBlob, "recording.webm");
 
   const response = await fetch(CONFIG.api.audio, {
     method: "POST",

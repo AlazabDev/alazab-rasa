@@ -127,6 +127,10 @@ slots:
     type: text
     mappings:
     - type: custom
+  order_number:
+    type: text
+    mappings:
+    - type: custom
   problem_type:
     type: text
     mappings:
@@ -788,9 +792,9 @@ responses:
 
       🏗️ **المقاولات والمعمار**: [alazab.com](https://alazab.com)
 
-      ✨ **التشطيبات الراقية**: [luxury-finishingalazab.com](https://luxury-finishingalazab.com)
+      ✨ **التشطيبات الراقية**: [luxury-finishing.alazab.com](https://luxury-finishing.alazab.com)
 
-      🎨 **الهوية التجارية**: [brand-identityalazab.com](https://brand-identityalazab.com)
+      🎨 **الهوية التجارية**: [brand-identity.alazab.com](https://brand-identity.alazab.com)
 
       🛠️ **منصة الصيانة الذكية**: [uberfix.alazab.com](https://uberfix.alazab.com)
 
