@@ -174,7 +174,7 @@ slots:
   service_item:
     type: text
     mappings:
-    - type: from_text
+    - type: custom
   requested_slot:
     type: text
     mappings:
@@ -854,6 +854,11 @@ responses:
       payload: /ask_brand_services
     - title: 🪵 توريدات — Laban
       payload: /ask_laban_products
+  utter_chitchat:
+  - text: "أهلاً وسهلاً! أنا عزبوت، مساعد مجموعة العزب. كيف أساعدك اليوم؟ 😊"
+  - text: "هلا! كيف حالك؟ أنا هنا لمساعدتك في خدمات مجموعة العزب."
+  - text: "مرحباً! يسعدني مساعدتك. ما الذي تحتاجه؟"
+
 session_config:
   session_expiration_time: 60
   carry_over_slots_to_new_session: true
