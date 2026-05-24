@@ -43,4 +43,3 @@ bcrypt>=4.0.0
 
 # ── Google Auth (مطلوب من rasa-pro) ───────────────────────────
 # تثبيت صريح لمنع conflict مع google-cloud-aiplatform
-google-auth>=2.47.0,<3.0.0

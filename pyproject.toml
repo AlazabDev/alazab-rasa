@@ -3,7 +3,7 @@ name = "alazab-group-rasa-bot"
 version = "4.0.0"
 description = "AzaBot — Rasa Pro CALM chatbot for Alazab Group (5 brands)"
 readme = "README.md"
-requires-python = ">=3.11"
+requires-python = ">=3.10"
 dependencies = [
   # Rasa
   "rasa-pro[nlu]>=3.16,<3.17",
@@ -27,7 +27,6 @@ dependencies = [
   "psutil>=5.9.0",
   "bcrypt>=4.0.0",
   # Compat
-  "google-auth>=2.47.0,<3.0.0",
 ]
 
 [project.optional-dependencies]
@@ -43,7 +42,7 @@ exclude = ["data*", "domain*", "docs*", "logs*", "tests*", "scratch*"]
 
 [tool.ruff]
 line-length = 100
-target-version = "py311"
+target-version = "py310"
 
 [tool.ruff.lint]
 select = ["E", "F", "W"]

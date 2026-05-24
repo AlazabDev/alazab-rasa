@@ -3,52 +3,40 @@ actions/maintenance/gateway_client.py
 =======================================
 Client يتصل بـ bot-gateway الموحّد.
 
-Gateway: https://zrrffsjbfkphridqyais.supabase.co/functions/v1/bot-gateway
-Auth:    x-api-key header فقط
-
-Actions المدعومة (من BOTS_API_INTEGRATION_GUIDE.md):
-  create_request, check_status, get_request_details,
-  update_request, cancel_request, add_note,
-  list_technicians, assign_technician,
-  list_services, list_categories, get_branches,
-  find_nearest_branch, get_quote, collect_customer_info,
-  daftra_sync_client, daftra_create_invoice, brand_navigator
+الـ class MaintenanceGatewayClient يتوافق مع MaintenanceService:
+  - create_request(request: MaintenanceRequest) -> MaintenanceTicket
+  - get_status_text(order_id: str) -> str
+  - transition_stage(request_id, to_stage, reason) -> dict
 """
 from __future__ import annotations
 
 import logging
 import os
-from typing import Any, Optional
+from typing import Optional
 
 import httpx
 
+from .errors import MaintenanceConfigError, MaintenanceGatewayError
+from .schemas import MaintenanceRequest, MaintenanceTicket, normalize_ticket
+
 logger = logging.getLogger(__name__)
 
-_BOT_GATEWAY    = os.getenv("BOT_GATEWAY_URL",
-    "https://zrrffsjbfkphridqyais.supabase.co/functions/v1/bot-gateway"
-).rstrip("/")
-
-_MAINT_GATEWAY  = os.getenv("MAINTENANCE_GATEWAY_URL",
-    "https://zrrffsjbfkphridqyais.supabase.co/functions/v1/maintenance-gateway"
-).rstrip("/")
-
-_API_KEY        = os.getenv("BOT_API_KEY", os.getenv("UBERFIX_API_KEY", "")).strip()
-_TIMEOUT        = 20.0
+_BOT_GATEWAY   = os.getenv("BOT_GATEWAY_URL", "").rstrip("/")
+_MAINT_GATEWAY = os.getenv("MAINTENANCE_GATEWAY_URL", "").rstrip("/")
+_API_KEY       = os.getenv("BOT_API_KEY", os.getenv("UBERFIX_API_KEY", "")).strip()
+_TRACK_BASE    = os.getenv("MAINTENANCE_GATEWAY_URL_TRACK", "https://uberfix.shop/track")
+_TIMEOUT       = 20.0
 
 
 def _headers() -> dict:
     return {"Content-Type": "application/json", "x-api-key": _API_KEY}
 
 
-def _call(action: str, payload: dict,
-          session_id: Optional[str] = None,
-          source: str = "azabot") -> dict:
-    """استدعاء bot-gateway بأي action."""
-    body: dict[str, Any] = {
-        "action":   action,
-        "payload":  payload,
-        "metadata": {"source": source},
-    }
+def _call(action: str, payload: dict, session_id: Optional[str] = None) -> dict:
+    """استدعاء bot-gateway — متزامن (sync)."""
+    if not _BOT_GATEWAY:
+        raise MaintenanceConfigError("BOT_GATEWAY_URL not configured")
+    body = {"action": action, "payload": payload, "metadata": {"source": "azabot"}}
     if session_id:
         body["session_id"] = session_id
     try:
@@ -57,22 +45,19 @@ def _call(action: str, payload: dict,
             r.raise_for_status()
             return r.json()
     except httpx.HTTPStatusError as exc:
-        logger.error("bot-gateway %s → HTTP %s: %s", action, exc.response.status_code, exc.response.text[:200])
-        return {"success": False, "error": str(exc)}
+        logger.error("bot-gateway %s → HTTP %s", action, exc.response.status_code)
+        raise MaintenanceGatewayError(f"Gateway HTTP {exc.response.status_code}") from exc
     except Exception as exc:
         logger.error("bot-gateway %s → %s", action, exc)
-        return {"success": False, "error": str(exc)}
+        raise MaintenanceGatewayError(str(exc)) from exc
 
 
 async def _async_call(action: str, payload: dict,
-                      session_id: Optional[str] = None,
-                      source: str = "azabot") -> dict:
+                      session_id: Optional[str] = None) -> dict:
     """نسخة async من _call."""
-    body: dict[str, Any] = {
-        "action":   action,
-        "payload":  payload,
-        "metadata": {"source": source},
-    }
+    if not _BOT_GATEWAY:
+        raise MaintenanceConfigError("BOT_GATEWAY_URL not configured")
+    body = {"action": action, "payload": payload, "metadata": {"source": "azabot"}}
     if session_id:
         body["session_id"] = session_id
     try:
@@ -82,27 +67,28 @@ async def _async_call(action: str, payload: dict,
             return r.json()
     except httpx.HTTPStatusError as exc:
         logger.error("bot-gateway %s → HTTP %s", action, exc.response.status_code)
-        return {"success": False, "error": str(exc)}
+        raise MaintenanceGatewayError(f"Gateway HTTP {exc.response.status_code}") from exc
     except Exception as exc:
         logger.error("bot-gateway %s → %s", action, exc)
-        return {"success": False, "error": str(exc)}
+        raise MaintenanceGatewayError(str(exc)) from exc
 
 
-# ══════════════════════════════════════════════════════════════
-# A. إدارة الطلبات
-# ══════════════════════════════════════════════════════════════
+# ── Async helpers (تُستخدم من brand_actions/uberfix.py) ──────
 
 async def create_request(
-    client_name: str, client_phone: str, service_type: str,
-    description: str, location: str = "",
-    title: str = "", priority: str = "medium",
+    client_name: str,
+    client_phone: str,
+    service_type: str = "general",
+    description: str = "",
+    location: str = "",
+    priority: str = "medium",
     session_id: Optional[str] = None,
 ) -> dict:
     return await _async_call("create_request", {
         "client_name":  client_name,
         "client_phone": client_phone,
         "service_type": service_type,
-        "title":        title or description[:80],
+        "title":        description[:80],
         "description":  description,
         "location":     location,
         "priority":     priority,
@@ -132,44 +118,8 @@ async def cancel_request(request_id: str, client_phone: str, reason: str = "") -
 
 
 async def add_note(request_id: str, note: str) -> dict:
-    return await _async_call("add_note", {
-        "request_id": request_id,
-        "note":       note,
-    })
+    return await _async_call("add_note", {"request_id": request_id, "note": note})
 
-
-async def update_request(request_id: str, client_phone: str, updates: dict) -> dict:
-    return await _async_call("update_request", {
-        "request_id":   request_id,
-        "client_phone": client_phone,
-        "updates":      updates,
-    })
-
-
-# ══════════════════════════════════════════════════════════════
-# B. الفنيون
-# ══════════════════════════════════════════════════════════════
-
-async def list_technicians(specialization: str = "", limit: int = 10) -> dict:
-    payload: dict = {"limit": limit}
-    if specialization:
-        payload["specialization"] = specialization
-    return await _async_call("list_technicians", payload)
-
-
-async def assign_technician(request_id: str, auto: bool = True,
-                             technician_id: Optional[str] = None) -> dict:
-    payload: dict = {"request_id": request_id}
-    if auto:
-        payload["auto"] = True
-    elif technician_id:
-        payload["technician_id"] = technician_id
-    return await _async_call("assign_technician", payload)
-
-
-# ══════════════════════════════════════════════════════════════
-# C. الكاتالوج
-# ══════════════════════════════════════════════════════════════
 
 async def list_services() -> dict:
     return await _async_call("list_services", {})
@@ -183,10 +133,6 @@ async def get_branches() -> dict:
     return await _async_call("get_branches", {})
 
 
-async def find_nearest_branch(lat: float, lng: float) -> dict:
-    return await _async_call("find_nearest_branch", {"latitude": lat, "longitude": lng})
-
-
 async def get_quote(service_type: str, description: str = "") -> dict:
     return await _async_call("get_quote", {
         "service_type": service_type,
@@ -194,48 +140,10 @@ async def get_quote(service_type: str, description: str = "") -> dict:
     })
 
 
-# ══════════════════════════════════════════════════════════════
-# D. العميل والمحاسبة
-# ══════════════════════════════════════════════════════════════
-
-async def collect_customer_info(client_phone: str, client_name: str = "",
-                                  location: str = "",
-                                  session_id: Optional[str] = None) -> dict:
-    return await _async_call("collect_customer_info", {
-        "client_phone": client_phone,
-        "client_name":  client_name,
-        "location":     location,
-    }, session_id)
-
-
-async def daftra_sync_client(client_name: str, client_phone: str,
-                               request_id: str = "") -> dict:
-    return await _async_call("daftra_sync_client", {
-        "client_name":  client_name,
-        "client_phone": client_phone,
-        "request_id":   request_id,
-    })
-
-
-async def daftra_create_invoice(request_id: str, amount: float,
-                                  status: str = "draft") -> dict:
-    return await _async_call("daftra_create_invoice", {
-        "request_id": request_id,
-        "amount":     amount,
-        "status":     status,
-    })
-
-
-async def brand_navigator(interest: str, session_id: Optional[str] = None) -> dict:
-    return await _async_call("brand_navigator", {"interest": interest}, session_id)
-
-
-# ══════════════════════════════════════════════════════════════
-# transition_stage — عبر maintenance-gateway (للإدارة الداخلية)
-# ══════════════════════════════════════════════════════════════
-
 def transition_stage(request_id: str, to_stage: str, reason: str = "") -> dict:
-    """تغيير مرحلة الطلب — عبر maintenance-gateway (للاستخدام الإداري)."""
+    """تغيير مرحلة الطلب — عبر maintenance-gateway."""
+    if not _MAINT_GATEWAY:
+        raise MaintenanceConfigError("MAINTENANCE_GATEWAY_URL not configured")
     try:
         with httpx.Client(timeout=_TIMEOUT) as client:
             r = client.post(_MAINT_GATEWAY, json={
@@ -247,81 +155,85 @@ def transition_stage(request_id: str, to_stage: str, reason: str = "") -> dict:
             }, headers=_headers())
             return r.json()
     except Exception as exc:
-        logger.error("transition_stage %s: %s", to_stage, exc)
-        return {"success": False, "error": str(exc)}
+        raise MaintenanceGatewayError(str(exc)) from exc
 
 
 # ══════════════════════════════════════════════════════════════
-# MaintenanceGatewayClient — Class wrapper
-# يُستخدم من service.py للتوافق مع النمط الكائني
+# MaintenanceGatewayClient — متوافق مع MaintenanceService
 # ══════════════════════════════════════════════════════════════
 
 class MaintenanceGatewayClient:
     """
-    Wrapper كائني حول دوال bot-gateway.
-    يُنشأ في MaintenanceService ويُستدعى بشكل متزامن.
+    Wrapper يتوافق مع MaintenanceService:
+      - create_request(request: MaintenanceRequest) -> MaintenanceTicket
+      - get_status_text(order_id: str) -> str
+      - transition_stage(request_id, to_stage, reason) -> dict
     """
 
-    def create_request(
-        self,
-        client_name: str,
-        client_phone: str,
-        description: str,
-        service_type: str = "general",
-        location: str = "",
-        priority: str = "medium",
-        session_id: Optional[str] = None,
-    ) -> dict:
-        import asyncio
-        return asyncio.get_event_loop().run_until_complete(
-            create_request(
-                client_name=client_name,
-                client_phone=client_phone,
-                description=description,
-                service_type=service_type,
-                location=location,
-                priority=priority,
-                session_id=session_id,
+    def create_request(self, request: MaintenanceRequest) -> MaintenanceTicket:
+        """
+        يستقبل MaintenanceRequest dataclass ويُعيد MaintenanceTicket.
+        يتوافق مع: ticket = self.gateway.create_request(request)
+        """
+        data = _call("create_request", {
+            "client_name":     request.client_name,
+            "client_phone":    request.client_phone,
+            "service_type":    request.service_type,
+            "title":           request.title,
+            "description":     request.description,
+            "location":        request.location,
+            "priority":        request.priority,
+            "idempotency_key": request.idempotency_key,
+            "channel":         request.channel,
+        }, session_id=request.session_id)
+
+        if not data.get("success", True):
+            raise MaintenanceGatewayError(
+                str(data.get("error") or data.get("message") or "Gateway failed")
             )
-        )
 
-    def check_status(self, search_term: str, search_type: str = "request_number") -> dict:
-        import asyncio
-        return asyncio.get_event_loop().run_until_complete(
-            check_status(search_term, search_type)
-        )
+        return normalize_ticket(data, _TRACK_BASE)
 
-    def get_request_details(self, request_number: str, client_phone: str = "") -> dict:
-        import asyncio
-        return asyncio.get_event_loop().run_until_complete(
-            get_request_details(request_number, client_phone)
-        )
+    def get_status_text(self, order_id: str) -> str:
+        """
+        يُعيد نص الحالة كـ string.
+        يتوافق مع: status = self.gateway.get_status_text(order_id)
+        """
+        try:
+            data = _call("check_status", {
+                "search_term": order_id,
+                "search_type": "request_number",
+            })
+        except MaintenanceGatewayError:
+            return "لم أتمكن من جلب حالة الطلب الآن."
 
-    def cancel_request(self, request_id: str, client_phone: str, reason: str = "") -> dict:
-        import asyncio
-        return asyncio.get_event_loop().run_until_complete(
-            cancel_request(request_id, client_phone, reason)
-        )
+        if not data.get("success", True):
+            return "لم أتمكن من جلب حالة الطلب الآن."
 
-    def add_note(self, request_id: str, note: str) -> dict:
-        import asyncio
-        return asyncio.get_event_loop().run_until_complete(
-            add_note(request_id, note)
+        # استخراج نص الحالة
+        stage = (
+            data.get("workflow_stage")
+            or data.get("status")
+            or data.get("message")
+            or "قيد المراجعة"
         )
+        stage_labels = {
+            "submitted":    "✅ تم الاستلام، جارٍ المراجعة",
+            "triaged":      "📋 قيد المراجعة الفنية",
+            "assigned":     "👷 تم تعيين الفني",
+            "scheduled":    "🗓️ تم تحديد موعد الزيارة",
+            "in_progress":  "🔧 جارٍ التنفيذ الآن",
+            "inspection":   "🔍 جارٍ فحص العمل",
+            "waiting_parts":"⏳ انتظار قطع غيار",
+            "completed":    "✅ تم الإنجاز بنجاح",
+            "billed":       "🧾 تم إصدار الفاتورة",
+            "paid":         "💰 تم الدفع",
+            "closed":       "🏁 تم الإغلاق النهائي",
+            "cancelled":    "❌ ملغي",
+        }
+        return stage_labels.get(str(stage), str(stage))
 
-    def transition_stage(self, request_id: str, to_stage: str, reason: str = "") -> dict:
+    def transition_stage(
+        self, request_id: str, to_stage: str, reason: str = ""
+    ) -> dict:
         return transition_stage(request_id, to_stage, reason)
-
-    def list_services(self) -> dict:
-        import asyncio
-        return asyncio.get_event_loop().run_until_complete(list_services())
-
-    def list_categories(self) -> dict:
-        import asyncio
-        return asyncio.get_event_loop().run_until_complete(list_categories())
-
-    def get_quote(self, service_type: str, description: str = "") -> dict:
-        import asyncio
-        return asyncio.get_event_loop().run_until_complete(
-            get_quote(service_type, description)
-        )

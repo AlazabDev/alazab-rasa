@@ -1,9 +1,8 @@
 -- ══════════════════════════════════════════════════════════════
 -- AzaBot v4 — Missing Tables Migration
--- جداول إضافية غير موجودة في schema الأصلي
 -- ══════════════════════════════════════════════════════════════
 
--- Leads (عملاء محتملون من البوت)
+-- Leads
 CREATE TABLE IF NOT EXISTS public.leads (
     id           uuid PRIMARY KEY DEFAULT gen_random_uuid(),
     brand        text,
@@ -18,11 +17,11 @@ CREATE TABLE IF NOT EXISTS public.leads (
     metadata     jsonb DEFAULT '{}',
     created_at   timestamptz NOT NULL DEFAULT now()
 );
-CREATE INDEX IF NOT EXISTS leads_brand_idx    ON public.leads(brand);
-CREATE INDEX IF NOT EXISTS leads_status_idx   ON public.leads(status);
-CREATE INDEX IF NOT EXISTS leads_created_idx  ON public.leads(created_at DESC);
+CREATE INDEX IF NOT EXISTS leads_brand_idx   ON public.leads(brand);
+CREATE INDEX IF NOT EXISTS leads_status_idx  ON public.leads(status);
+CREATE INDEX IF NOT EXISTS leads_created_idx ON public.leads(created_at DESC);
 
--- Laban Orders (طلبات الوحدات الخشبية)
+-- Laban Orders
 CREATE TABLE IF NOT EXISTS public.laban_orders (
     id           uuid PRIMARY KEY DEFAULT gen_random_uuid(),
     order_number text UNIQUE,
@@ -61,7 +60,7 @@ CREATE TABLE IF NOT EXISTS public.kb_documents (
     created_at    timestamptz NOT NULL DEFAULT now()
 );
 
--- WhatsApp Templates (للـ whatsapp_sender)
+-- WhatsApp Templates
 CREATE TABLE IF NOT EXISTS public.whatsapp_templates (
     id          uuid PRIMARY KEY DEFAULT gen_random_uuid(),
     name        text NOT NULL UNIQUE,
@@ -73,16 +72,29 @@ CREATE TABLE IF NOT EXISTS public.whatsapp_templates (
     created_at  timestamptz NOT NULL DEFAULT now()
 );
 
--- RLS: سماح للـ service_role بكل شيء
-ALTER TABLE public.leads           ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.laban_orders    ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.kb_collections  ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.kb_documents    ENABLE ROW LEVEL SECURITY;
+-- RLS
+ALTER TABLE public.leads            ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.laban_orders     ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.kb_collections   ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.kb_documents     ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.whatsapp_templates ENABLE ROW LEVEL SECURITY;
 
--- Service role يملك كل الصلاحيات
-CREATE POLICY IF NOT EXISTS "service_role_leads"     ON public.leads           FOR ALL TO service_role USING (true);
-CREATE POLICY IF NOT EXISTS "service_role_laban"     ON public.laban_orders    FOR ALL TO service_role USING (true);
-CREATE POLICY IF NOT EXISTS "service_role_kb_col"    ON public.kb_collections  FOR ALL TO service_role USING (true);
-CREATE POLICY IF NOT EXISTS "service_role_kb_doc"    ON public.kb_documents    FOR ALL TO service_role USING (true);
-CREATE POLICY IF NOT EXISTS "service_role_wa_tmpl"   ON public.whatsapp_templates FOR ALL TO service_role USING (true);
+-- Policies — بدون IF NOT EXISTS (غير مدعوم في PostgreSQL)
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'service_role_leads' AND tablename = 'leads') THEN
+    CREATE POLICY "service_role_leads" ON public.leads FOR ALL TO service_role USING (true);
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'service_role_laban' AND tablename = 'laban_orders') THEN
+    CREATE POLICY "service_role_laban" ON public.laban_orders FOR ALL TO service_role USING (true);
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'service_role_kb_col' AND tablename = 'kb_collections') THEN
+    CREATE POLICY "service_role_kb_col" ON public.kb_collections FOR ALL TO service_role USING (true);
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'service_role_kb_doc' AND tablename = 'kb_documents') THEN
+    CREATE POLICY "service_role_kb_doc" ON public.kb_documents FOR ALL TO service_role USING (true);
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'service_role_wa_tmpl' AND tablename = 'whatsapp_templates') THEN
+    CREATE POLICY "service_role_wa_tmpl" ON public.whatsapp_templates FOR ALL TO service_role USING (true);
+  END IF;
+END $$;
