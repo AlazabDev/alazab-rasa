@@ -1,96 +1,59 @@
-# ══════════════════════════════════════════════════════════════
-#  .gitignore — AzaBot / Alazab-Rasa
-# ══════════════════════════════════════════════════════════════
+# ══ أسرار البيئة ══════════════════════════════════════════════
+.env
+.env.local
+.env.production
+.env.staging
+*.env
 
-# ── Python ────────────────────────────────────────────────────
+# ══ شهادات SSL ════════════════════════════════════════════════
+ssl/
+*.pem
+*.key
+*.crt
+*.p12
+
+# ══ Runtime data ══════════════════════════════════════════════
+.runtime/
+*.pid
+
+# ══ ملفات التطوير الداخلية ═══════════════════════════════════
+scratch/
+reports/
+tools/dev.txt
+
+# ══ نماذج Rasa (حجم ضخم) ═════════════════════════════════════
+models/
+*.tar.gz
+
+# ══ ملفات المستخدمين المرفوعة ════════════════════════════════
+webhook/static/uploads/
+
+# ══ Python ════════════════════════════════════════════════════
 __pycache__/
-*.pyc
-*.pyo
-*.pyd
+*.py[cod]
+.pytest_cache/
 *.egg-info/
 dist/
 build/
-.eggs/
-*.egg
 .venv/
 venv/
-env/
-.Python
+.mypy_cache/
+.ruff_cache/
 
-# ── Rasa ──────────────────────────────────────────────────────
-models/
-results/
-.rasa/
-.runtime/
-
-# ── Secrets & Credentials ─────────────────────────────────────
-# ⛔ NEVER COMMIT THESE
-.env
-.env.*
-!.env.example
-!.env.nodocker.example
+# ══ Node ══════════════════════════════════════════════════════
+node_modules/
+azabot/dist/
 azabot/.env
-*.pem
-*.key
-*.p12
-gcp-*.json
-service-account*.json
-RASA_LICENSE1
-RASA_LICENSE2
-RASA_LICENSE3
+azabot/.env.local
+*.tsbuildinfo
+azabot/.pnpm-store/
 
-# Session & runtime data
-.runtime/sessions.json
-.runtime/admin-data.json
-.runtime/pids/
-.runtime/admin-data.json
-
-# ── Logs & Temp ───────────────────────────────────────────────
+# ══ Logs ══════════════════════════════════════════════════════
 logs/
 *.log
-*.pid
-*.tmp
-*.bak
-*.swp
-*.orig
 
-# ── Frontend ──────────────────────────────────────────────────
-azabot/node_modules/
-azabot/dist/
-azabot/.pnpm-store/
-azabot/tsconfig.*.tsbuildinfo
-azabot/supabase/.temp/
-
-# ── Uploads ───────────────────────────────────────────────────
-webhook/static/uploads/
-
-# ── Piper (large binary files) ────────────────────────────────
-# Models ONNX — تحميل من HuggingFace
-piper/*.onnx
-piper/voice/models/
-# Audio recordings — توليد بـ generate_brand_samples.py
-piper/voice/audio/
-# Cache
-piper/__pycache__/
-# Windows artifacts
-*Zone.Identifier
-*:Zone.Identifier
-
-# ── SSL (never commit real certs) ─────────────────────────────
-ssl/fullchain.pem
-ssl/privkey.pem
-ssl/*.pem
-
-# ── Scratch / Dev ─────────────────────────────────────────────
-scratch/
-reports/
-
-# ── OS ────────────────────────────────────────────────────────
-.DS_Store
-Thumbs.db
-desktop.ini
-
-# ── IDE ───────────────────────────────────────────────────────
-.vscode/settings.json
+# ══ IDEs ══════════════════════════════════════════════════════
 .idea/
-*.iml
+.vscode/
+*.swp
+.DS_Store

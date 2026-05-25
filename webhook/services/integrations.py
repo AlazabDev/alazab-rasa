@@ -17,6 +17,8 @@ import uuid
 from datetime import datetime, timezone
 from typing import Any
 
+import ipaddress
+import socket
 import httpx
 
 logger = logging.getLogger("alazab.webhook.integrations")
@@ -177,15 +179,51 @@ async def _dispatch_by_type(
     return await handler(config, event, payload, request_payload)
 
 
+# SSRF Protection ─────────────────────────────────────────────
+_BLOCKED_NETS = [
+    ipaddress.ip_network("127.0.0.0/8"), ipaddress.ip_network("::1/128"),
+    ipaddress.ip_network("10.0.0.0/8"),  ipaddress.ip_network("172.16.0.0/12"),
+    ipaddress.ip_network("192.168.0.0/16"), ipaddress.ip_network("169.254.0.0/16"),
+    ipaddress.ip_network("fe80::/10"),   ipaddress.ip_network("fc00::/7"),
+]
+_BLOCKED_HOSTS = {"localhost", "metadata.google.internal", "169.254.169.254"}
+
+def _validate_webhook_url(url: str) -> None:
+    from urllib.parse import urlparse
+    import os
+    parsed = urlparse(url)
+    if parsed.scheme not in ("http", "https"):
+        raise ValueError(f"بروتوكول غير مدعوم: {parsed.scheme!r}")
+    if os.getenv("NODE_ENV") == "production" and parsed.scheme != "https":
+        raise ValueError("يجب استخدام https:// في الإنتاج")
+    hostname = (parsed.hostname or "").lower().strip()
+    if not hostname:
+        raise ValueError("URL لا يحتوي hostname صحيح")
+    if hostname in _BLOCKED_HOSTS:
+        raise ValueError(f"الوجهة محظورة لأسباب أمنية: {hostname!r}")
+    try:
+        for _f, _t, _p, _c, sockaddr in socket.getaddrinfo(hostname, None):
+            ip = ipaddress.ip_address(sockaddr[0])
+            if any(ip in net for net in _BLOCKED_NETS):
+                raise ValueError(f"SSRF محظور — عنوان داخلي: {sockaddr[0]}")
+    except socket.gaierror:
+        raise ValueError(f"تعذّر تحليل الـ hostname: {hostname!r}")
+
+
 async def _send_webhook(config, event, payload, request_payload) -> httpx.Response:
     url = str(config.get("url") or "").strip()
     if not url:
-        raise ValueError("Webhook URL is required")
-    headers = {"Content-Type": "application/json"}
+        raise ValueError("Webhook URL مطلوب")
+    _validate_webhook_url(url)
+    headers = {"Content-Type": "application/json", "User-Agent": "AzaBot-Webhook/4.1"}
     secret = str(config.get("secret") or "").strip()
     if secret:
-        headers["X-AzaBot-Secret"] = secret
-    async with httpx.AsyncClient(timeout=_TIMEOUT) as client:
+        import hashlib, hmac, json as _json, time as _time
+        ts   = str(int(_time.time()))
+        body = _json.dumps(request_payload, ensure_ascii=False)
+        sig  = hmac.new(secret.encode(), f"{ts}.{body}".encode(), hashlib.sha256).hexdigest()
+        headers["X-AzaBot-Signature"] = f"t={ts},v1={sig}"
+    async with httpx.AsyncClient(timeout=_TIMEOUT, follow_redirects=False) as client:
         return await client.post(url, json=request_payload, headers=headers)
 
 

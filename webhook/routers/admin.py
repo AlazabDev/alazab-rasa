@@ -44,9 +44,44 @@ from ..utils import is_relative_to, jsonable
 logger = logging.getLogger("alazab.admin")
 router = APIRouter(prefix="/admin", tags=["Admin"])
 
-# Rate limiter بسيط
-from collections import defaultdict
-_login_attempts: dict[str, list[float]] = defaultdict(list)
+# Rate limiter — Redis (مقاوم لإعادة التشغيل وmulti-process)
+def _login_rate_check(ip: str) -> bool:
+    """يُعيد True إذا كان مسموحاً بالمحاولة، False إذا تجاوز الحد."""
+    try:
+        import redis as _r, os, hashlib
+        r = _r.Redis(
+            host=os.getenv("REDIS_HOST", "127.0.0.1"),
+            port=int(os.getenv("REDIS_PORT", "6379")),
+            password=os.getenv("REDIS_PASSWORD") or None,
+            db=int(os.getenv("REDIS_DB", "0")),
+            decode_responses=True,
+            socket_connect_timeout=1, socket_timeout=1,
+        )
+        key = f"login_fail:{hashlib.md5(ip.encode(), usedforsecurity=False).hexdigest()[:12]}"
+        count = r.get(key)
+        return int(count or 0) < 10
+    except Exception:
+        return True  # Redis غير متاح — اسمح بالمحاولة
+
+def _login_rate_record(ip: str) -> None:
+    """يسجّل محاولة فاشلة."""
+    try:
+        import redis as _r, os, hashlib
+        r = _r.Redis(
+            host=os.getenv("REDIS_HOST", "127.0.0.1"),
+            port=int(os.getenv("REDIS_PORT", "6379")),
+            password=os.getenv("REDIS_PASSWORD") or None,
+            db=int(os.getenv("REDIS_DB", "0")),
+            decode_responses=True,
+            socket_connect_timeout=1, socket_timeout=1,
+        )
+        key = f"login_fail:{hashlib.md5(ip.encode(), usedforsecurity=False).hexdigest()[:12]}"
+        pipe = r.pipeline()
+        pipe.incr(key)
+        pipe.expire(key, 300)
+        pipe.execute()
+    except Exception:
+        pass
 
 # ── Auth ──────────────────────────────────────────────────────
 
@@ -73,13 +108,11 @@ def _require_super(request: Request) -> dict:
 @router.post("/login")
 async def login(payload: AdminLoginRequest, request: Request):
     ip = request.client.host if request.client else "unknown"
-    now = time.time()
-    _login_attempts[ip] = [t for t in _login_attempts[ip] if now - t < 300]
-    if len(_login_attempts[ip]) >= 10:
+    if not _login_rate_check(ip):
         raise HTTPException(429, "محاولات كثيرة — انتظر 5 دقائق")
     user = verify_user(payload.email, payload.password)
     if not user:
-        _login_attempts[ip].append(now)
+        _login_rate_record(ip)
         raise HTTPException(401, "البريد أو كلمة المرور غير صحيحة")
     token = create_session(user["email"])
     return {"token": token, "user": {"email": user["email"], "name": user["name"],
