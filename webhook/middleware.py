@@ -1,9 +1,9 @@
 """
-webhook/middleware.py — Security & Rate Limiting (إنتاج)
-=========================================================
-✅ RateLimitMiddleware  — Redis sliding-window على /chat/* و /admin/login
-✅ SecurityHeadersMiddleware — CSP بلا unsafe-inline + بلا X-Powered-By
-✅ RequestIDMiddleware  — X-Request-ID + request logging
+webhook/middleware.py — Security, Rate Limiting & Observability v4.1
+=====================================================================
+✅ RateLimitMiddleware  — Redis sliding-window, /chat/* + /admin/login
+✅ SecurityHeadersMiddleware — HSTS · CSP nonce · no X-Powered-By
+✅ RequestIDMiddleware  — X-Request-ID · metrics · request logging
 """
 from __future__ import annotations
 
@@ -18,11 +18,11 @@ from fastapi import Request
 from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 
+from .services.monitoring import metrics as _metrics
+
 logger = logging.getLogger("alazab.webhook")
 
-# ══════════════════════════════════════════════════════════════
-#  Rate Limit Config  (path_prefix → (max_req, window_sec))
-# ══════════════════════════════════════════════════════════════
+# ── Rate Limit Config ─────────────────────────────────────────
 _RATE_LIMITS: dict[str, tuple[int, int]] = {
     "/chat/tts":    (10,  60),
     "/chat/audio":  (10,  60),
@@ -31,7 +31,8 @@ _RATE_LIMITS: dict[str, tuple[int, int]] = {
     "/admin/login": (10, 300),
 }
 
-def _redis():
+
+def _redis_client():
     try:
         import redis  # type: ignore
         return redis.Redis(
@@ -46,7 +47,8 @@ def _redis():
     except Exception:
         return None
 
-def _client_ip(request: Request) -> str:
+
+def _get_client_ip(request: Request) -> str:
     fwd = request.headers.get("X-Forwarded-For", "")
     if fwd:
         return fwd.split(",")[0].strip()
@@ -55,7 +57,8 @@ def _client_ip(request: Request) -> str:
         return real.strip()
     return request.client.host if request.client else "unknown"
 
-def _check_rate(ip: str, path: str) -> tuple[bool, int, int]:
+
+def _rate_check(ip: str, path: str) -> tuple[bool, int, int]:
     """يُعيد (allowed, remaining, retry_after)."""
     prefix = next(
         (p for p in sorted(_RATE_LIMITS, key=len, reverse=True) if path.startswith(p)),
@@ -65,9 +68,8 @@ def _check_rate(ip: str, path: str) -> tuple[bool, int, int]:
         return True, 999, 0
 
     max_req, window = _RATE_LIMITS[prefix]
-    r = _redis()
+    r = _redis_client()
     if r is None:
-        logger.warning("Redis unavailable — rate limiting bypassed for %s", path)
         return True, max_req, 0
 
     ip_hash = hashlib.md5(ip.encode(), usedforsecurity=False).hexdigest()[:12]
@@ -88,14 +90,16 @@ def _check_rate(ip: str, path: str) -> tuple[bool, int, int]:
     return True, max(0, max_req - count), 0
 
 
+# ══════════════════════════════════════════════════════════════
 class RateLimitMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
         path = request.url.path
         if not any(path.startswith(p) for p in _RATE_LIMITS):
             return await call_next(request)
 
-        ip = _client_ip(request)
-        allowed, remaining, retry = _check_rate(ip, path)
+        ip = _get_client_ip(request)
+        allowed, remaining, retry = _rate_check(ip, path)
+
         if not allowed:
             logger.warning("Rate limit exceeded | ip=%s path=%s", ip, path)
             return JSONResponse(
@@ -109,18 +113,24 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
 
 
 class SecurityHeadersMiddleware(BaseHTTPMiddleware):
+    _IS_PROD = os.getenv("NODE_ENV") == "production"
+
     async def dispatch(self, request: Request, call_next):
         nonce = secrets.token_urlsafe(16)
         request.state.csp_nonce = nonce
+
         response = await call_next(request)
         h = response.headers
+
         h["X-Frame-Options"]        = "DENY"
         h["X-Content-Type-Options"] = "nosniff"
         h["X-XSS-Protection"]       = "0"
         h["Referrer-Policy"]        = "strict-origin-when-cross-origin"
         h["Permissions-Policy"]     = "geolocation=(), microphone=(self), camera=()"
-        if os.getenv("NODE_ENV") == "production":
+
+        if self._IS_PROD:
             h["Strict-Transport-Security"] = "max-age=63072000; includeSubDomains; preload"
+
         h["Content-Security-Policy"] = (
             f"default-src 'self'; "
             f"script-src 'self' 'nonce-{nonce}' https://fonts.googleapis.com; "
@@ -130,23 +140,38 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
             f"connect-src 'self' https://api.openai.com; "
             f"frame-ancestors 'none';"
         )
-        # ❌ لا X-Powered-By
+        # ❌ بدون X-Powered-By — لا إفصاح عن التقنية
         return response
 
 
 class RequestIDMiddleware(BaseHTTPMiddleware):
     _log = logging.getLogger("alazab.webhook.requests")
+    _SKIP = {"/health", "/favicon.ico", "/robots.txt"}
 
     async def dispatch(self, request: Request, call_next):
         req_id = request.headers.get("X-Request-ID") or str(uuid.uuid4())[:8]
         start  = time.perf_counter()
+
         response = await call_next(request)
-        ms = round((time.perf_counter() - start) * 1000)
+
+        latency_ms = (time.perf_counter() - start) * 1000
+        is_error   = response.status_code >= 400
         response.headers["X-Request-ID"] = req_id
-        if request.url.path not in ("/health", "/favicon.ico"):
-            self._log.info(
-                "%s %s → %s | %dms | req=%s",
-                request.method, request.url.path,
-                response.status_code, ms, req_id,
+
+        path = request.url.path
+        if path not in self._SKIP:
+            # تسجيل الطلب
+            level = logging.WARNING if is_error else logging.INFO
+            self._log.log(
+                level,
+                "%s %s → %s | %.1fms | ip=%s | req=%s",
+                request.method, path,
+                response.status_code,
+                latency_ms,
+                _get_client_ip(request),
+                req_id,
             )
+            # تسجيل المقاييس
+            _metrics.inc_endpoint(path, round(latency_ms, 1), is_error)
+
         return response
