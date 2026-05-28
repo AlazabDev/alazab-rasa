@@ -104,7 +104,10 @@ _raw_origins = os.getenv(
     "ALLOWED_ORIGINS",
     "https://bot.alazab.com,https://www.bot.alazab.com,http://localhost:3000",
 )
-ALLOWED_ORIGINS: list[str] = [o.strip().rstrip("/") for o in _raw_origins.split(",") if o.strip()]
+ALLOWED_ORIGINS: list[str] = [
+    o.strip().rstrip("/") for o in _raw_origins.split(",") 
+    if o.strip() and o.strip() != "*"
+]
 
 # ══════════════════════════════════════════════════════════════
 #  Supabase
@@ -154,6 +157,11 @@ ADMIN_EMAIL               = os.getenv("ADMIN_EMAIL", "admin@alazab.com").strip()
 # ✅ ADMIN_PASSWORD حُذف — يُستخدم ADMIN_PASSWORD_HASH_* في auth.py
 ADMIN_SESSION_TTL_SECONDS = int(os.getenv("ADMIN_SESSION_TTL_SECONDS", str(7*24*3600)))
 ADMIN_SESSION_SECRET      = os.getenv("ADMIN_SESSION_SECRET", "").strip()
+
+# ══════════════════════════════════════════════════════════════
+#  Security
+# ══════════════════════════════════════════════════════════════
+ENCRYPTION_KEY = os.getenv("ENCRYPTION_KEY", "").strip()
 
 # ══════════════════════════════════════════════════════════════
 #  UberFix
@@ -229,6 +237,9 @@ def _validate_config() -> None:
         warnings.append("SUPABASE_URL غير مضبوط — قاعدة البيانات لن تعمل")
     if not SUPABASE_SERVICE_ROLE_KEY:
         warnings.append("SUPABASE_SERVICE_ROLE_KEY غير مضبوط")
+
+    if not ENCRYPTION_KEY:
+        warnings.append("ENCRYPTION_KEY غير مضبوط — لن يتم تشفير بيانات Leads الحساسة")
 
     # تحقق من bcrypt hashes
     for env_key in ("ADMIN_PASSWORD_HASH_ADMIN","ADMIN_PASSWORD_HASH_DEVOPS","ADMIN_PASSWORD_HASH_CEO","ADMIN_PASSWORD_HASH_MOHAMED"):

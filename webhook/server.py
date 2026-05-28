@@ -158,18 +158,11 @@ async def health_details(request: Request):
     فحص تفصيلي لجميع الخدمات + metrics.
     للأدمن المُصادَق فقط.
     """
-    from .auth import verify_session
+    from .routers.admin import _require_admin
     from .services.monitoring.health import full_health_check
     from .services.monitoring import metrics as _m
 
-    token = ""
-    auth = request.headers.get("Authorization", "")
-    if auth.lower().startswith("bearer "):
-        token = auth[7:].strip()
-    if not token:
-        token = request.cookies.get("azabot_admin_token", "")
-    if not verify_session(token):
-        raise HTTPException(401, "يرجى تسجيل الدخول")
+    user = _require_admin(request)
 
     result = await full_health_check(RASA_URL)
     result["metrics"]   = _m.snapshot()

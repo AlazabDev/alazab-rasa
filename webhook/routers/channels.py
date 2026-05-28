@@ -45,8 +45,23 @@ async def get_brands():
 
 @router.post("/lead")
 async def receive_lead(lead: LeadData, background_tasks: BackgroundTasks):
+    from cryptography.fernet import Fernet
+    from ..config import ENCRYPTION_KEY
+
+    original_phone_end = str(lead.user_phone)[-4:] if lead.user_phone else ""
+
+    if ENCRYPTION_KEY:
+        try:
+            cipher = Fernet(ENCRYPTION_KEY)
+            if lead.user_phone:
+                lead.user_phone = cipher.encrypt(lead.user_phone.encode()).decode()
+            if getattr(lead, "user_email", None):
+                lead.user_email = cipher.encrypt(lead.user_email.encode()).decode()
+        except Exception as e:
+            logger.error("خطأ في تشفير بيانات Lead: %s", e)
+
     logger.info("Lead | brand=%s channel=%s phone=...%s",
-                lead.brand, lead.channel, str(lead.user_phone)[-4:])
+                lead.brand, lead.channel, original_phone_end)
     background_tasks.add_task(notify_all_channels, lead)
     return {"status": "received"}
 

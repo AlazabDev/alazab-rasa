@@ -200,7 +200,8 @@ async def chat_tts_stream(payload: TTSRequest):
 
     api_key = os.getenv("OPENAI_API_KEY", "").strip()
     if not api_key:
-        raise HTTPException(status_code=503, detail="OPENAI_API_KEY not configured")
+        logger.error("OPENAI_API_KEY غير مضبوط")
+        raise HTTPException(status_code=503, detail="الخدمة غير متاحة")
 
     selected_voice = (payload.voice or AUDIO_TTS_VOICE).strip() or AUDIO_TTS_VOICE
     selected_model = (payload.model or AUDIO_TTS_MODEL).strip() or AUDIO_TTS_MODEL
@@ -217,7 +218,9 @@ async def chat_tts_stream(payload: TTSRequest):
                 async for chunk in resp.iter_bytes(chunk_size=4096):
                     yield chunk
         except Exception as exc:
+            import json
             logger.error("TTS stream error: %s", exc)
+            yield json.dumps({"error": "خطأ في معالجة الصوت"}).encode()
 
     return StreamingResponse(generate(), media_type="audio/mpeg")
 

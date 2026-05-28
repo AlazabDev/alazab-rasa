@@ -21,6 +21,8 @@ from ..config import (
 from ..utils import sanitize_filename
 
 
+import magic
+
 async def save_upload(
     upload: UploadFile,
     allowed_extensions: set[str],
@@ -40,6 +42,19 @@ async def save_upload(
         raise HTTPException(status_code=400, detail="الملف فارغ")
     if len(content) > MAX_UPLOAD_BYTES:
         raise HTTPException(status_code=413, detail="حجم الملف أكبر من المسموح")
+
+    # فحص نوع الملف عبر magic bytes
+    mime = magic.from_buffer(content, mime=True)
+    allowed_mimes = {
+        "application/pdf", "application/msword", "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        "application/vnd.ms-excel", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        "application/vnd.ms-powerpoint", "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+        "image/jpeg", "image/png", "image/webp", "image/gif", "text/plain", "text/csv", "application/zip",
+        "audio/mpeg", "audio/wav", "audio/x-wav", "audio/ogg", "audio/mp4", "audio/aac", "audio/x-m4a", 
+        "video/mp4", "video/webm", "application/octet-stream"
+    }
+    if mime not in allowed_mimes and not mime.startswith("text/"):
+        raise HTTPException(status_code=415, detail=f"نوع الملف غير مدعوم أو مزيف ({mime})")
 
     bucket = datetime.now(timezone.utc).strftime("%Y/%m")
     target_dir = UPLOADS_DIR / bucket

@@ -280,26 +280,49 @@ async def _dispatch(action: str, req: Request, body: dict, bg: BackgroundTasks) 
         delete_training_job(body.get("id",""))
         return {"ok": True}
 
-    raise HTTPException(400, f"إجراء غير مدعوم: {action}")
+    raise HTTPException(400, "طلب غير صحيح")
 
 
 async def _run_training(job_id: str) -> None:
     import asyncio
+    import os
+    import traceback
     await asyncio.sleep(1)
     jobs = list_training_jobs()
     job = next((j for j in jobs if j.get("id")==job_id), None)
     if not job: return
     try:
+        env = os.environ.copy()
+        env["RASA_TRAIN_MAX_PAGES"] = "500"
+        env["PYTHONUNBUFFERED"] = "1"
+        cwd = str(Path(__file__).parent.parent.parent.resolve())
+        
         proc = await asyncio.create_subprocess_exec(
             "rasa", "train", "--fixed-model-name", f"model_{job_id[:8]}",
-            stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE)
-        _, stderr = await asyncio.wait_for(proc.communicate(), timeout=600)
+            stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE,
+            cwd=cwd, env=env)
+        stdout, stderr = await asyncio.wait_for(proc.communicate(), timeout=1800)
+        
         job["status"] = "completed" if proc.returncode == 0 else "failed"
         if proc.returncode != 0:
-            job["error"] = stderr.decode("utf-8","replace")[-300:]
+            job["error"] = stderr.decode("utf-8","replace")
+            job["stderr_full"] = stderr.decode("utf-8","replace")
+            job["stdout"] = stdout.decode("utf-8","replace")
+        
+        models_dir = Path(cwd) / "models"
+        if models_dir.exists():
+            models = list(models_dir.glob("*.tar.gz"))
+            if models:
+                latest_model = max(models, key=os.path.getctime)
+                job["model_artifact"] = str(latest_model)
+                
+    except asyncio.TimeoutError:
+        job["status"] = "failed"
+        job["error"] = "تجاوز وقت التدريب — انتظر 30 دقيقة وحاول مجدداً"
     except Exception as exc:
         job["status"] = "failed"
         job["error"] = str(exc)
+        job["traceback"] = traceback.format_exc()
     finally:
         job["completed_at"] = datetime.now(timezone.utc).isoformat()
         save_training_job(job)
@@ -311,9 +334,14 @@ async def download(upload_id: str, user: dict = Depends(_require_admin)):
     uploads = list_uploads()
     upload = next((u for u in uploads if u.get("id")==upload_id), None)
     if not upload: raise HTTPException(404, "الملف غير موجود")
-    file_path = Path(upload.get("path",""))
-    if not file_path.exists() or not is_relative_to(file_path, UPLOADS_DIR):
+    
+    file_path = (UPLOADS_DIR / Path(upload.get("path","")).name).resolve()
+    if not str(file_path).startswith(str(UPLOADS_DIR.resolve())):
+        raise HTTPException(403, "الوصول مرفوض")
+        
+    if not file_path.exists():
         raise HTTPException(404, "الملف غير موجود على القرص")
+        
     return FileResponse(str(file_path), filename=upload.get("name", file_path.name))
 
 @router.get("/stats")

@@ -31,9 +31,15 @@ db-init:
 	@echo "✅ قاعدة البيانات جاهزة"
 
 train:
+	@echo "🔍 التحقق من صحة البيانات..."
+	rasa data validate
 	@echo "🧠 تدريب موديل Rasa Pro CALM..."
 	rasa train --fixed-model-name azabot-v4
 	@echo "✅ التدريب اكتمل"
+
+check:
+	@echo "🔍 تشغيل سكريبت الفحص الشامل..."
+	bash pre_train_check.sh
 
 validate:
 	@echo "🔍 التحقق من صحة الـ data..."
