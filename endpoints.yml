@@ -1,46 +1,59 @@
 # ══════════════════════════════════════════════════════════════
-# endpoints.yml — Rasa Pro CALM
+# endpoints.yml — AzaBot Production Endpoints
+# Rasa Pro CALM | No Docker | Local services behind Nginx/systemd
 # ══════════════════════════════════════════════════════════════
 
+# Actions server
 action_endpoint:
-  url: "http://127.0.0.1:5055/webhook"
+  url: "${ACTION_SERVER_URL:-http://127.0.0.1:5055/webhook}"
 
-# Tracker Store → Supabase PostgreSQL
+# Tracker Store
+# Production rule:
+# - Put the full PostgreSQL connection string in DATABASE_URL inside the server .env.
+# - Do not compose database connection strings inside repository files.
 tracker_store:
   type: SQL
   dialect: postgresql
-  url: "postgresql://postgres.fjojyzvulhvqeitnaenv:${SUPABASE_DB_PASSWORD}@aws-0-eu-central-1.pooler.supabase.com:5432/postgres"
+  url: "${DATABASE_URL}"
 
 # Lock Store
+# Redis is required for production-safe conversation locking.
 lock_store:
-  type: in_memory
+  type: redis
+  url: "${REDIS_HOST:-127.0.0.1}"
+  port: ${REDIS_PORT:-6379}
+  db: ${REDIS_LOCK_DB:-1}
+  password: "${REDIS_PASSWORD:-}"
+  use_ssl: ${REDIS_USE_SSL:-false}
 
-# ── Model Groups (مطلوبة لـ CALM) ─────────────────────────────
+# Model Groups — names must match config.yml
 model_groups:
-  # Command Generator — يفهم الـ flows والسياق
   - id: command_generator_llm
     models:
       - provider: openai
-        model: gpt-4o-mini
-        timeout: 25
+        model: ${OPENAI_COMMAND_MODEL:-gpt-4o-mini}
+        timeout: ${OPENAI_COMMAND_TIMEOUT:-25}
 
-  # Enterprise Search Generation — يصيغ الإجابات
   - id: enterprise_search_generation
     models:
       - provider: openai
-        model: gpt-4o-mini
-        timeout: 20
+        model: ${OPENAI_ENTERPRISE_SEARCH_MODEL:-gpt-4o-mini}
+        timeout: ${OPENAI_ENTERPRISE_SEARCH_TIMEOUT:-20}
 
-  # Embeddings — للـ vector search في قاعدة المعرفة
   - id: enterprise_search_embeddings
     models:
       - provider: openai
-        model: text-embedding-3-large
-        timeout: 15
+        model: ${OPENAI_EMBEDDINGS_MODEL:-text-embedding-3-large}
+        timeout: ${OPENAI_EMBEDDINGS_TIMEOUT:-15}
 
-  # General Purpose
   - id: openai-gpt-4o
     models:
       - provider: openai
-        model: gpt-4o
-        timeout: 30
+        model: ${OPENAI_GENERAL_MODEL:-gpt-4o}
+        timeout: ${OPENAI_GENERAL_TIMEOUT:-30}
+
+  - id: openai-gpt-4o-mini
+    models:
+      - provider: openai
+        model: ${OPENAI_FAST_MODEL:-gpt-4o-mini}
+        timeout: ${OPENAI_FAST_TIMEOUT:-20}
