@@ -1,32 +1,71 @@
-version: "3.1"
+version: '3.1'
 flows:
   luxury_services:
-    description: "يعرض خدمات Luxury Finishing في التشطيبات الراقية للوحدات السكنية والتجارية"
-    name: "luxury services"
+    description: يعرض خدمات Luxury Finishing في التشطيبات الراقية للوحدات السكنية
+      والتجارية
+    name: luxury services
     steps:
-      - action: utter_luxury_services
-        next: END
+    - action: utter_luxury_services
+      next: END
+    nlu_trigger:
+    - intent: ask_luxury_services
   luxury_materials:
-    description: "يعرض الخامات والمواد الفاخرة التي تستخدمها Luxury Finishing مثل الرخام والبورسلان والخشب والدهانات"
-    name: "luxury materials"
+    description: يعرض الخامات والمواد الفاخرة التي تستخدمها Luxury Finishing مثل الرخام
+      والبورسلان والخشب والدهانات
+    name: luxury materials
     steps:
-      - action: action_luxury_show_materials
-        next: END
+    - action: action_luxury_show_materials
+      next: END
+    nlu_trigger:
+    - intent: ask_luxury_materials
   luxury_portfolio:
-    description: "يعرض أعمال وبورتفوليو Luxury Finishing للاطلاع على نماذج التشطيبات"
-    name: "luxury portfolio"
+    description: يعرض أعمال وبورتفوليو Luxury Finishing للاطلاع على نماذج التشطيبات
+    name: luxury portfolio
     steps:
-      - action: utter_luxury_portfolio
-        next: END
+    - action: utter_luxury_portfolio
+      next: END
+    nlu_trigger:
+    - intent: ask_luxury_portfolio
   luxury_timeline:
-    description: "يوضح المدة الزمنية المتوقعة لإنجاز مشروع التشطيب"
-    name: "luxury timeline"
+    description: يوضح المدة الزمنية المتوقعة لإنجاز مشروع التشطيب
+    name: luxury timeline
     steps:
-      - action: utter_luxury_timeline
-        next: END
+    - action: utter_luxury_timeline
+      next: END
+    nlu_trigger:
+    - intent: ask_luxury_timeline
   luxury_get_quote:
-    description: "يطلب عرض سعر لمشروع تشطيب فاخر من Luxury Finishing"
-    name: "luxury get quote"
+    description: يطلب عرض سعر لمشروع تشطيب فاخر من Luxury Finishing
+    name: luxury get quote
     steps:
-      - action: action_luxury_get_quote
-      - link: collect_lead
+    - action: action_luxury_get_quote
+    - link: collect_lead
+    nlu_trigger:
+    - intent: ask_luxury_quote
+  create_luxury_project:
+    name: إنشاء مشروع تشطيب فاخر
+    description: 'تدفق لجمع بيانات العميل والمشروع السكني الفاخر وتنفيذ أكشن لإنشاء
+      المشروع.
+
+      '
+    steps:
+    - collect: client_name
+      utter: utter_ask_client_name
+    - collect: project_id
+      utter: utter_ask_project_id
+    - collect: finishing_type
+      utter: utter_ask_finishing_type
+    - collect: finishing_budget
+      utter: utter_ask_finishing_budget
+    - action: action_create_luxury_finishing_request
+    - action: utter_luxury_request_created
+  get_luxury_project_status:
+    name: استعلام حالة مشروع التشطيب الفاخر
+    description: 'تدفق للاستعلام عن حالة مشروع سكني فاخر.
+
+      '
+    steps:
+    - collect: project_id
+      utter: utter_ask_project_id
+    - action: action_get_luxury_project_status
+    - action: utter_luxury_status

@@ -5,6 +5,9 @@
 action_endpoint:
   url: "http://127.0.0.1:5055/webhook"
 
+nlg:
+  type: rephrase
+
 # Tracker Store → Supabase PostgreSQL
 tracker_store:
   type: SQL

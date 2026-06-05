@@ -1,0 +1,24 @@
+version: '3.1'
+flows:
+  triage_maintenance_request:
+    name: internal triage maintenance request
+    description: تدفق داخلي فقط لنقل طلب الصيانة إلى مرحلة المراجعة الفنية.
+    if: 'False'
+    steps:
+    - collect: maintenance_request_id
+      description: معرف طلب الصيانة المطلوب مراجعته.
+      ask_before_filling: false
+    - action: action_triage_maintenance_request
+    - action: utter_maintenance_triaged
+      next: END
+  assign_maintenance_request:
+    name: internal assign maintenance request
+    description: تدفق داخلي فقط لتعيين فني لطلب تمت مراجعته.
+    if: 'False'
+    steps:
+    - collect: maintenance_request_id
+      description: معرف طلب الصيانة المطلوب تعيين فني له.
+      ask_before_filling: false
+    - action: action_assign_maintenance_request
+    - action: utter_maintenance_assigned
+      next: END

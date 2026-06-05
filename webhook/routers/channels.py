@@ -197,11 +197,63 @@ async def _handle_whatsapp(wa_id: str, text: str) -> None:
 
 async def _handle_whatsapp_audio(wa_id: str, media_id: str) -> None:
     """رسالة صوتية — نحمّل الملف ونرسله للـ Whisper."""
+    import httpx
+    import uuid
+    from datetime import datetime, timezone
+    from ..config import UPLOADS_DIR
+    from ..services.audio import transcribe_audio
+
     try:
         # إرسال رد مؤقت
         await send_whatsapp(wa_id, "🎙️ جارٍ معالجة رسالتك الصوتية...")
-        # TODO: تحميل الملف من Meta وإرساله للـ /chat/audio
-        logger.info("WhatsApp audio from ...%s — media_id=%s", wa_id[-4:], media_id)
+        
+        if not META_TOKEN:
+            logger.error("WhatsApp audio handler failed: META_TOKEN is missing")
+            return
+            
+        async with httpx.AsyncClient() as client:
+            # 1. الحصول على رابط الملف
+            resp = await client.get(
+                f"https://graph.facebook.com/v18.0/{media_id}",
+                headers={"Authorization": f"Bearer {META_TOKEN}"}
+            )
+            if resp.status_code >= 300:
+                logger.error("WhatsApp media info failed: %s", resp.text)
+                await send_whatsapp(wa_id, "عذراً، حدث خطأ أثناء جلب الرسالة الصوتية.")
+                return
+                
+            media_url = resp.json().get("url")
+            if not media_url:
+                logger.error("WhatsApp media URL is empty")
+                return
+                
+            # 2. تنزيل الملف
+            media_resp = await client.get(
+                media_url,
+                headers={"Authorization": f"Bearer {META_TOKEN}"}
+            )
+            if media_resp.status_code >= 300:
+                logger.error("WhatsApp media download failed: %s", media_resp.text)
+                await send_whatsapp(wa_id, "عذراً، لم أتمكن من تنزيل الرسالة الصوتية.")
+                return
+                
+            # 3. حفظ الملف مؤقتاً
+            bucket = datetime.now(timezone.utc).strftime("%Y/%m")
+            target_dir = UPLOADS_DIR / bucket
+            target_dir.mkdir(parents=True, exist_ok=True)
+            file_path = target_dir / f"wa_audio_{uuid.uuid4().hex[:10]}.ogg"
+            file_path.write_bytes(media_resp.content)
+            
+            # 4. تفريغ الصوت
+            transcript = await transcribe_audio(str(file_path))
+            if not transcript:
+                await send_whatsapp(wa_id, "عذراً، لم أتمكن من فهم الرسالة الصوتية. هل يمكنك كتابتها؟")
+                return
+                
+            # 5. تمرير النص للـ Handler الأساسي
+            logger.info("WhatsApp audio transcribed for ...%s: %s", wa_id[-4:], transcript)
+            await _handle_whatsapp(wa_id, transcript)
+            
     except Exception as exc:
         logger.error("WhatsApp audio handler: %s", exc)
 

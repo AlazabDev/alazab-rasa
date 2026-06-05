@@ -8,8 +8,9 @@ actions/
 ├── action_brand_navigator.py          # action_brand_navigator
 ├── action_context_accumulator.py      # action_accumulate_context, action_smart_slot_check,
 │                                      # action_confirm_understanding, action_build_full_request
-├── action_create_maintenance_request.py  # (legacy shim — فارغ، الـ action في brand_actions/uberfix.py)
-├── action_daftra_ops.py               # action_daftra_sync_client, action_daftra_create_invoice
+├── action_daftra_ops.py               # action_daftra_sync_client, action_daftra_create_invoice,
+│                                      # action_daftra_get_account_status, action_daftra_get_last_invoice,
+│                                      # action_daftra_get_project_status
 ├── action_general.py                  # action_save_lead_to_crm, action_notify_sales_team,
 │                                      # action_receive_handoff_reason, action_check_human_availability,
 │                                      # action_check_queue_position, action_initiate_human_handoff,
@@ -28,7 +29,6 @@ actions/
 ├── action_uberfix_ops.py              # action_uberfix_triage_request
 ├── form_validation.py                 # validate_collect_lead_form, validate_maintenance_form
 ├── knowledge_search.py                # KnowledgeSearch (helper class, not a Rasa action)
-├── whatsapp_sender.py                 # WhatsApp template sender (helper module)
 │
 ├── brand_actions/
 │   ├── alazab_construction.py         # action_alazab_get_quote, action_alazab_show_projects
@@ -68,7 +68,6 @@ actions/
 | `DAFTRA_SUBDOMAIN` | نطاق دفترة (مثال: alazab) |
 | `DAFTRA_API_KEY` | مفتاح API دفترة |
 | `DB_HOST/PORT/NAME/USER/PASSWORD` | PostgreSQL للـ CRM والـ leads |
-| `SUPABASE_URL` + `SUPABASE_API_KEY` | لـ whatsapp_sender (قوالب WhatsApp) |
 
 ---
 
@@ -77,8 +76,6 @@ actions/
 - **`action_uberfix_create_request`** و **`action_uberfix_track_request`** موجودان في `brand_actions/uberfix.py` فقط.
   لا تُعرّفهما في أي ملف آخر لتجنب تعارض الأسماء.
 
-- **`action_create_maintenance_request.py`** فارغ عمداً (legacy shim).
-
 - **`maintenance/`** هي طبقة خدمة نظيفة — لا تستورد منها مباشرة إلا عبر `MaintenanceService`.
 
-- **`whatsapp_sender.py`** و **`knowledge_search.py`** مكتبات مساعدة وليست Rasa actions.
+- **`knowledge_search.py`** مكتبة مساعدة لعمليات البحث الديناميكي وليست Rasa action.

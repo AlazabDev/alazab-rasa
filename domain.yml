@@ -1,16 +1,6 @@
 version: '3.1'
 includes:
 - domain/general.yml
-- domain/general/maintenance.yml
-- domain/general/placeholder_domain.yml
-- domain/general/feedback.yml
-- domain/general/goodbye.yml
-- domain/general/hello.yml
-- domain/general/help.yml
-- domain/general/human_handoff.yml
-- domain/general/privacy.yml
-- domain/general/show_faqs.yml
-- domain/general/sweets.yml
 - domain/system/patterns/pattern_session_start.yml
 - domain/system/patterns/pattern_cannot_handle.yml
 intents:
@@ -23,6 +13,11 @@ intents:
 - out_of_scope
 - session_start
 - nlu_fallback
+- ask_uberfix_warranty
+- ask_uberfix_packages
+- ask_uberfix_pricing
+- uberfix_emergency
+- get_maintenance_status
 - give_feedback
 - provide_rating
 - provide_suggestion
@@ -143,22 +138,6 @@ slots:
     type: text
     mappings:
     - type: custom
-  is_available:
-    type: bool
-    mappings:
-    - type: custom
-  queue_position:
-    type: float
-    mappings:
-    - type: custom
-  rating:
-    type: float
-    mappings:
-    - type: custom
-  search_found:
-    type: bool
-    mappings:
-    - type: custom
   context_memory:
     type: text
     mappings:
@@ -179,7 +158,79 @@ slots:
     type: text
     mappings:
     - type: custom
+  issue_description:
+    type: text
+    mappings:
+    - type: custom
+  client_full_name:
+    type: text
+    mappings:
+    - type: custom
+  client_phone:
+    type: text
+    mappings:
+    - type: custom
+  property_address:
+    type: text
+    mappings:
+    - type: custom
+  emergency_level:
+    type: text
+    mappings:
+    - type: custom
+  preferred_visit_time:
+    type: text
+    mappings:
+    - type: custom
+  issue_images_url:
+    type: text
+    mappings:
+    - type: custom
+  issue_type:
+    type: text
+    mappings:
+    - type: custom
 responses:
+  utter_alazab_about:
+  - text: 'مجموعة العزب هي الرائدة في المقاولات والتشطيبات. 🏢'
+  utter_brand_services:
+  - text: 'خدمات الهوية التجارية شاملة ومتكاملة. 🎨'
+  utter_laban_products:
+  - text: 'توريدات لبن العصفور توفر أفضل الخامات. 🪵'
+  utter_luxury_services:
+  - text: 'تشطيبات فاخرة تناسب ذوقك الراقي. ✨'
+  utter_ask_order_number:
+  - text: 'لو سمحت، إيه رقم الطلب؟ 🔢'
+  utter_goodbye:
+  - text: 'مع السلامة! نورتنا! 👋'
+  utter_greet:
+  - text: 'أهلاً بك في مجموعة العزب! 🌟'
+  utter_maintenance_intro:
+  - text: 'أهلاً بك في خدمة صيانة أوبر فيكس. 🔧'
+  utter_ask_issue_type:
+  - text: 'إيه نوع المشكلة؟ (كهرباء، سباكة، الخ) ⚡💧'
+  utter_ask_issue_description:
+  - text: 'ممكن توصفلي المشكلة؟ 🛠️'
+  utter_ask_client_full_name:
+  - text: 'الاسم بالكامل لو سمحت؟ 👤'
+  utter_ask_client_phone:
+  - text: 'رقم الموبايل للتواصل؟ 📱'
+  utter_ask_property_address:
+  - text: 'العنوان بالتفصيل؟ 📍'
+  utter_ask_emergency_level:
+  - text: 'هل دي حالة طارئة؟ 🚨'
+  utter_ask_preferred_visit_time:
+  - text: 'إيه الوقت المناسب للزيارة؟ ⏰'
+  utter_ask_issue_images_url:
+  - text: 'عندك صور للمشكلة؟ (ممكن تبعت الرابط أو تقول لا) 📸'
+  utter_chitchat:
+  - text: 'أهلاً بك! إزاي أقدر أساعدك النهاردة؟ 😊'
+  utter_confirm_maintenance_request:
+  - text: 'تم تسجيل طلب الصيانة بنجاح. هتابع معاك قريب! 🔧'
+  utter_invoice_created:
+  - text: 'تم إنشاء الفاتورة بنجاح. 🧾'
+  utter_ask_maintenance_request_number:
+  - text: 'ممكن تديني رقم طلب الصيانة؟ 🔢'
   utter_ask_user_name:
   - text: 'تمام، يلا نبدأ! 🎯
 
@@ -683,32 +734,6 @@ responses:
       payload: /SetSlots(confirm_human_handoff="Yes")
     - title: ❌ لا، هكمّل هنا
       payload: /SetSlots(confirm_human_handoff="No")
-  utter_offer_human_handoff:
-  - text: تحب أحوّل المحادثة لممثل من الفريق دلوقتي؟ 👤😊
-  utter_human_handoff_immediate:
-  - text: 'تمام! جاري التحويل دلوقتي 🔄
-
-      لحظات صغيرة وأحد الفريق هيكون معاك! 💪
-
-      '
-  utter_handoff_cancelled:
-  - text: 'تمام! إلغينا التحويل 😊
-
-      نكمل هنا، قولّي تحب أساعدك في إيه؟ 🚀
-
-      '
-  utter_agent_connected:
-  - text: 'تم الاتصال بممثل خدمة العملاء! ✅
-
-      الفريق معاك دلوقتي، اتفضل! 😊
-
-      '
-  utter_human_handoff_offline:
-  - text: 'معلش، الفريق مش متاح دلوقتي 😅
-
-      بس مش مشكلة! أقدر أسجّل طلبك وهيتواصلوا معاك في أقرب وقت ممكن! ⏰
-
-      '
   utter_transfer_to_manager:
   - text: '👤 جاري تحويلك لأحد ممثلي الفريق دلوقتي!
 
@@ -719,44 +744,10 @@ responses:
       الفريق هيكون معاك قريباً جداً! ⏳
 
       '
-  utter_ask_reason_for_handoff:
-  - text: 'قولّي سبب رغبتك في التحدث مع أحد الفريق 😊
-
-      عشان أوصّل طلبك بأوضح طريقة ممكنة! ✍️
-
-      '
-  utter_receive_escalation:
-  - text: 'فاهم، وهرفع الموضوع للمسؤول المختص فوراً! 🔺
-
-      اكتبلي التفاصيل بوضوح عشان توصله بالشكل الصح! ✍️
-
-      '
-  utter_escalate_to_manager:
-  - text: 'تم الإرسال للمسؤول المختص! ✅
-
-      الفريق هيتابع مع حضرتك في أقرب وقت، وعيني عليها! 👀
-
-      '
-  utter_confirm_cancel:
-  - text: 'متأكد من إلغاء الطلب؟ 🤔
-
-      لو في أي تغيير أحسن، قولّي وأنا معاك! 😊
-
-      '
   utter_ask_if_more_faqs:
   - text: 'هل عندك سؤال تاني؟ 😊
 
       أو تحب نبدأ طلب جديد؟ أنا جاهز! 🚀
-
-      '
-  utter_ask_help:
-  - text: 'أنا هنا عشانك! 💪😊
-
-      اختار الخدمة اللي محتاجها:
-
-      🔧 صيانة | 🏗️ مقاولات | ✨ تشطيب | 🎨 هوية تجارية | 📦 توريدات
-
-      أو تواصل مع الفريق مباشرة! 😄
 
       '
   utter_lead_submitted:
@@ -768,24 +759,11 @@ responses:
       شكراً جداً على ثقتك! 🤝🌟
 
       '
-  utter_offer_alternative_contact:
-  - text: تحب نكمّل التواصل على واتساب مباشرة؟ 📱😊
-  utter_provide_whatsapp:
-  - text: 'تقدر تتواصل معنا على واتساب وهيردوا عليك بسرعة! 📱✅
-
-      '
-  utter_human_handoff_queue:
-  - text: 'أنت في قائمة الانتظار! ⏳
-
-      رقمك: {queue_position}
-
-      هنكون معاك قريباً، شكراً على صبرك! 🙏
-
-      '
   utter_daftra_sync_success:
   - text: ✅ تم تحديث بياناتك ومزامنتها مع النظام المحاسبي (دفترة) بنجاح.
   utter_daftra_invoice_created:
-  - text: '🧾 أبشر يا فندم، تم إصدار الفاتورة الإلكترونية الخاصة بك بنجاح. رقم الفاتورة في النظام: {daftra_last_invoice_id}'
+  - text: '🧾 أبشر يا فندم، تم إصدار الفاتورة الإلكترونية الخاصة بك بنجاح. رقم الفاتورة
+      في النظام: {daftra_last_invoice_id}'
   utter_brand_sites:
   - text: '🏢 **مجموعة آل عزب - حلول متكاملة من البناء حتى التشغيل:**
 
@@ -858,6 +836,7 @@ session_config:
   session_expiration_time: 60
   carry_over_slots_to_new_session: true
 actions:
+- action_check_maintenance_status
 - action_human_handoff
 - action_save_lead_to_crm
 - action_notify_sales_team
@@ -906,7 +885,6 @@ actions:
 - action_build_full_request
 - validate_collect_lead_form
 - validate_maintenance_form
-- action_send_sweets_info
 - action_create_maintenance_request
 - action_get_maintenance_status
 - action_triage_maintenance_request

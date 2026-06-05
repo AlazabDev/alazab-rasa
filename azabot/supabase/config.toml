@@ -380,6 +380,36 @@ deno_version = 2
 # [edge_runtime.secrets]
 # secret_key = "env(SECRET_VALUE)"
 
+
+# Explicit Edge Function registry.
+# `_shared` is a shared-code directory and must not be deployed as a standalone function.
+[functions.admin-api]
+enabled = true
+
+[functions.admin-login]
+enabled = true
+
+[functions.azabot-chat]
+enabled = true
+
+[functions.bot-public-settings]
+enabled = true
+
+[functions.chat-v2]
+enabled = true
+
+[functions.chat]
+enabled = true
+
+[functions.elevenlabs-stt]
+enabled = true
+
+[functions.elevenlabs-tts]
+enabled = true
+
+[functions.uberfix]
+enabled = true
+
 [analytics]
 enabled = true
 port = 54327

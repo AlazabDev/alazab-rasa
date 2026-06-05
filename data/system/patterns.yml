@@ -1,0 +1,14 @@
+version: '3.1'
+flows:
+
+  pattern_human_handoff:
+    name: human handoff
+    description: Conversation repair flow for switching the user to a human agent when requested.
+    steps:
+    - link: human_handoff
+  pattern_chitchat:
+    name: chitchat
+    description: Conversation repair flow for short general interactions that do not interrupt the active task.
+    steps:
+    - action: utter_chitchat
+      next: END

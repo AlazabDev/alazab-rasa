@@ -20,7 +20,6 @@ pydantic-settings>=2.0.0
 python-multipart>=0.0.9
 
 # ── Database ──────────────────────────────────────────────────
-supabase>=2.5.0
 psycopg2-binary>=2.9.0
 
 # ── Auth & Security ───────────────────────────────────────────
@@ -39,6 +38,5 @@ psutil>=5.9.0
 # ── Utilities ────────────────────────────────────────────────
 python-dotenv>=1.0.0
 aiofiles>=23.0.0
-python-magic>=0.4.27
-python-magic-bin>=0.4.14
+filetype>=1.2.0
 cryptography>=41.0.0

@@ -1,0 +1,10 @@
+flows:
+  pattern_session_start:
+    description: Initialize the conversation session and send the welcome message.
+    name: pattern session start
+    nlu_trigger:
+      - intent: session_start
+    steps:
+      - action: action_session_start
+      - action: utter_welcome
+        next: END

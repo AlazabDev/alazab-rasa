@@ -202,8 +202,8 @@ RASA_PRO_LICENSE=__REMOVED_FROM_GIT_HISTORY__
 OPENAI_API_KEY=REPLACE_WITH_YOUR_KEY
 
 # Admin
-ADMIN_EMAIL=admin@alazab.local
-ADMIN_PASSWORD=AdminDev2024!
+ADMIN_EMAIL=admin@alazab.com
+ADMIN_PASSWORD=Azab@202555
 ADMIN_SESSION_SECRET=ZGV2c2Vzc2lvbnNlY3JldGtleWZvcnRlc3Rpbmc=
 
 # Database (WSL local)
@@ -211,7 +211,7 @@ DB_HOST=127.0.0.1
 DB_PORT=5432
 DB_NAME=alazab_core
 DB_USER=azab_user
-DB_PASSWORD=devpassword123
+DB_PASSWORD=Azab202555db
 
 # Redis (WSL local)
 REDIS_HOST=127.0.0.1
@@ -355,7 +355,7 @@ fi
 
 printf "  1️⃣  عدّل الـ license والـ key:\n"
 printf "     ${CYAN}nano .env${NC}\n"
-printf "     RASA_PRO_LICENSE=__REMOVED_FROM_GIT_HISTORY__
+printf "     RASA_PRO_LICENSE=__REMOVED_FROM_GIT_HISTORY__\n"
 printf "     OPENAI_API_KEY=...\n\n"
 printf "  2️⃣  درّب الموديل:\n"
 printf "     ${CYAN}bash scripts/botctl.sh train${NC}\n\n"

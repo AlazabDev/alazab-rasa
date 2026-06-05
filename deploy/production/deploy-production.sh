@@ -51,8 +51,19 @@ id "$SERVICE_USER" &>/dev/null || \
   useradd --system --shell /bin/bash --home "$DEPLOY_DIR" --create-home "$SERVICE_USER"
 ok "User: $SERVICE_USER"
 
-# ── 4. Sync files (بدون الملفات الحساسة) ─────────────────────
-log "مزامنة الملفات إلى $DEPLOY_DIR"
+# ── 4. النسخ الاحتياطي السريع (Backup) ───────────────────────
+log "إنشاء نسخة احتياطية قبل التحديث..."
+if [[ -d "$DEPLOY_DIR" ]]; then
+  BACKUP_NAME="backup_$(date +%Y%m%d_%H%M%S)"
+  BACKUP_PATH="/opt/alazab_backups/$BACKUP_NAME"
+  mkdir -p "/opt/alazab_backups"
+  rsync -a --exclude='.venv' --exclude='azabot/node_modules' --exclude='logs/*' "$DEPLOY_DIR/" "$BACKUP_PATH/"
+  ok "تم حفظ النسخة الاحتياطية في: $BACKUP_PATH"
+else
+  warn "هذا هو النشر الأول، لا توجد ملفات سابقة للنسخ الاحتياطي."
+fi
+
+# ── 5. Sync files (بدون الملفات الحساسة) ─────────────────────
 rsync -a --delete \
   --exclude='.git' --exclude='.venv' --exclude='venv' \
   --exclude='**/__pycache__' --exclude='*.pyc' \

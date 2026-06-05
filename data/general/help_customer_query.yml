@@ -1,0 +1,11 @@
+flows:
+  help_customer_query:
+    name: "استقبال استفسار عميل والرد عليه عبر API"
+    description: |
+      يستقبل استفسار العميل عن خدمات مؤسسة العزب ويرد عليه عبر أكشن مخصص يتكامل مع API خارجي.
+    steps:
+      - collect: customer_question
+        description: "جمع سؤال أو استفسار العميل حول خدمات المؤسسة."
+        utter: utter_ask_customer_question
+      - action: action_check_customer_query
+      - action: utter_what_can_you_do

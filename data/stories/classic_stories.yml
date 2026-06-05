@@ -1,9 +1,5 @@
 version: '3.1'
 stories:
-
-# ----------------------------------------------------
-# 1. مسارات الترحيب والمساعدة (Welcome & Help Flows)
-# ----------------------------------------------------
 - story: مسار الترحيب الكامل وتقديم المساعدة
   steps:
   - intent: greet
@@ -11,46 +7,35 @@ stories:
   - intent: ask_help
   - action: utter_ask_help
   - intent: thanks
-  - action: utter_thanks
+  - action: utter_closing_words
   - intent: goodbye
   - action: utter_goodbye
-
 - story: مسار الترحيب المباشر ثم الخروج
   steps:
   - intent: greet
   - action: utter_greet
   - intent: goodbye
   - action: utter_goodbye
-
-# ----------------------------------------------------
-# 2. مسارات الشكر والوداع (Gratitude & Goodbye Flows)
-# ----------------------------------------------------
 - story: المستخدم يشكر البوت ويغادر
   steps:
   - intent: thanks
-  - action: utter_thanks
+  - action: utter_closing_words
   - intent: goodbye
   - action: utter_goodbye
-
 - story: سؤال عن الخدمات ثم شكر ووداع
   steps:
   - intent: ask_help
   - action: utter_ask_help
   - intent: thanks
-  - action: utter_thanks
+  - action: utter_closing_words
   - intent: goodbye
   - action: utter_goodbye
-
-# ----------------------------------------------------
-# 3. مسارات الحالات الخاصة (Edge Cases & Fallbacks)
-# ----------------------------------------------------
 - story: المستخدم يسأل البوت عن هويته ثم يشكره
   steps:
   - intent: bot_challenge
   - action: utter_bot_challenge
   - intent: thanks
-  - action: utter_thanks
-
+  - action: utter_closing_words
 - story: مسار سؤال خارج النطاق وتوجيه المستخدم للخدمات
   steps:
   - intent: out_of_scope

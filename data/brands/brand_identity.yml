@@ -1,32 +1,71 @@
-version: "3.1"
+version: '3.1'
 flows:
   brand_services:
-    description: "يعرض خدمات Brand Identity في تصميم وتنفيذ الهويات التجارية وتجهيز المساحات التجارية"
-    name: "brand services"
+    description: يعرض خدمات Brand Identity في تصميم وتنفيذ الهويات التجارية وتجهيز
+      المساحات التجارية
+    name: brand services
     steps:
-      - action: utter_brand_services
-        next: END
+    - action: utter_brand_services
+      next: END
+    nlu_trigger:
+    - intent: ask_brand_services
   brand_process:
-    description: "يشرح مراحل عمل Brand Identity من الاستشارة حتى التسليم الكامل"
-    name: "brand process"
+    description: يشرح مراحل عمل Brand Identity من الاستشارة حتى التسليم الكامل
+    name: brand process
     steps:
-      - action: action_brand_show_process
-        next: END
+    - action: action_brand_show_process
+      next: END
+    nlu_trigger:
+    - intent: ask_brand_process
   brand_portfolio:
-    description: "يعرض أعمال ومشاريع Brand Identity السابقة في مختلف القطاعات"
-    name: "brand portfolio"
+    description: يعرض أعمال ومشاريع Brand Identity السابقة في مختلف القطاعات
+    name: brand portfolio
     steps:
-      - action: utter_brand_portfolio
-        next: END
+    - action: utter_brand_portfolio
+      next: END
+    nlu_trigger:
+    - intent: ask_brand_portfolio
   brand_industries:
-    description: "يعرض القطاعات التي تخدمها Brand Identity مثل المطاعم والصيدليات والمحلات والمكاتب"
-    name: "brand industries"
+    description: يعرض القطاعات التي تخدمها Brand Identity مثل المطاعم والصيدليات والمحلات
+      والمكاتب
+    name: brand industries
     steps:
-      - action: action_brand_show_industries
-        next: END
+    - action: action_brand_show_industries
+      next: END
+    nlu_trigger:
+    - intent: ask_brand_industries
   brand_get_quote:
-    description: "يطلب عرض سعر لتصميم أو تنفيذ هوية تجارية من Brand Identity"
-    name: "brand get quote"
+    description: يطلب عرض سعر لتصميم أو تنفيذ هوية تجارية من Brand Identity
+    name: brand get quote
     steps:
-      - action: action_brand_get_quote
-      - link: collect_lead
+    - action: action_brand_get_quote
+    - link: collect_lead
+    nlu_trigger:
+    - intent: ask_brand_quote
+  create_brand_project:
+    name: إنشاء مشروع علامة تجارية
+    description: 'تدفق لجمع بيانات الشركة والمشروع التجاري وتنفيذ أكشن لإنشاء أو متابعة
+      المشروع التجاري.
+
+      '
+    steps:
+    - collect: company_name
+      utter: utter_ask_company_name
+    - collect: brand_project_id
+      utter: utter_ask_brand_project_id
+    - collect: identity_type
+      utter: utter_ask_identity_type
+    - collect: brand_budget
+      utter: utter_ask_brand_budget
+    - action: action_create_brand_identity_request
+    - action: utter_brand_request_created
+  get_brand_project_status:
+    name: استعلام حالة مشروع تجاري
+    description: 'تدفق للاستعلام عن حالة مشروع هوية العلامة التجارية.
+
+      '
+    steps:
+    - collect: brand_project_id
+      utter: utter_ask_brand_project_id
+    - action: action_get_brand_project_status
+    - action: utter_brand_status
