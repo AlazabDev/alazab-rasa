@@ -1,0 +1,12 @@
+flows:
+  pattern_correction:
+    description: Conversation repair flow for managing user input changes or corrections.
+    name: pattern correction
+    steps:
+      - action: action_correct_flow_slot
+        next:
+          - if: not context.is_reset_only
+            then:
+              - action: utter_corrected_previous_input
+                next: END
+          - else: END

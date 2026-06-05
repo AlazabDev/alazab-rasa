@@ -49,8 +49,9 @@ export default function AdminLogin() {
       
       toast.success("تم الدخول");
       nav("/admin", { replace: true });
-    } catch (e: any) {
-      toast.error(e.message || "فشل الدخول");
+    } catch (e: unknown) {
+     const message = e instanceof Error ? e.message : "فشل الدخول";
+     toast.error(message);
     } finally {
       setLoading(false);
     }

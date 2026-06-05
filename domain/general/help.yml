@@ -1,4 +1,0 @@
-version: "3.1"
-# domain/general/help.yml
-# الـ responses موجودة في domain/general.yml (utter_ask_help, utter_help_menu)
-# هذا الملف محجوز للـ slots المستقبلية الخاصة بالمساعدة

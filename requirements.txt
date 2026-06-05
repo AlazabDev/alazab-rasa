@@ -25,9 +25,7 @@ pydantic-settings>=2.0.0
 python-dotenv>=1.0.0
 pyyaml>=6.0.0
 
-# ── Database / Storage ────────────────────────────────────────
-supabase>=2.5.0
-psycopg[binary]>=3.1.0
+# ── Database ──────────────────────────────────────────────────
 psycopg2-binary>=2.9.0
 asyncpg>=0.29.0
 redis>=5.0.0
@@ -46,5 +44,5 @@ psutil>=5.9.0
 
 # ── File Uploads / Utilities ──────────────────────────────────
 aiofiles>=23.0.0
-python-magic>=0.4.27
-python-magic-bin>=0.4.14; platform_system == "Windows"
+filetype>=1.2.0
+cryptography>=41.0.0

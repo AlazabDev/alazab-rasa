@@ -253,4 +253,155 @@ class ActionDaftraCreateInvoice(Action):
             dispatcher.utter_message(
                 text="⚠️ تعذر إصدار الفاتورة آلياً، سيتم مراجعتها من قبل المحاسب."
             )
+
+        return []
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+#  Action 3: الاستعلام عن حالة الحساب
+# ═══════════════════════════════════════════════════════════════════════════
+
+class ActionDaftraGetAccountStatus(Action):
+    def name(self) -> Text:
+        return "action_daftra_get_account_status"
+
+    def run(self, dispatcher: CollectingDispatcher, tracker: Tracker, domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
+        client_id = tracker.get_slot("daftra_client_id")
+        if not client_id:
+            dispatcher.utter_message(text="⚠️ عذراً، لم نتمكن من تحديد حسابك في النظام المالي.")
             return []
+
+        if not DAFTRA_API_KEY:
+            dispatcher.utter_message(text="⚠️ نظام الحسابات غير متصل حالياً.")
+            return []
+
+        headers = {"apikey": DAFTRA_API_KEY, "Content-Type": "application/json"}
+        try:
+            with httpx.Client(timeout=10) as client:
+                resp = client.get(f"{DAFTRA_BASE_URL}/clients/{client_id}", headers=headers)
+                resp.raise_for_status()
+                data = resp.json().get("data", {}).get("Client", {})
+
+                balance = float(data.get("balance", 0))
+                
+                if balance > 0:
+                    status_text = f"رصيد حسابك الحالي يوضح وجود مبلغ مستحق الدفع قدره: {balance} ريال."
+                elif balance < 0:
+                    status_text = f"يوجد لديك رصيد دائن قدره: {abs(balance)} ريال."
+                else:
+                    status_text = "رصيد حسابك الحالي مسوى ولا توجد أي مبالغ مستحقة."
+
+                dispatcher.utter_message(text=f"📊 **حالة الحساب**\n\n{status_text}")
+        except Exception as exc:
+            logger.error("Daftra account status error: %s", exc)
+            dispatcher.utter_message(text="⚠️ حدث خطأ أثناء الاستعلام عن حالة الحساب.")
+
+        return []
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+#  Action 4: الاستعلام عن آخر فاتورة
+# ═══════════════════════════════════════════════════════════════════════════
+
+class ActionDaftraGetLastInvoice(Action):
+    def name(self) -> Text:
+        return "action_daftra_get_last_invoice"
+
+    def run(self, dispatcher: CollectingDispatcher, tracker: Tracker, domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
+        client_id = tracker.get_slot("daftra_client_id")
+        if not client_id:
+            dispatcher.utter_message(text="⚠️ عذراً، لم نتمكن من تحديد حسابك.")
+            return []
+
+        headers = {"apikey": DAFTRA_API_KEY, "Content-Type": "application/json"}
+        try:
+            with httpx.Client(timeout=10) as client:
+                # نجلب أحدث الفواتير الخاصة بالعميل
+                resp = client.get(
+                    f"{DAFTRA_BASE_URL}/invoices",
+                    headers=headers,
+                    params={"client_id": client_id, "limit": 1}
+                )
+                resp.raise_for_status()
+                invoices = resp.json().get("data", [])
+
+                if not invoices:
+                    dispatcher.utter_message(text="لم يتم العثور على فواتير سابقة لحسابك.")
+                    return []
+
+                inv = invoices[0].get("Invoice", {})
+                inv_id = inv.get("id")
+                amount = inv.get("total", "غير محدد")
+                doc_url = _invoice_url(inv_id)
+
+                status_map = {"1": "مسودة", "2": "غير مدفوعة", "3": "مدفوعة", "4": "مدفوعة جزئياً"}
+                payment_status = status_map.get(str(inv.get("status")), "غير معروف")
+
+                dispatcher.utter_message(
+                    text=f"🧾 **تفاصيل آخر فاتورة**\n"
+                         f"رقم الفاتورة: {inv_id}\n"
+                         f"القيمة الإجمالية: {amount}\n"
+                         f"الحالة: {payment_status}\n\n"
+                         f"🔗 لعرض الفاتورة وتحميلها: {doc_url}"
+                )
+        except Exception as exc:
+            logger.error("Daftra get invoice error: %s", exc)
+            dispatcher.utter_message(text="⚠️ حدث خطأ أثناء جلب تفاصيل الفاتورة.")
+
+        return []
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+#  Action 5: الاستعلام عن حالة المشروع (أمر الشغل)
+# ═══════════════════════════════════════════════════════════════════════════
+
+class ActionDaftraGetProjectStatus(Action):
+    def name(self) -> Text:
+        return "action_daftra_get_project_status"
+
+    def run(self, dispatcher: CollectingDispatcher, tracker: Tracker, domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
+        client_id = tracker.get_slot("daftra_client_id")
+        if not client_id:
+            dispatcher.utter_message(text="⚠️ لم يتم العثور على حساب مرتبط للاستعلام عن المشاريع.")
+            return []
+
+        headers = {"apikey": DAFTRA_API_KEY, "Content-Type": "application/json"}
+        try:
+            with httpx.Client(timeout=10) as client:
+                # نستعلم عن أوامر الشغل الخاصة بالعميل (التي تمثل المشاريع)
+                resp = client.get(
+                    f"{DAFTRA_BASE_URL}/work_orders",
+                    headers=headers,
+                    params={"client_id": client_id, "limit": 1}
+                )
+                resp.raise_for_status()
+                work_orders = resp.json().get("data", [])
+
+                if not work_orders:
+                    dispatcher.utter_message(text="لا توجد مشاريع أو أوامر شغل مسجلة في حسابك حالياً.")
+                    return []
+
+                wo = work_orders[0].get("WorkOrder", {})
+                wo_no = wo.get("number", wo.get("id"))
+                status_id = str(wo.get("status", ""))
+                
+                # حالات افتراضية شائعة لأوامر الشغل في دفترة
+                status_map = {
+                    "1": "مسودة (Draft)", 
+                    "2": "جاري التنفيذ (In Progress)", 
+                    "3": "مكتمل (Completed)",
+                    "4": "ملغي (Cancelled)",
+                    "5": "قيد المراجعة (Under Review)"
+                }
+                status_text = status_map.get(status_id, "قيد المعالجة")
+
+                dispatcher.utter_message(
+                    text=f"🏗️ **حالة آخر مشروع / أمر شغل**\n"
+                         f"رقم المشروع: {wo_no}\n"
+                         f"الحالة الحالية: {status_text}"
+                )
+        except Exception as exc:
+            logger.error("Daftra get work order error: %s", exc)
+            dispatcher.utter_message(text="⚠️ تعذر جلب حالة المشروع حالياً، يرجى المحاولة لاحقاً.")
+
+        return []

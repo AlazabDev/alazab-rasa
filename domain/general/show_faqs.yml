@@ -1,7 +1,0 @@
-version: "3.1"
-# domain/general/show_faqs.yml
-# الـ responses موجودة في domain/general.yml:
-#   utter_top_faqs, utter_ask_faq_topic, utter_faqs_menu, utter_ask_more_faqs
-#   utter_thanks_for_faq, utter_ask_faq_keyword, utter_search_results, utter_no_faq_results
-#   utter_faq_prices, utter_faq_timing, utter_faq_warranty, utter_faq_payment, utter_faq_location
-# هذا الملف محجوز للـ slots المستقبلية الخاصة بالـ FAQs

@@ -1,0 +1,20 @@
+flows:
+  pattern_completed:
+    description: Ask whether the user needs more help after completing the active flow.
+    name: pattern completed
+    steps:
+      - collect: continue_conversation
+        description: Set this slot to true if the user wants further help. Set it to false if the user wants to end the conversation.
+        ask_before_filling: true
+        next:
+          - if: slots.continue_conversation
+            then:
+              - action: utter_can_do_something_else
+              - action: action_reset_routing
+                next: END
+          - else:
+              - action: utter_closing_words
+              - action: action_reset_routing
+                next: link_csat
+              - id: link_csat
+                link: pattern_customer_satisfaction

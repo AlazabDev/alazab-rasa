@@ -1,45 +1,34 @@
-version: "3.1"
-# ══════════════════════════════════════════════════════════════
-# data/flows/general_flows.yml
-# التدفقات العامة المشتركة بين جميع البراندات
-# ══════════════════════════════════════════════════════════════
+version: '3.1'
 flows:
-
-  # ── بداية الجلسة ────────────────────────────────────────────
   session_start_flow:
-    description: >
-      يُنفَّذ عند بداية كل جلسة جديدة.
-      يضبط brand slot من metadata ويرحب بالمستخدم.
-    name: "session start"
+    description: |
+      يُنفَّذ عند بداية كل جلسة جديدة. يضبط brand slot من metadata ويرحب بالمستخدم.
+    name: session start
     steps:
-      - action: action_session_start
-        next: END
-
-  # ── التحقق الذكي من السياق ──────────────────────────────────
+    - action: action_session_start
+      next: END
+    if: 'False'
   context_check:
-    description: >
-      يفحص السياق المتراكم ويملأ الـ slots الناقصة
-      قبل إرسال أي طلب.
-    name: "context check"
+    description: |
+      يفحص السياق المتراكم ويملأ الـ slots الناقصة قبل إرسال أي طلب.
+    name: context check
     steps:
-      - action: action_smart_slot_check
-        next: END
-
-  # ── بناء الطلب الكامل ────────────────────────────────────────
+    - action: action_smart_slot_check
+      next: END
+    if: 'False'
   build_full_request:
-    description: >
-      يبني user_message شاملاً من كل السياق المتراكم
-      (المشكلة + الموقع + الفرع + المواصفات).
-    name: "build full request"
+    description: |
+      يبني user_message شاملاً من كل السياق المتراكم (المشكلة + الموقع + الفرع + المواصفات).
+    name: build full request
     steps:
-      - action: action_build_full_request
-        next: END
-
-  # ── بحث عام في قاعدة المعرفة ───────────────────────────────
+    - action: action_build_full_request
+      next: END
+    if: 'False'
   knowledge_search:
-    description: >
+    description: |
       يبحث في قاعدة معرفة مجموعة العزب عن إجابة لسؤال المستخدم.
-    name: "knowledge search"
+    name: knowledge search
     steps:
-      - action: action_search_faq_by_keyword
-        next: END
+    - action: action_search_faq_by_keyword
+      next: END
+    if: 'False'

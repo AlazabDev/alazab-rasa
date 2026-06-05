@@ -73,11 +73,18 @@ Options via environment:
   WEBHOOK_WORKERS=1
 
 Examples:
+  bash scripts/botctl.sh doctor
   bash scripts/botctl.sh setup
   bash scripts/botctl.sh train
   bash scripts/botctl.sh start
   bash scripts/botctl.sh status
   bash scripts/botctl.sh logs webhook
+  bash scripts/botctl.sh docker-up
+  bash scripts/botctl.sh docker-down
+  bash scripts/botctl.sh prod-preflight
+  bash scripts/botctl.sh prod-readiness
+  bash scripts/botctl.sh prod-up
+  bash scripts/botctl.sh prod-down
 USAGE
 }
 

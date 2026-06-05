@@ -1,0 +1,6 @@
+flows:
+  pattern_search:
+    description: Handle a knowledge-based question or request using Enterprise Search.
+    name: pattern search
+    steps:
+      - action: action_trigger_search

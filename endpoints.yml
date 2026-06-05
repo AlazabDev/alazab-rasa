@@ -7,10 +7,10 @@
 action_endpoint:
   url: "${ACTION_SERVER_URL:-http://127.0.0.1:5055/webhook}"
 
-# Tracker Store
-# Production rule:
-# - Put the full PostgreSQL connection string in DATABASE_URL inside the server .env.
-# - Do not compose database connection strings inside repository files.
+nlg:
+  type: rephrase
+
+# Tracker Store → Supabase PostgreSQL
 tracker_store:
   type: SQL
   dialect: postgresql

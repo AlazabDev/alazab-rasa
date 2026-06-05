@@ -1,45 +1,23 @@
 version: '3.1'
-intents:
-- ask_alazab_group_services
-- abo_auf_branch_coffee_mode
-- start_maintenance_request
-- request_human_handoff
-- ask_alazab_services
-- ask_alazab_projects
-- ask_alazab_contact
-- ask_alazab_quote
-- ask_alazab_technical_specs
-- ask_brand_services
-- ask_brand_process
-- ask_brand_portfolio
-- ask_brand_quote
-- ask_brand_industries
-- ask_brand_shop_fitting
-- ask_brand_complete_identity
-- ask_uberfix_services
-- ask_uberfix_about
-- ask_uberfix_pricing
-- ask_uberfix_warranty
-- ask_uberfix_packages
-- ask_uberfix_supplies
-- ask_uberfix_fire_safety
-- ask_uberfix_masonry_painting
-- uberfix_specific_repair
-- ask_help
-- out_of_scope
-- bot_challenge
-- faq_search
-- give_feedback
-- request_quote
-- ask_luxury_services
-- ask_laban_products
 slots:
+  is_available:
+    type: bool
+    mappings:
+    - type: custom
+  queue_position:
+    type: float
+    mappings:
+    - type: custom
   handoff_reason:
     type: text
     mappings:
     - type: custom
   escalation_details:
     type: text
+    mappings:
+    - type: custom
+  rating:
+    type: float
     mappings:
     - type: custom
   feedback_service:
@@ -54,6 +32,10 @@ slots:
     type: text
     mappings:
     - type: custom
+  search_found:
+    type: bool
+    mappings:
+    - type: custom
   keyword:
     type: text
     mappings:
@@ -62,214 +44,737 @@ slots:
     type: text
     mappings:
     - type: custom
+  confirm_human_handoff:
+    type: categorical
+    mappings:
+    - type: custom
+    values:
+    - 'Yes'
+    - 'No'
+  maintenance_client_name:
+    type: text
+    mappings:
+    - type: custom
+  maintenance_client_phone:
+    type: text
+    mappings:
+    - type: custom
+  maintenance_service_type:
+    type: text
+    mappings:
+    - type: custom
+  maintenance_description:
+    type: text
+    mappings:
+    - type: custom
+  maintenance_priority:
+    type: text
+    mappings:
+    - type: custom
+  maintenance_request_id:
+    type: text
+    mappings:
+    - type: custom
+  maintenance_request_number:
+    type: text
+    mappings:
+    - type: custom
+  maintenance_status:
+    type: text
+    mappings:
+    - type: custom
+  maintenance_stage:
+    type: text
+    mappings:
+    - type: custom
+  client_full_name:
+    type: text
+    mappings:
+    - type: from_llm
+  client_phone:
+    type: text
+    mappings:
+    - type: from_llm
+  property_address:
+    type: text
+    mappings:
+    - type: from_llm
+  issue_description:
+    type: text
+    mappings:
+    - type: from_llm
+  issue_type:
+    type: categorical
+    values:
+    - plumbing
+    - electrical
+    - structural
+    - finishing
+    - hvac
+    - carpentry
+    mappings:
+    - type: from_llm
+  emergency_level:
+    type: categorical
+    values:
+    - urgent
+    - within_24h
+    - within_week
+    - not_urgent
+    mappings:
+    - type: from_llm
+  preferred_visit_time:
+    type: text
+    mappings:
+    - type: from_llm
+  issue_images_url:
+    type: text
+    mappings:
+    - type: from_llm
+  daftra_client_id:
+    type: text
+    mappings:
+    - type: custom
+  daftra_last_invoice_id:
+    type: text
+    mappings:
+    - type: custom
+  daftra_document_url:
+    type: text
+    mappings:
+    - type: custom
+  service_item:
+    type: text
+    mappings:
+    - type: from_llm
+  client_name:
+    type: text
+    mappings:
+    - type: custom
+  service_type:
+    type: text
+    mappings:
+    - type: custom
+  description:
+    type: text
+    mappings:
+    - type: custom
+  priority:
+    type: text
+    mappings:
+    - type: custom
+  request_number:
+    type: text
+    mappings:
+    - type: custom
+  finishing_type:
+    type: text
+    mappings:
+    - type: custom
+  finishing_budget:
+    type: text
+    mappings:
+    - type: custom
+  project_id:
+    type: text
+    mappings:
+    - type: custom
+  customer_question:
+    type: text
+    mappings:
+    - type: custom
+  supply_id:
+    type: text
+    mappings:
+    - type: custom
+  material_type:
+    type: text
+    mappings:
+    - type: custom
+  quantity:
+    type: text
+    mappings:
+    - type: custom
+  delivery_date:
+    type: text
+    mappings:
+    - type: custom
+  company_name:
+    type: text
+    mappings:
+    - type: custom
+  brand_project_id:
+    type: text
+    mappings:
+    - type: custom
+  identity_type:
+    type: text
+    mappings:
+    - type: custom
+  brand_budget:
+    type: text
+    mappings:
+    - type: custom
 responses:
-  utter_alazab_master_welcome:
-  - text: '👋 أهلاً بك في مساعد مجموعة العزب الذكي.
+  utter_bot_challenge:
+  - text: '🤖 أنا AzaBot، المساعد الذكي لمجموعة العزب!
 
-      أنا هنا لتوجيهك بسرعة بين خدمات: المقاولات، تجهيز الفروع، التشطيب الراقي، الصيانة، والتوريدات.
+      أنا نظام ذكاء اصطناعي هنا لمساعدتك في خدمات الشركة.
 
-
-      اختر المسار المناسب:
-
-      1️⃣ Alazab Construction — مقاولات وإدارة تنفيذ
-
-      2️⃣ Brand Identity — تجهيز فروع وهوية تجارية
-
-      3️⃣ Luxury Finishing — تشطيب راقٍ
-
-      4️⃣ UberFix — صيانة وتشغيل
-
-      5️⃣ Laban Alasfour — توريدات وخامات
-
-
-      اكتب الخدمة المطلوبة، وسأحوّل طلبك للمسار الصحيح.
+      كيف يمكنني مساعدتك اليوم؟
 
       '
-  utter_maintenance_fast_start:
-  - text: 'تمام يا مدير.
-
-      خلينا نسجل الطلب صح من أول مرة.
+  utter_ask_help:
+  - text: '📚 كيف يمكنني مساعدتك اليوم؟
 
 
-      اكتب لي بالترتيب:
+      يمكنك أن تسألني عن:
 
-      • اسم الفرع
+      • المقاولات: "عايز ابني عمارة"
 
-      • نوع العطل أو البند
+      • التشطيب: "أسعار التشطيب"
 
-      • درجة الخطورة: عادي / مهم / عاجل
+      • الهوية التجارية: "تصميم هوية"
 
-      • صورة أو فيديو إن وجد
+      • الصيانة: "طلب صيانة أوبرفيكس"
 
-
-      بعدها أجهز الطلب لمسار الصيانة المناسب.
+      • التوريدات: "خامات بناء وجملة"
 
       '
-  utter_route_to_human_with_summary:
-  - text: 'تم استلام طلبك.
+  utter_out_of_scope:
+  - text: '🙏 عذراً، هذا الموضوع خارج نطاق خدماتنا.
 
-      لو الموضوع يحتاج تدخل بشري، سأجهز ملخصًا واضحًا للفريق يشمل: الخدمة، الموقع، درجة الأولوية، والتفاصيل الأساسية.
+      أنا متخصص في خدمات مجموعة العزب فقط.
 
-
-      اكتب آخر تفصيلة ناقصة وسأكمل التحويل.
+      هل يمكنني مساعدتك في شيء آخر؟
 
       '
   utter_session_start:
   - text: '👋 مرحباً! أنا AzaBot، مساعدك الذكي من مجموعة العزب.
 
-      كيف يمكنني خدمتك اليوم؟'
-  utter_clarification_no_options_rasa:
-  - text: 'محتاج تفاصيل أكتر عشان أوجّهك صح.
-
-      اكتب هل تقصد: خدمات، عرض سعر، مراحل التنفيذ، أو أعمال سابقة؟'
-  utter_clarification_options_rasa:
-  - text: 'أقدر أساعدك، لكن محتاج تحدد المقصود.
-
-      اختر الأقرب لطلبك: {{context.clarification_options}}'
-  utter_no_knowledge_base:
-  - text: 'لا توجد لدي معلومة كافية عن النقطة دي حالياً.
-
-      أقدر أساعدك في خدمات مجموعة العزب أو أوصّل طلبك للفريق المختص.'
-  utter_alazab_about:
-  - text: '🏢 **Alazab Construction — التميز المعماري**
-
-
-      الكيان الرئيسي لمجموعة العزب، متخصص في الإدارة الهندسية المتكاملة للمشروعات.
-
-
-      • **الإنشاءات**: بناء العمارات والفلل والمنشآت التجارية.
-
-      • **الإدارة الفنية**: الإشراف الكامل على المواقع والجداول الزمنية.
-
-      • **التجهيزات (Fit-out)**: تشطيبات متكاملة للمباني الإدارية والسكنية.
-
-      • **التطوير العقاري**: إدارة وتطوير المشروعات من الأرض حتى التسليم.
-
-
-      ✅ تنفيذ **125 فرعاً تجارياً** لسلاسل عالمية وإقليمية.
-
-      ✅ إنشاء عمارات سكنية متكاملة في القاهرة الجديدة والتجمع.
-
-
-      لتقديم عرض سعر دقيق، يرجى تزويدنا بـ:
-
-      • نوع المشروع (سكني/تجاري).
-
-      • المساحة الكلية.
-
-      • هل توجد مقايسة معتمدة أم ترغب في عمل مقايسة جديدة؟
+      كيف يمكنني خدمتك اليوم؟
 
       '
-  utter_brand_services:
-  - text: '💎 **Brand Identity — بناء واكتمال الهوية**
+  utter_ask_reason_for_handoff:
+  - text: '👤 سأحولك إلى أحد ممثلي خدمة العملاء.
 
-
-      نحن متخصصون في تصميم وتجسيد "جوهر العلامة التجارية" لسلاسل الفروع والشركات:
-
-      • **تصميم الهوية**: رسم الشخصية البصرية وجوهر العلامة التجارية.
-
-      • **تجهيز وتأسيس (Fit-out)**: التنفيذ الهندسي المتكامل.
-
-      • **تصنيع الوحدات**: إنتاج وحدات العرض والأثاث المخصص.
-
-      • **تسليم على الفرش**: نسلمك المحل مكتملاً وجاهزاً لعرض منتجاتك فوراً.
-
-
-      لأننا نصمم "جوهر الهوية"، يرجى تزويدنا بـ:
-
-      • مساحة الفرع أو المشروع.
-
-      • نوع النشاط التجاري.
-
-      • هل تحتاج تصميم فقط أم تنفيذ "تسليم مفتاح"؟
+      قبل ذلك، ما هو سبب رغبتك في التحدث مع ممثل؟
 
       '
-  utter_luxury_services:
-  - text: '✨ **Luxury Finishing** متخصصة في:
+  utter_offer_human_handoff:
+  - text: '👤 يسعدنا تحويلك إلى ممثل خدمة العملاء.
 
-      • تشطيبات الوحدات السكنية الراقية
-
-      • التصميم الداخلي الفاخر
-
-      • الإشراف الدقيق على التنفيذ
-
-      • أرضيات: رخام إيطالي، بورسلان فاخر
-
-      • حوائط: دهانات Jotun، ورق حائط إيطالي
-
-      • ديلوكس: من 2500 ج/م²
-
-      • سوبر لوكس: من 4500 ج/م²
+      هل تريد الانتظار أو التحدث مع ممثل الآن؟
 
       '
-  utter_laban_products:
-  - text: '🧱 **منتجات Laban Alasfour المتوفرة:**
+    buttons:
+    - title: نعم، تحويل الآن
+      payload: /affirm
+    - title: لا، شكراً
+      payload: /deny
+  utter_human_handoff_immediate:
+  - text: '✅ ممتاز! ممثل خدمة العملاء سيتحدث معك الآن.
 
-      • بناء (طوب، أسمنت، حديد)
-
-      • تشطيب (رخام، سيراميك)
-
-      • تأسيس (كابلات، مواسير)
-
-      '
-  utter_ask_branch_name:
-  - text: 'تمام يا فندم، محتاج أعرف الصيانة دي لأي فرع؟ (مثلاً: فرع المعادي ش 9)'
-  utter_ask_service_item:
-  - text: سأساعدك في تنفيذ طلب الصيانة، ما هي تفاصيل العطل أو البند المطلوب صيانته؟
-  utter_greet:
-  - text: '👋 أهلاً وسهلاً! أنا عزبوت، مساعدك الذكي من مجموعة العزب.
-
-
-      أقدر أساعدك في:
-
-      🔧 صيانة UberFix  |  🏗️ مقاولات  |  ✨ تشطيب  |  🎨 هوية تجارية  |  📦 توريدات
-
-
-      قولّي تحب نبدأ بإيه؟
+      برجاء الانتظار لحظة...
 
       '
-  - text: 'يا هلا! 🌟 أنا عزبوت، وأنا هنا عشان أريّحك وأحل كل حاجة بسرعة.
+  utter_human_handoff_queue:
+  - text: '⏳ أنت في قائمة الانتظار.
 
+      رقمك في الطابور: {queue_position}
 
-      مقاولات؟ تشطيب؟ صيانة؟ هوية تجارية؟ توريدات؟
-
-      كلها في المكان الصح — قولّي تحب نبدأ بإيه! 🚀
-
-      '
-  utter_goodbye:
-  - text: 'شكرًا لتواصلك مع مجموعة العزب 🤝
-
-      سعداء بخدمتك دائمًا، وأي وقت تحتاجنا هتلاقينا معاك.
+      سيصلك ممثل قريباً، برجاء الانتظار.
 
       '
+  utter_agent_connected:
+  - text: '🎉 تم الاتصال بممثل خدمة العملاء!
+
+      سيتولى خدمتك الآن. شكراً لصبرك.
+
+      '
+  utter_human_handoff_offline:
+  - text: '😔 للأسف جميع ممثلينا مشغولون حالياً.
+
+      أوقات عملنا: السبت–الخميس 9ص–10م
+
+      '
+  utter_offer_alternative_contact:
+  - text: 'هل تريد التواصل عبر واتساب مباشرة؟
+
+      '
+    buttons:
+    - title: نعم، واتساب
+      payload: /affirm
+    - title: لا شكراً
+      payload: /deny
+  utter_provide_whatsapp:
+  - text: '📱 تواصل معنا على واتساب:
+
+      +201000000000
+
+      فريقنا سيرد عليك في أقرب وقت.
+
+      '
+  utter_handoff_cancelled:
+  - text: 'تمام! بقيت معي 😊
+
+      هل يمكنني مساعدتك في شيء آخر؟
+
+      '
+  utter_receive_escalation:
+  - text: '📋 سأرفع مشكلتك للمدير المسؤول.
+
+      من فضلك أخبرني بتفاصيل المشكلة.
+
+      '
+  utter_escalate_to_manager:
+  - text: '✅ تم إرسال مشكلتك للمدير المسؤول.
+
+      سيتواصل معك خلال 24 ساعة عمل.
+
+      '
+  utter_ask_lead_info:
+  - text: '📋 يسعدنا اهتمامك بخدماتنا!
+
+      لتحويل بياناتك لفريق المبيعات، أحتاج بعض المعلومات.
+
+      '
+  utter_ask_lead_confirmation:
+  - text: '📋 هل هذه البيانات صحيحة؟
+
+      الاسم: {user_name}
+
+      الهاتف: {user_phone}
+
+      الموقع: {location}
+
+      الخدمة: {service_type}
+
+      '
+    buttons:
+    - title: ✅ نعم، صحيح
+      payload: /affirm
+    - title: ❌ لا، تعديل
+      payload: /deny
+  utter_lead_captured:
+  - text: '✅ تم استلام بياناتك بنجاح!
+
+      سيتواصل معك أحد مهندسينا خلال 24 ساعة عمل.
+
+      شكراً لاهتمامك بمجموعة العزب.
+
+      '
+  utter_ask_restart_collection:
+  - text: 'هل تريد البدء من جديد لتعديل البيانات؟
+
+      '
+    buttons:
+    - title: نعم، ابدأ من جديد
+      payload: /affirm
+    - title: لا، إنهاء
+      payload: /deny
+  utter_ask_feedback:
+  - text: 'هل تريد:
+
+      1️⃣ تقييم الخدمة (1–5 نجوم)
+
+      2️⃣ اقتراح تطوير
+
+      3️⃣ مشاركة تجربتك
+
+      '
+    buttons:
+    - title: ⭐ تقييم الخدمة
+      payload: /provide_rating
+    - title: 💡 اقتراح
+      payload: /provide_suggestion
+    - title: 📝 مشاركة تجربة
+      payload: /give_feedback
+  utter_ask_which_service:
+  - text: '🔧 أي خدمة تقيمها؟
+
+      '
+    buttons:
+    - title: Alazab Construction
+      payload: '/provide_rating{"feedback_service": "alazab"}'
+    - title: Luxury Finishing
+      payload: '/provide_rating{"feedback_service": "luxury"}'
+    - title: Brand Identity
+      payload: '/provide_rating{"feedback_service": "brand"}'
+    - title: UberFix
+      payload: '/provide_rating{"feedback_service": "uberfix"}'
+    - title: Laban Alasfour
+      payload: '/provide_rating{"feedback_service": "laban"}'
+  utter_ask_rating:
+  - text: '⭐ قيم خدمتنا من 1 إلى 5:
+
+
+      1⭐ سيء جداً
+
+      2⭐ سيء
+
+      3⭐ متوسط
+
+      4⭐ جيد
+
+      5⭐ ممتاز
+
+      '
+    buttons:
+    - title: 5 ⭐⭐⭐⭐⭐
+      payload: '/provide_rating{"rating": 5}'
+    - title: 4 ⭐⭐⭐⭐
+      payload: '/provide_rating{"rating": 4}'
+    - title: 3 ⭐⭐⭐
+      payload: '/provide_rating{"rating": 3}'
+    - title: 2 ⭐⭐
+      payload: '/provide_rating{"rating": 2}'
+    - title: 1 ⭐
+      payload: '/provide_rating{"rating": 1}'
+  utter_ask_feedback_details:
+  - text: 📝 شاركنا تجربتك بالتفصيل. ماذا أعجبك أو لم يعجبك؟
+  utter_ask_suggestion_details:
+  - text: 💡 شاركنا اقتراحك لتطوير الخدمة. نحن نسمعك!
+  utter_ask_follow_up_contact:
+  - text: '🙏 نأسف على تجربتك. هل تسمح لنا بالتواصل معك لحل المشكلة؟
+
+      '
+    buttons:
+    - title: نعم، تواصلوا معي
+      payload: /affirm
+    - title: لا شكراً
+      payload: /deny
+  utter_positive_feedback:
+  - text: 😊 يسعدنا جداً أنك راضٍ عن خدمتنا. شكراً لك!
+  utter_negative_apology:
+  - text: 🙏 نأسف على تجربتك السيئة. سنعمل على تحسين الخدمة فوراً.
+  utter_neutral_feedback:
+  - text: 📝 شكراً لرأيك. نعمل باستمرار على تحسين خدماتنا.
+  utter_thanks_for_feedback:
+  - text: 📝 شكراً لمشاركتنا تجربتك. رأيك يصنع الفرق لنا.
+  utter_thanks_for_suggestion:
+  - text: 💡 شكراً لاقتراحك القيّم. سندرسه ونعمل على تطبيقه.
   utter_thanks:
-  - text: تحت أمرك في أي وقت 🤍 وجودك يهمنا!
-  utter_bot_challenge:
-  - text: 'أنا عزبوت 🤖، المساعد الذكي لمجموعة العزب!
-
-      أنا هنا عشان أسهل عليك الوصول لكل خدماتنا.
-
-      تحب نبدأ بإيه؟ 😊
-
-      '
-  utter_out_of_scope:
-  - text: 'للأسف، النقطة دي بره تخصصي شوية 😅
-
-      أنا شاطر في كل ما يخص خدمات مجموعة العزب (مقاولات، تشطيب، صيانة، توريدات).
-
-      تحب أساعدك في حاجة تانية؟ 😊
-
-      '
+  - text: عفواً! أنا دائماً في خدمتك 😊
   utter_default_fallback:
-  - text: 'محتاج أوضح الطلب معاك بشكل أدق.
+  - text: عذراً، لم أفهم ذلك جيداً. هل يمكنك إعادة صياغة سؤالك؟
+  utter_clarification_no_options_rasa:
+  - text: عذراً، أحتاج لمزيد من التوضيح.
+  utter_clarification_options_rasa:
+  - text: هل تقصد أحد الخيارات التالية؟
+  utter_no_relevant_answer_found:
+  - text: لم أتمكن من العثور على إجابة مناسبة في الوقت الحالي.
+  utter_help_menu:
+  - text: كيف يمكنني مساعدتك؟ يمكنك السؤال عن خدماتنا ومشاريعنا.
+  utter_faq_location:
+  - text: نحن متواجدون ونقدم خدماتنا في العديد من المحافظات!
+  utter_faq_payment:
+  - text: نقبل الدفع النقدي والتحويلات البنكية.
+  utter_faq_prices:
+  - text: تختلف الأسعار حسب نوع الخدمة. يرجى إمدادنا بالتفاصيل لنعطيك عرض سعر.
+  utter_faq_timing:
+  - text: الوقت يعتمد على حجم المشروع وسنزودك بجدول زمني مفصل بعد المعاينة.
+  utter_faq_warranty:
+  - text: نقدم ضماناً شاملاً على جميع أعمالنا.
+  utter_top_faqs:
+  - text: '🔥 الأسئلة الأكثر شيوعاً:
 
-      أقدر أساعدك في: الصيانة، التشطيب، المقاولات، الهوية التجارية، أو التوريدات.
 
-      اكتبلي الخدمة المطلوبة بكلمة بسيطة، وأنا أكمّل معاك.
+      💰 "كم سعر التشطيب للمتر؟"
+
+      ⏰ "كام المدة الزمنية للبناء؟"
+
+      🔒 "عندكم ضمان على الشغل؟"
+
+      📍 "بتشتغلوا في أي محافظات؟"
+
+      💳 "ايه طرق الدفع المتاحة؟"
 
       '
-  - text: 'يمكن الطلب وصلني بشكل غلط شوية 😅
-
-      جرب تاني بكلمة واضحة مثلاً: "طلب صيانة"، "عرض سعر تشطيب"، أو "هوية تجارية".
+  utter_ask_faq_topic:
+  - text: '🔍 أي موضوع تريد معرفة المزيد عنه؟
 
       '
+    buttons:
+    - title: 💰 الأسعار
+      payload: /ask_faq_prices
+    - title: ⏰ المدة الزمنية
+      payload: /ask_faq_timing
+    - title: 🔒 الضمان
+      payload: /ask_faq_warranty
+    - title: 💳 طرق الدفع
+      payload: /ask_faq_payment
+    - title: 📍 التغطية الجغرافية
+      payload: /ask_faq_location
+  utter_faqs_menu:
+  - text: '📚 الأسئلة الشائعة — اختر موضوعاً:
+
+      '
+    buttons:
+    - title: 💰 الأسعار
+      payload: /ask_faq_prices
+    - title: ⏰ المدة الزمنية
+      payload: /ask_faq_timing
+    - title: 🔒 الضمان
+      payload: /ask_faq_warranty
+    - title: 💳 طرق الدفع
+      payload: /ask_faq_payment
+    - title: 📍 التغطية
+      payload: /ask_faq_location
+  utter_ask_more_faqs:
+  - text: هل تريد الاستفسار عن موضوع آخر؟
+    buttons:
+    - title: نعم
+      payload: /affirm
+    - title: لا، شكراً
+      payload: /deny
+  utter_thanks_for_faq:
+  - text: 🙏 أتمنى أن أكون قد أجبت على استفسارك. أنا هنا إذا احتجت أي مساعدة.
+  utter_ask_faq_keyword:
+  - text: '🔎 اكتب كلمة مفتاحية عن ما تبحث عنه (مثل: سعر، ضمان، توصيل...):'
+  utter_search_results:
+  - text: '📋 نتائج البحث عن "{keyword}":
+
+
+      {results}
+
+      '
+  utter_no_faq_results:
+  - text: '😕 لم أجد نتائج لبحثك عن "{keyword}".
+
+      حاول كلمة أخرى أو اختر من القائمة.
+
+      '
+  utter_confirm_cancel:
+  - text: 'هل أنت متأكد من الإلغاء؟
+
+      '
+    buttons:
+    - title: نعم، إلغاء
+      payload: /affirm
+    - title: لا، تراجع
+      payload: /deny
+  utter_transferring_to_human:
+  - text: سيتم تحويلك الآن إلى أحد أفراد فريقنا البشري خلال لحظات.
+  - text: You will be transferred to a human agent in a few moments.
+    channel: browser_audio
+  utter_human_handoff_cancelled:
+  - text: تم إلغاء التحويل. هل ترغب في المساعدة في شيء آخر؟
+    metadata:
+      rephrase: true
+  - text: Ok, I understand you don't want to be connected to a human agent. Is there
+      something else I can help you with?
+    channel: browser_audio
+    metadata:
+      rephrase: true
+  utter_ask_maintenance_client_name:
+  - text: ما اسم العميل/الفرع؟
+  utter_ask_maintenance_client_phone:
+  - text: ما رقم هاتف العميل أو إدارة الفرع؟
+  utter_ask_maintenance_service_type:
+  - text: 'ما نوع خدمة الصيانة المطلوبة؟ (مثال: كهرباء، سباكة، تكييف...)'
+  utter_ask_maintenance_description:
+  - text: يرجى وصف المشكلة أو طلب الصيانة بالتفصيل.
+  utter_ask_maintenance_priority:
+  - text: ما أولوية الطلب؟ (عالية، متوسطة، منخفضة)
+  utter_ask_maintenance_request_id:
+  - text: ما رقم الطلب أو المعرف؟
+  utter_maintenance_request_created:
+  - text: 'تم إنشاء طلب الصيانة بنجاح. رقم الطلب: {maintenance_request_number}'
+  utter_maintenance_status:
+  - text: 'حالة الطلب الحالية: {maintenance_status}'
+  utter_maintenance_triaged:
+  - text: تمت مراجعة طلبك وسيتم تعيين فني قريباً.
+  utter_maintenance_assigned:
+  - text: تم تعيين الفني، وسيتم التواصل معك قريباً.
+  utter_placeholder:
+  - text: 'عذراً، هذه الخاصية قيد التطوير.
+
+      يمكنني مساعدتك في خدمات مجموعة العزب مباشرة — فقط أخبرني بما تحتاجه.
+
+      '
+  utter_cannot_handle:
+  - text: 'لم أتمكن من معالجة طلبك بشكل صحيح.
+
+      جرّب إعادة الصياغة، أو اكتب «مساعدة» لأرى كيف أخدمك.
+
+      '
+  utter_ask_rephrase:
+  - text: ممكن تعيد صياغة طلبك بشكل مختلف؟ حاول تكون أكثر تحديداً. 🙏
+  utter_maintenance_intro:
+  - text: أهلاً بك في خدمة عملاء الصيانة المعمارية. أنا المساعد الذكي لشركة العزب.
+      كيف يمكنني مساعدتك اليوم؟
+  utter_ask_client_full_name:
+  - text: يرجى تزويدنا بالاسم الكامل لصاحب البلاغ.
+  utter_ask_client_phone:
+  - text: ما هو رقم هاتفك للتواصل؟
+  utter_ask_property_address:
+  - text: يرجى تزويدنا بعنوان العقار بالكامل (المنطقة، الشارع، رقم المبنى، الدور).
+  utter_ask_issue_description:
+  - text: يرجى وصف المشكلة أو العطل بشكل تفصيلي.
+  utter_ask_issue_type:
+  - text: ما هو نوع العطل الذي تواجهه؟ (سباكة/كهرباء/إنشائية/تشطيبات/تكييف/نجارة)
+    buttons:
+    - title: سباكة
+      payload: /SetSlots(issue_type=plumbing)
+    - title: كهرباء
+      payload: /SetSlots(issue_type=electrical)
+    - title: إنشائية
+      payload: /SetSlots(issue_type=structural)
+    - title: تشطيبات
+      payload: /SetSlots(issue_type=finishing)
+    - title: تكييف
+      payload: /SetSlots(issue_type=hvac)
+    - title: نجارة
+      payload: /SetSlots(issue_type=carpentry)
+  utter_ask_emergency_level:
+  - text: ما هي درجة الطوارئ؟
+    buttons:
+    - title: عاجل
+      payload: /SetSlots(emergency_level=urgent)
+    - title: خلال 24 ساعة
+      payload: /SetSlots(emergency_level=within_24h)
+    - title: خلال أسبوع
+      payload: /SetSlots(emergency_level=within_week)
+    - title: غير عاجل
+      payload: /SetSlots(emergency_level=not_urgent)
+  utter_ask_preferred_visit_time:
+  - text: ما هو الوقت المناسب لزيارة المهندس؟
+  utter_ask_issue_images_url:
+  - text: هل يمكنك مشاركة رابط لصور المشكلة (إن وجدت)؟
+  utter_ask_maintenance_request_number:
+  - text: يرجى تزويدي برقم الطلب أو رقم الهاتف للاستعلام عن الحالة.
+  utter_confirm_maintenance_request:
+  - text: 'تم استلام جميع البيانات، جاري إنشاء طلب الصيانة الآن. ستصلك رسالة عبر واتساب
+      عند إنشاء الطلب بنجاح. شكراً لتواصلك مع شركة العزب.
+
+      '
+  utter_confirm_daftra_sync:
+  - text: تم مزامنة حسابك مع دفترة بنجاح.
+  utter_invoice_created:
+  - text: 'تم إصدار الفاتورة بنجاح. يمكنك مراجعتها عبر الرابط التالي: {daftra_document_url}'
+  utter_invoice_failed:
+  - text: تعذر إصدار الفاتورة. يرجى المحاولة لاحقاً أو مراجعة خدمة العملاء.
+  utter_status_not_found:
+  - text: تعذر إيجاد حالة الطلب. يرجى التأكد من رقم الطلب أو رقم الهاتف.
+  utter_ask_client_name:
+  - text: 'من فضلك أدخل اسم العميل:'
+  utter_ask_service_type:
+  - text: ما هو نوع الخدمة أو القسم؟
+  utter_ask_description:
+  - text: 'يرجى وصف المشكلة بوضوح:'
+  utter_ask_priority:
+  - text: ما هي درجة الأهمية (عادي، طارئ)؟
+  utter_ask_request_number:
+  - text: 'يرجى إدخال رقم طلب الصيانة للتتبع:'
+  utter_request_created:
+  - text: تم إنشاء طلب الصيانة بنجاح. سيتم التواصل معك قريباً.
+  utter_status:
+  - text: 'حالة الطلب الحالية هي: قيد المراجعة.'
+  utter_ask_finishing_type:
+  - text: ما هو نوع التشطيب المطلوب؟
+  utter_ask_finishing_budget:
+  - text: ما هي الميزانية التقريبية؟
+  utter_luxury_request_created:
+  - text: تم استلام طلب التشطيب الفاخر بنجاح.
+  utter_ask_project_id:
+  - text: 'برجاء إدخال معرف المشروع:'
+  utter_luxury_status:
+  - text: 'حالة مشروعك الحالي هي: قيد التنفيذ.'
+  utter_ask_customer_question:
+  - text: كيف يمكنني مساعدتك اليوم؟
+  utter_what_can_you_do:
+  - text: يمكنني مساعدتك في كافة خدمات مجموعة العزب.
+  utter_brand_status:
+  - text: 'حالة المشروع الحالي: قيد التنفيذ.'
+  utter_ask_supply_id:
+  - text: 'برجاء إدخال رقم طلب التوريد:'
+  utter_ask_material_type:
+  - text: ما هو نوع المواد المطلوب توريدها؟
+  utter_ask_quantity:
+  - text: ما هي الكمية المطلوبة؟
+  utter_ask_delivery_date:
+  - text: متى موعد التسليم المتوقع؟
+  utter_supply_request_created:
+  - text: تم استلام طلب التوريد بنجاح.
+  utter_supply_status:
+  - text: 'حالة طلب التوريد الخاص بك: جاري التجهيز.'
+  utter_ask_company_name:
+  - text: ما هو اسم الشركة أو النشاط التجاري؟
+  utter_ask_brand_project_id:
+  - text: 'برجاء إدخال رقم مشروع العلامة التجارية للتتبع:'
+  utter_ask_identity_type:
+  - text: ما هو نوع الهوية المطلوب (بصري، شعار فقط، متكامل)؟
+  utter_ask_brand_budget:
+  - text: ما هي الميزانية المحددة لهذا المشروع؟
+  utter_brand_request_created:
+  - text: تم استلام طلب الهوية التجارية بنجاح.
+actions:
+- utter_bot_challenge
+- utter_ask_help
+- utter_out_of_scope
+- utter_session_start
+- utter_confirm_cancel
+- utter_ask_reason_for_handoff
+- utter_offer_human_handoff
+- utter_human_handoff_immediate
+- utter_human_handoff_queue
+- utter_agent_connected
+- utter_human_handoff_offline
+- utter_offer_alternative_contact
+- utter_provide_whatsapp
+- utter_handoff_cancelled
+- utter_receive_escalation
+- utter_escalate_to_manager
+- utter_ask_lead_info
+- utter_ask_lead_confirmation
+- utter_lead_captured
+- utter_ask_restart_collection
+- utter_ask_feedback
+- utter_ask_which_service
+- utter_ask_rating
+- utter_ask_feedback_details
+- utter_ask_suggestion_details
+- utter_ask_follow_up_contact
+- utter_positive_feedback
+- utter_negative_apology
+- utter_neutral_feedback
+- utter_thanks_for_feedback
+- utter_thanks_for_suggestion
+- utter_thanks
+- utter_default_fallback
+- utter_clarification_no_options_rasa
+- utter_clarification_options_rasa
+- utter_no_relevant_answer_found
+- utter_help_menu
+- utter_top_faqs
+- utter_ask_faq_topic
+- utter_faqs_menu
+- utter_faq_prices
+- utter_faq_timing
+- utter_faq_warranty
+- utter_faq_payment
+- utter_faq_location
+- utter_ask_more_faqs
+- utter_thanks_for_faq
+- utter_ask_faq_keyword
+- utter_search_results
+- utter_no_faq_results
+- action_daftra_sync_client
+- action_daftra_create_invoice
+- action_daftra_get_account_status
+- action_daftra_get_last_invoice
+- action_daftra_get_project_status
+- action_create_maintenance_request
+- action_check_maintenance_status
+- utter_maintenance_intro
+- action_get_maintenance_status
+- action_triage_maintenance_request
+- action_assign_maintenance_request
+- action_create_luxury_finishing_request
+- action_get_luxury_project_status
+- action_check_customer_query
+- action_create_supply_request
+- action_get_supply_status
+- action_create_brand_identity_request
+- action_get_brand_project_status

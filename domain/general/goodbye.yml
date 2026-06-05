@@ -1,4 +1,0 @@
-version: "3.1"
-# domain/general/goodbye.yml
-# الـ responses موجودة في domain/general.yml (utter_goodbye)
-# هذا الملف محجوز للـ slots المستقبلية الخاصة بالوداع

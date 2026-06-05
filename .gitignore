@@ -28,10 +28,7 @@ ssl/
 # ═══════════════════════════════════════════════════
 #  ⛔ تراخيص Rasa (ملفات binary مرخّصة)
 # ═══════════════════════════════════════════════════
-RASA_LICENSE1
-RASA_LICENSE2
-RASA_LICENSE3
-RASA_LICENSE*
+LICENSES/*
 *.rasa_license
 
 # ═══════════════════════════════════════════════════
@@ -123,3 +120,9 @@ desktop.ini
 *.iml
 *.swp
 *.swo
+
+# Rasa local cache
+.rasa/
+
+# Local backup files
+*.back

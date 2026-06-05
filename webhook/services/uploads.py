@@ -21,7 +21,8 @@ from ..config import (
 from ..utils import sanitize_filename
 
 
-import magic
+import filetype
+import mimetypes
 
 async def save_upload(
     upload: UploadFile,
@@ -43,8 +44,15 @@ async def save_upload(
     if len(content) > MAX_UPLOAD_BYTES:
         raise HTTPException(status_code=413, detail="حجم الملف أكبر من المسموح")
 
-    # فحص نوع الملف عبر magic bytes
-    mime = magic.from_buffer(content, mime=True)
+    # فحص نوع الملف عبر filetype أو mimetypes
+    kind_obj = filetype.guess(content)
+    if kind_obj is not None:
+        mime = kind_obj.mime
+    else:
+        mime, _ = mimetypes.guess_type(safe_name)
+        if not mime:
+            mime = "application/octet-stream"
+            
     allowed_mimes = {
         "application/pdf", "application/msword", "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
         "application/vnd.ms-excel", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",

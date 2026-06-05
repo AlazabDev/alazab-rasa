@@ -391,9 +391,43 @@ def update_laban_order_status(order_id: str, status: str) -> bool:
 # ══════════════════════════════════════════════════════════════
 
 def list_uploads(kind: str = "", q: str = "") -> list[dict]:
-    """يُعيد الملفات المرفوعة — يستخدم filesystem مؤقتاً."""
-    # TODO: نقل إلى Supabase Storage
-    return []
+    """يُعيد الملفات المرفوعة من Supabase Storage."""
+    try:
+        client = _sb()
+        if not client:
+            return []
+        
+        res = client.storage.from_("uploads").list()
+        
+        results = []
+        for file in res:
+            name = file.get("name", "")
+            if name == ".emptyFolderPlaceholder": 
+                continue
+                
+            metadata = file.get("metadata", {})
+            ctype = metadata.get("mimetype", "")
+            size = metadata.get("size", 0)
+            
+            fk = "audio" if "audio" in ctype else "image" if "image" in ctype else "file"
+            if kind and kind != fk:
+                continue
+            if q and q.lower() not in name.lower():
+                continue
+                
+            results.append({
+                "id": file.get("id") or str(uuid.uuid4()),
+                "name": name,
+                "kind": fk,
+                "content_type": ctype,
+                "size": size,
+                "created_at": file.get("created_at", ""),
+            })
+            
+        return sorted(results, key=lambda x: x["created_at"], reverse=True)
+    except Exception as exc:
+        logger.error("list_uploads: %s", exc)
+        return []
 
 
 def serialize_attachment(upload: dict) -> dict:

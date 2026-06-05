@@ -39,24 +39,39 @@ data/
 
 ---
 
-## التشغيل السريع
+## التشغيل السريع (التطوير)
 
 ```bash
 # 1. الإعداد
-make setup
+bash az.sh setup
 # ← عدّل .env بقيمك الحقيقية
 
-# 2. قاعدة البيانات
-make db-init
+# 2. إعداد قاعدة البيانات (في حال الحاجة)
+bash az.sh db-init
 
-# 3. التدريب (20-40 دقيقة)
-make train
+# 3. تدريب النموذج
+bash az.sh train
 
-# 4. التشغيل
-make run
+# 4. تشغيل جميع الخدمات (Backend + Frontend)
+bash az.sh dev
 
-# 5. اختبار
-make test-chat
+# 5. اختبار النظام
+bash az.sh smoke
+```
+
+---
+
+## التشغيل في بيئة الإنتاج (Production)
+
+```bash
+# فحص جاهزية الإنتاج
+bash az.sh prod-preflight
+
+# تشغيل حاويات الإنتاج
+bash az.sh prod-up
+
+# إيقاف التشغيل
+bash az.sh prod-down
 ```
 
 ---

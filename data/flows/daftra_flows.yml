@@ -1,0 +1,41 @@
+version: '3.1'
+flows:
+  check_account_status:
+    name: daftra check account status
+    description: يستعلم للعميل عن حالة الحساب المالي أو الرصيد أو المبالغ المستحقة المسجلة في دفترة باستخدام رقم الهاتف.
+    nlu_trigger:
+    - intent: check_account_status
+    steps:
+    - collect: user_phone
+      description: رقم الهاتف المسجل للعميل للبحث عن الحساب المالي.
+      ask_before_filling: false
+      reset_after_flow_ends: false
+    - action: action_daftra_sync_client
+    - action: action_daftra_get_account_status
+      next: END
+  check_last_invoice:
+    name: daftra check last invoice
+    description: يستعلم للعميل عن آخر فاتورة أو الفاتورة المستحقة المسجلة في دفترة باستخدام رقم الهاتف.
+    nlu_trigger:
+    - intent: check_last_invoice
+    steps:
+    - collect: user_phone
+      description: رقم الهاتف المسجل للعميل للبحث عن آخر فاتورة.
+      ask_before_filling: false
+      reset_after_flow_ends: false
+    - action: action_daftra_sync_client
+    - action: action_daftra_get_last_invoice
+      next: END
+  check_project_status:
+    name: daftra check project status
+    description: يستعلم للعميل عن حالة المشروع أو أمر الشغل أو متابعة التنفيذ المسجلة في دفترة باستخدام رقم الهاتف.
+    nlu_trigger:
+    - intent: check_project_status
+    steps:
+    - collect: user_phone
+      description: رقم الهاتف المسجل للعميل للبحث عن المشروع أو أمر الشغل.
+      ask_before_filling: false
+      reset_after_flow_ends: false
+    - action: action_daftra_sync_client
+    - action: action_daftra_get_project_status
+      next: END
