@@ -1,116 +1,130 @@
 """
 actions/action_daftra_ops.py
 =============================
-عمليات دفترة المحاسبية:
-- ActionDaftraSyncClient  → البحث عن العميل أو إنشاؤه في دفترة
-- ActionDaftraCreateInvoice → إصدار فاتورة مرتبطة بطلب الصيانة
+Daftra accounting actions for AzaBot.
+
+Production scope:
+- action_daftra_sync_client: find/create Daftra client by phone.
+- action_daftra_create_invoice: create draft invoice and link it to maintenance request.
 """
+from __future__ import annotations
 
 import logging
-from typing import Any, Text, Dict, List
+from typing import Any, Dict, List, Optional, Text
 
 import httpx
 from rasa_sdk import Action, Tracker
-from rasa_sdk.executor import CollectingDispatcher
 from rasa_sdk.events import SlotSet
+from rasa_sdk.executor import CollectingDispatcher
 
 from .config import DAFTRA_API_KEY, DAFTRA_BASE_URL
 from .core.db import update as db_update
 
 logger = logging.getLogger(__name__)
 
-# ── مساعد: بناء رابط الفاتورة ──────────────────────────────────────────────
+
+def _clean(value: Any) -> str:
+    return str(value or "").strip()
 
 
 def _invoice_url(invoice_id: Any) -> str:
-    """يبني رابط عرض الفاتورة من DAFTRA_BASE_URL."""
-    # DAFTRA_BASE_URL = "https://{subdomain}.daftra.com/api2"
-    # رابط العرض   = "https://{subdomain}.daftra.com/invoices/view/{id}"
+    """Build public Daftra invoice URL from configured API base URL."""
     base = DAFTRA_BASE_URL.rstrip("/")
-    # إزالة /api2 من النهاية إن وجدت
     if base.endswith("/api2"):
         base = base[: -len("/api2")]
     return f"{base}/invoices/view/{invoice_id}"
 
 
-# ── مساعد: تحديث قاعدة البيانات ────────────────────────────────────────────
+def _headers() -> dict[str, str]:
+    return {"apikey": DAFTRA_API_KEY, "Content-Type": "application/json"}
 
 
-async def _update_request_invoice(request_id: str, invoice_id: Any, doc_url: str) -> None:
-    """يحدّث طلب الصيانة في Supabase بمعلومات الفاتورة."""
+def _extract_client_id(payload: dict[str, Any]) -> Optional[str]:
+    """Handle common Daftra API response shapes."""
+    if payload.get("id"):
+        return str(payload["id"])
+
+    data = payload.get("data")
+    if isinstance(data, list) and data:
+        first = data[0]
+        if isinstance(first, dict):
+            client = first.get("Client") if isinstance(first.get("Client"), dict) else first
+            if client.get("id"):
+                return str(client["id"])
+
+    if isinstance(data, dict):
+        client = data.get("Client") if isinstance(data.get("Client"), dict) else data
+        if client.get("id"):
+            return str(client["id"])
+
+    return None
+
+
+async def _update_request_invoice(request_id: str, invoice_id: Any, doc_url: str) -> bool:
+    """Link created invoice to the maintenance request in Supabase."""
+    request_id = _clean(request_id)
+    if not request_id:
+        return False
+
     ok = await db_update(
         "maintenance_requests",
         {"id": request_id},
         {
-            "daftra_invoice_id":   str(invoice_id),
+            "daftra_invoice_id": str(invoice_id),
             "daftra_document_url": doc_url,
-            "payment_status":      "pending",
+            "payment_status": "pending",
         },
     )
     if ok:
         logger.info("Invoice %s linked to request %s", invoice_id, request_id)
     else:
         logger.error("Supabase update for invoice failed: request=%s", request_id)
-
-
-# ═══════════════════════════════════════════════════════════════════════════
-#  Action 1: مزامنة العميل مع دفترة
-# ═══════════════════════════════════════════════════════════════════════════
+    return ok
 
 
 class ActionDaftraSyncClient(Action):
-    """
-    يبحث عن العميل برقم الهاتف في دفترة.
-    إذا لم يجد العميل، يقوم بإنشائه.
-    يخزن Client ID في slot لاستخدامه في الفواتير.
-    """
+    """Find Daftra client by phone, or create it when missing."""
 
     def name(self) -> Text:
         return "action_daftra_sync_client"
 
-    def run(
+    async def run(
         self,
         dispatcher: CollectingDispatcher,
         tracker: Tracker,
         domain: Dict[Text, Any],
     ) -> List[Dict[Text, Any]]:
-        phone = tracker.get_slot("user_phone")
-        name = tracker.get_slot("user_name") or "عميل واتساب"
+        phone = _clean(tracker.get_slot("user_phone") or tracker.get_slot("maintenance_client_phone"))
+        name = _clean(tracker.get_slot("user_name") or tracker.get_slot("maintenance_client_name")) or "عميل واتساب"
 
         if not phone:
-            logger.warning("action_daftra_sync_client: user_phone slot is empty")
+            logger.warning("action_daftra_sync_client: user phone slot is empty")
             return []
 
         if not DAFTRA_API_KEY:
             logger.warning("DAFTRA_API_KEY not configured — skipping sync")
             return []
 
-        headers = {"apikey": DAFTRA_API_KEY, "Content-Type": "application/json"}
+        client_id: Optional[str] = None
 
         try:
-            with httpx.Client(timeout=10) as client:
-                # 1. البحث عن عميل موجود
-                search_resp = client.get(
+            async with httpx.AsyncClient(timeout=15) as client:
+                search_resp = await client.get(
                     f"{DAFTRA_BASE_URL}/clients",
-                    headers=headers,
+                    headers=_headers(),
                     params={"phone": phone},
                 )
                 search_resp.raise_for_status()
-                res_data = search_resp.json()
+                client_id = _extract_client_id(search_resp.json())
 
-                client_id = None
-                if res_data.get("code") == 200 and res_data.get("data"):
-                    client_id = res_data["data"][0]["Client"]["id"]
-                    logger.info("Daftra: found existing client %s", client_id)
-                else:
-                    # 2. إنشاء عميل جديد
+                if not client_id:
                     logger.info(
                         "Daftra: client not found for phone suffix %s — creating",
                         phone[-4:],
                     )
-                    create_resp = client.post(
+                    create_resp = await client.post(
                         f"{DAFTRA_BASE_URL}/clients",
-                        headers=headers,
+                        headers=_headers(),
                         json={
                             "Client": {
                                 "first_name": name,
@@ -120,13 +134,13 @@ class ActionDaftraSyncClient(Action):
                         },
                     )
                     create_resp.raise_for_status()
-                    create_data = create_resp.json()
-                    if create_data.get("code") == 202:
-                        client_id = create_data.get("id")
-                        logger.info("Daftra: created new client %s", client_id)
+                    client_id = _extract_client_id(create_resp.json())
 
             if client_id:
-                return [SlotSet("daftra_client_id", str(client_id))]
+                logger.info("Daftra: synced client %s", client_id)
+                return [SlotSet("daftra_client_id", client_id)]
+
+            logger.warning("Daftra: client sync returned no client id")
 
         except Exception as exc:
             logger.error("Daftra sync error: %s", exc)
@@ -134,33 +148,33 @@ class ActionDaftraSyncClient(Action):
         return []
 
 
-# ═══════════════════════════════════════════════════════════════════════════
-#  Action 2: إصدار فاتورة في دفترة
-# ═══════════════════════════════════════════════════════════════════════════
-
-
 class ActionDaftraCreateInvoice(Action):
-    """
-    يصدر فاتورة مسودة في دفترة بناءً على الخدمة المقدمة.
-    يربط الفاتورة بطلب الصيانة في قاعدة البيانات.
-    """
+    """Create a draft Daftra invoice and link it to the active maintenance request."""
 
     def name(self) -> Text:
         return "action_daftra_create_invoice"
 
-    def run(
+    async def run(
         self,
         dispatcher: CollectingDispatcher,
         tracker: Tracker,
         domain: Dict[Text, Any],
     ) -> List[Dict[Text, Any]]:
-        client_id = tracker.get_slot("daftra_client_id")
-        service_item = tracker.get_slot("service_item") or "خدمة صيانة عامة"
+        client_id = _clean(tracker.get_slot("daftra_client_id"))
+        service_item = _clean(tracker.get_slot("service_item")) or _clean(
+            tracker.get_slot("maintenance_service_type")
+        ) or "خدمة صيانة عامة"
+
+        request_id = _clean(
+            tracker.get_slot("maintenance_request_id")
+            or tracker.get_slot("order_id")
+            or tracker.get_slot("maintenance_request_number")
+            or tracker.get_slot("order_number")
+        )
 
         if not client_id:
             logger.warning(
-                "action_daftra_create_invoice: daftra_client_id is empty — "
-                "run action_daftra_sync_client first"
+                "action_daftra_create_invoice: daftra_client_id is empty — run action_daftra_sync_client first"
             )
             dispatcher.utter_message(
                 text="جاري مزامنة بياناتك المالية مع النظام، يرجى المحاولة مجدداً."
@@ -174,57 +188,65 @@ class ActionDaftraCreateInvoice(Action):
             )
             return []
 
-        headers = {"apikey": DAFTRA_API_KEY, "Content-Type": "application/json"}
         invoice_payload = {
             "Invoice": {
                 "client_id": int(client_id),
-                "draft": True,  # مسودة — يراجعها المحاسب قبل الإرسال
+                "draft": True,
                 "notes": "صادرة عبر AzaBot",
             },
             "InvoiceItem": [
                 {
                     "item": service_item,
                     "quantity": 1,
-                    "unit_price": 0,  # السعر يُحدَّد لاحقاً من المحاسب
+                    "unit_price": 0,
                 }
             ],
         }
 
         try:
-            with httpx.Client(timeout=10) as client:
-                resp = client.post(
+            async with httpx.AsyncClient(timeout=20) as client:
+                resp = await client.post(
                     f"{DAFTRA_BASE_URL}/invoices",
-                    headers=headers,
+                    headers=_headers(),
                     json=invoice_payload,
                 )
                 resp.raise_for_status()
                 res_data = resp.json()
 
-            if res_data.get("code") == 202:
-                invoice_id = res_data.get("id")
-                doc_url = _invoice_url(invoice_id)
-
-                # تحديث قاعدة البيانات إذا كان هناك request_id
-                request_id = tracker.get_slot("maintenance_request_id")
-                if request_id:
-                    _update_request_invoice(request_id, invoice_id, doc_url)
-
-                logger.info("Daftra: invoice %s created for client %s", invoice_id, client_id)
-                dispatcher.utter_message(
-                    text=(
-                        f"✅ تم إصدار الفاتورة بنجاح.\n"
-                        f"🔗 يمكنك استلامها من هنا: {doc_url}"
-                    )
-                )
-                return [
-                    SlotSet("daftra_last_invoice_id", str(invoice_id)),
-                    SlotSet("daftra_document_url", doc_url),
-                ]
-            else:
-                logger.error("Daftra invoice creation returned: %s", res_data)
+            invoice_id = res_data.get("id") or _extract_client_id(res_data)
+            if not invoice_id:
+                logger.error("Daftra invoice creation returned no invoice id: %s", res_data)
                 dispatcher.utter_message(
                     text="⚠️ تعذر إصدار الفاتورة آلياً، سيتم مراجعتها من قبل المحاسب."
                 )
+                return []
+
+            doc_url = _invoice_url(invoice_id)
+            linked = False
+            if request_id:
+                linked = await _update_request_invoice(request_id, invoice_id, doc_url)
+
+            logger.info(
+                "Daftra: invoice %s created for client %s | linked=%s",
+                invoice_id,
+                client_id,
+                linked,
+            )
+
+            dispatcher.utter_message(
+                text=(
+                    "✅ تم إصدار الفاتورة بنجاح.\n"
+                    f"🔗 يمكنك استلامها من هنا: {doc_url}"
+                )
+            )
+
+            events: List[Dict[Text, Any]] = [
+                SlotSet("daftra_last_invoice_id", str(invoice_id)),
+                SlotSet("daftra_document_url", doc_url),
+            ]
+            if linked:
+                events.append(SlotSet("payment_status", "pending"))
+            return events
 
         except Exception as exc:
             logger.error("Daftra invoice error: %s", exc)
