@@ -1,0 +1,29 @@
+[Unit]
+Description=AzaBot — Rasa Pro CALM Server
+After=network.target azabot-actions.service
+Requires=azabot-actions.service
+
+[Service]
+Type=simple
+User=azureuser
+WorkingDirectory=/mnt/apps/alazab-rasa
+EnvironmentFile=/mnt/apps/alazab-rasa/.env
+ExecStartPre=/bin/bash -c 'for i in 1 2 3 4 5 6 7 8 9 10; do curl -fsS http://127.0.0.1:5055/health > /dev/null 2>&1 && break; sleep 3; done'
+ExecStart=/mnt/apps/alazab-rasa/.venv/bin/rasa run \
+    --enable-api \
+    --cors "*" \
+    --port 5005 \
+    --endpoints .runtime/endpoints.generated.yml
+Restart=always
+RestartSec=15
+StartLimitInterval=300
+StartLimitBurst=3
+TimeoutStartSec=180
+StandardOutput=append:/mnt/apps/alazab-rasa/logs/rasa.out.log
+StandardError=append:/mnt/apps/alazab-rasa/logs/rasa.err.log
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+
+[Install]
+WantedBy=multi-user.target

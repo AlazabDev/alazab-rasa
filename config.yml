@@ -1,0 +1,82 @@
+# ══════════════════════════════════════════════════════════════
+# config.yml — AzaBot Rasa Pro CALM
+# Rasa Pro >= 3.16 | Arabic NLU + LLM Dialogue Understanding
+#
+# الاستراتيجية: Hybrid (NLU + LLM)
+#   - NLU يتولى intents البسيطة والسريعة (greet, bye, affirm)
+#   - LLM يتولى الـ flows المعقدة والسياق
+#   - EnterpriseSearchPolicy يجيب على الأسئلة المعرفية
+# ══════════════════════════════════════════════════════════════
+recipe: default.v1
+language: ar
+assistant_id: alazab-group-bot
+
+# ── Pipeline ──────────────────────────────────────────────────
+pipeline:
+  # Tokenizer للعربية
+  - name: WhitespaceTokenizer
+    intent_tokenization_flag: false
+
+  # Featurizers
+  - name: RegexFeaturizer
+    case_sensitive: false
+  - name: LexicalSyntacticFeaturizer
+  - name: CountVectorsFeaturizer
+    analyzer: word
+    min_ngram: 1
+    max_ngram: 2
+    OOV_token: __oov__
+  - name: CountVectorsFeaturizer
+    analyzer: char_wb
+    min_ngram: 3
+    max_ngram: 5
+
+  # NLU Classifier — للـ intents البسيطة
+  - name: DIETClassifier
+    epochs: 80
+    constrain_similarities: true
+    batch_strategy: balanced
+    entity_recognition: true
+    random_seed: 42
+
+  - name: EntitySynonymMapper
+  - name: ResponseSelector
+    epochs: 60
+    constrain_similarities: true
+
+  # CALM — LLM Command Generator
+  # يستخدم LLM لفهم الـ flows المعقدة والسياق
+  - name: SingleStepLLMCommandGenerator
+    llm:
+      model_group: command_generator_llm
+
+  - name: FallbackClassifier
+    threshold: 0.30
+    ambiguity_threshold: 0.1
+
+  - name: NLUCommandAdapter
+
+# ── Policies ──────────────────────────────────────────────────
+policies:
+  # FlowPolicy — قلب CALM
+  - name: FlowPolicy
+
+  # Enterprise Search — يجيب على الأسئلة المعرفية من data/services/
+  - name: EnterpriseSearchPolicy
+    llm:
+      model_group: enterprise_search_generation
+    embeddings:
+      model_group: enterprise_search_embeddings
+    vector_store:
+      type: faiss
+      source: "./data/services"
+
+  # MemoizationPolicy — يحفظ المسارات المتكررة
+  - name: MemoizationPolicy
+    max_history: 8
+
+  # RulePolicy — للـ rules الثابتة (greet, bye)
+  - name: RulePolicy
+    core_fallback_threshold: 0.30
+    core_fallback_action_name: action_default_fallback
+    enable_fallback_prediction: true

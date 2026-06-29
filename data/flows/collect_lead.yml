@@ -1,0 +1,126 @@
+version: "3.1"
+# ══════════════════════════════════════════════════════════════
+# data/general/collect_lead.yml
+# ✅ القاعدة 3: collect_lead يعكس سياق الـ Segment
+#    الفلو يتفرّع حسب slots.brand (المضبوط في action_session_start)
+#    بعد الاسم والهاتف، كل segment يسأل فقط عن حقوله الخاصة.
+# ══════════════════════════════════════════════════════════════
+flows:
+  collect_lead:
+    description: >
+      جمع بيانات العميل المحتمل (lead) — يتفرّع حسب البراند بعد
+      الاسم والهاتف، فكل segment يسأل فقط عن الحقول التي تخصه.
+    name: "collect lead"
+    steps:
+      # تجميع السياق أولاً (يعرف البراند من slot)
+      - action: action_accumulate_context
+
+      # ── الحقول المشتركة لكل البراندات ──────────────────────
+      - collect: user_name
+        description: "اسم العميل. إذا ذُكر سابقاً لا تسأل مجدداً."
+        ask_before_filling: false
+        reset_after_flow_ends: false
+
+      - collect: user_phone
+        description: "رقم هاتف التواصل. إذا ذُكر سابقاً لا تسأل."
+        ask_before_filling: false
+        reset_after_flow_ends: false
+
+      # بناء طلب شامل من السياق، ثم التفرّع فوراً حسب البراند
+      - id: build_context_then_branch
+        action: action_build_full_request
+        next:
+          - if: slots.brand = "uberfix"
+            then: ask_uberfix_service
+          - if: slots.brand = "laban_alasfour"
+            then: ask_laban_unit
+          - if: slots.brand = "luxury_finishing"
+            then: ask_luxury_area
+          - if: slots.brand = "alazab_construction"
+            then: ask_construction_scope
+          - if: slots.brand = "brand_identity"
+            then: ask_brand_identity_scope
+          - else: ask_general_message
+
+      # ── UberFix: نوع الخدمة + الموقع ────────────────────────
+      - id: ask_uberfix_service
+        collect: service_type
+        description: "نوع خدمة الصيانة المطلوبة (سباكة، كهرباء، تكييف...)"
+        ask_before_filling: false
+        reset_after_flow_ends: false
+        next: ask_uberfix_location
+
+      - id: ask_uberfix_location
+        collect: location
+        description: "موقع العميل لتوجيه الفني المناسب"
+        ask_before_filling: false
+        reset_after_flow_ends: false
+        next: submit_lead_final
+
+      # ── Laban Alasfour: نوع الوحدة + الخامة ────────────────
+      - id: ask_laban_unit
+        collect: unit_type
+        description: "نوع الوحدة أو المنتج المطلوب (خشب، رخام، بورسلان...)"
+        ask_before_filling: false
+        reset_after_flow_ends: false
+        next: ask_laban_material
+
+      - id: ask_laban_material
+        collect: material_type
+        description: "نوع الخامة أو الكمية المطلوبة"
+        ask_before_filling: false
+        reset_after_flow_ends: false
+        next: submit_lead_final
+
+      # ── Luxury Finishing: مساحة + نوع الوحدة ───────────────
+      - id: ask_luxury_area
+        collect: area_size
+        description: "المساحة التقريبية بالمتر المربع"
+        ask_before_filling: false
+        reset_after_flow_ends: false
+        next: ask_luxury_property_type
+
+      - id: ask_luxury_property_type
+        collect: property_type
+        description: "نوع الوحدة: شقة، فيلا، مكتب، تجاري"
+        ask_before_filling: false
+        reset_after_flow_ends: false
+        next: submit_lead_final
+
+      # ── Alazab Construction: نطاق المشروع + الموقع ─────────
+      - id: ask_construction_scope
+        collect: project_scope
+        description: "نطاق المشروع: مقاولات عامة، تنفيذ، إدارة مشروع"
+        ask_before_filling: false
+        reset_after_flow_ends: false
+        next: ask_construction_location
+
+      - id: ask_construction_location
+        collect: location
+        description: "موقع المشروع"
+        ask_before_filling: false
+        reset_after_flow_ends: false
+        next: submit_lead_final
+
+      # ── Brand Identity: نطاق العمل ──────────────────────────
+      - id: ask_brand_identity_scope
+        collect: project_scope
+        description: "نطاق العمل: شعار، هوية كاملة، تجهيز مساحة"
+        ask_before_filling: false
+        reset_after_flow_ends: false
+        next: submit_lead_final
+
+      # ── عام (بدون براند معروف) ──────────────────────────────
+      - id: ask_general_message
+        collect: user_message
+        description: >
+          وصف الطلب أو الخدمة المطلوبة. يجمع تلقائياً من كل ما
+          قاله المستخدم إن أمكن.
+        ask_before_filling: false
+        reset_after_flow_ends: false
+        next: submit_lead_final
+
+      # ── إرسال الطلب — نقطة نهاية مشتركة ─────────────────────
+      - id: submit_lead_final
+        action: action_submit_lead
+        next: END

@@ -1,0 +1,68 @@
+version: "3.1"
+flows:
+  # ── استفسار عن الوحدات الخشبية والتصاميم ──────────────────
+  # القاعدة: Laban = موقع متخصص. البوت يُوجّه ولا يحل محل الموقع.
+  laban_inquiry:
+    description: >
+      عندما يسأل العميل عن الوحدات الخشبية أو التصاميم أو الأسعار،
+      يُوجَّه فوراً لموقع laban-alasfour.alazab.com
+      مع عرض جمع بياناته لمتابعة الفريق.
+    name: "laban inquiry"
+    steps:
+      - action: utter_laban_redirect_to_site
+        next: offer_lead
+
+      - id: offer_lead
+        action: utter_laban_offer_contact
+        next:
+          - if: context.intent = "affirm"
+            then: collect
+          - if: context.intent = "deny"
+            then: END
+          - else: END
+
+      - id: collect
+        link: collect_lead
+
+  # ── عرض المنتجات ────────────────────────────────────────────
+  laban_products:
+    description: "يعرض منتجات وخامات Laban Alasfour"
+    name: "laban products"
+    steps:
+      - action: utter_laban_products
+      - action: utter_laban_redirect_to_site
+        next: END
+
+  # ── كتالوج ──────────────────────────────────────────────────
+  laban_catalog:
+    description: "يُوجّه لكتالوج Laban Alasfour"
+    name: "laban catalog"
+    steps:
+      - action: action_laban_show_catalog
+      - action: utter_laban_redirect_to_site
+        next: END
+
+  # ── توصيل ──────────────────────────────────────────────────
+  laban_delivery:
+    description: "يوضح خدمة التوصيل ويُوجّه للموقع"
+    name: "laban delivery"
+    steps:
+      - action: action_laban_check_delivery
+      - action: utter_laban_redirect_to_site
+        next: END
+
+  # ── طلب بالجملة ─────────────────────────────────────────────
+  laban_bulk_order:
+    description: "يستقبل طلب توريد بالجملة ويجمع بيانات العميل"
+    name: "laban bulk order"
+    steps:
+      - action: action_laban_bulk_quote
+      - link: collect_lead
+
+  # ── تواصل ──────────────────────────────────────────────────
+  laban_contact:
+    description: "يُوجّه للتواصل مع فريق Laban"
+    name: "laban contact"
+    steps:
+      - action: utter_laban_contact
+        next: END

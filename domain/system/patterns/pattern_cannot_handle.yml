@@ -1,0 +1,12 @@
+version: "3.1"
+
+responses:
+  utter_no_relevant_answer_found:
+    - text: I'm sorry, I can't help with that.
+      metadata:
+        rephrase: True
+
+  utter_chitchat:
+    - text: "أنا معك. اكتب طلبك أو سؤالك، وسأحاول توجيهك للمسار الصحيح."
+      metadata:
+        rephrase: True

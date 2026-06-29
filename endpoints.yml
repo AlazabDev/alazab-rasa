@@ -1,0 +1,53 @@
+# ══════════════════════════════════════════════════════════════
+# endpoints.yml — Rasa Pro CALM (إنتاج)
+# ✅ جميع القيم من .env — صفر credentials مكتوبة صريحاً
+# ══════════════════════════════════════════════════════════════
+
+action_endpoint:
+  url: "${ACTION_SERVER_URL}"
+
+# ── Tracker Store → Supabase PostgreSQL ───────────────────────
+# ✅ project ID والـ host يُقرآن من .env (كانا مكتوبين صريحاً سابقاً)
+tracker_store:
+  type: SQL
+  dialect: postgresql
+  url: "postgresql://${DB_USER}:${SUPABASE_DB_PASSWORD}@${DB_HOST}:${DB_PORT}/${DB_NAME}"
+
+# ── Lock Store → Redis (كان in_memory — لا يصلح لتعدد العمليات) ─
+lock_store:
+  type: redis
+  url: "${REDIS_HOST}"
+  port: "${REDIS_PORT}"
+  db: 1
+  password: "${REDIS_PASSWORD}"
+  use_ssl: "${REDIS_USE_SSL}"
+  key_prefix: "alazab_lock"
+
+# ── Model Groups (مطلوبة لـ CALM) ──────────────────────────────
+model_groups:
+  - id: command_generator_llm
+    models:
+      - provider: openai
+        model: gpt-4o-mini
+        timeout: 25
+
+  - id: enterprise_search_generation
+    models:
+      - provider: openai
+        model: gpt-4o-mini
+        timeout: 20
+
+  - id: enterprise_search_embeddings
+    models:
+      - provider: openai
+        model: text-embedding-3-large
+        timeout: 15
+
+  - id: openai-gpt-4o
+    models:
+      - provider: openai
+        model: gpt-4o
+        timeout: 30
+
+nlg:
+  type: rephrase

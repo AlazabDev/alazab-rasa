@@ -1,0 +1,82 @@
+version: '3.1'
+slots:
+  maintenance_client_name:
+    type: text
+    mappings:
+    - type: custom
+  maintenance_client_phone:
+    type: text
+    mappings:
+    - type: custom
+  maintenance_service_type:
+    type: text
+    mappings:
+    - type: custom
+  maintenance_description:
+    type: text
+    mappings:
+    - type: custom
+  maintenance_priority:
+    type: text
+    mappings:
+    - type: custom
+  maintenance_request_id:
+    type: text
+    mappings:
+    - type: custom
+  maintenance_request_number:
+    type: text
+    mappings:
+    - type: custom
+  maintenance_status:
+    type: text
+    mappings:
+    - type: custom
+  maintenance_stage:
+    type: text
+    mappings:
+    - type: custom
+responses:
+  utter_ask_maintenance_client_name:
+  - text: أهلاً بك في قسم الصيانة. لضمان تقديم خدمة سريعة ودقيقة، يرجى التكرم بكتابة اسمك أو اسم الفرع.
+  utter_ask_maintenance_client_phone:
+  - text: شكراً لك. يرجى تزويدي برقم هاتف للتواصل والمتابعة.
+  utter_ask_maintenance_service_type:
+  - text: 'عظيم! ما هو نوع الصيانة المطلوبة؟ (مثال: كهرباء، سباكة، تكييف، أنظمة حريق...)'
+  utter_ask_maintenance_description:
+  - text: يرجى وصف المشكلة أو العطل بالتفصيل لنتمكن من توجيه الفني المختص.
+  utter_ask_maintenance_priority:
+  - text: ما مدى أولوية هذا الطلب بالنسبة لك؟ (عالية / متوسطة / منخفضة)
+  utter_ask_maintenance_request_id:
+  - text: يرجى إدخال رقم الطلب المرجعي للاستعلام.
+  utter_maintenance_request_created:
+  - text: '✅ تم تسجيل طلب الصيانة بنجاح. رقم طلبك هو: {maintenance_request_number}. سنتواصل معك في أقرب فرصة!'
+  utter_maintenance_status:
+  - text: 'حالة طلبك الحالي: {maintenance_status}'
+  utter_maintenance_triaged:
+  - text: تمت مراجعة طلبك من قبل الدعم الفني، وجاري تعيين الفني المناسب للمهمة.
+  utter_maintenance_assigned:
+  - text: تم تكليف الفني المختص بطلبك، وسيتم التواصل معك لترتيب الزيارة في أقرب وقت.
+  utter_maintenance_fast_start:
+  - text: 'تمام يا مدير! 🛠️
+
+      خلينا نسجل الطلب صح من أول مرة عشان الفريق يوصل بسرعة.
+
+      اكتب لي:
+
+      • اسم الفرع
+
+      • نوع العطل أو البند
+
+      • درجة الخطورة: (عادي / مهم / عاجل)
+
+      • صورة أو فيديو إن وجد
+
+
+      منتظرك عشان أجهز الطلب فوراً.
+
+      '
+  utter_ask_branch_name:
+  - text: 'تمام يا فندم، ممكن تقولي الصيانة دي لأي فرع؟ (مثال: فرع التجمع الخامس)'
+  utter_ask_service_item:
+  - text: سأساعدك في تنفيذ الطلب، ممكن توضحلي تفاصيل العطل أو المشكلة إيه بالظبط؟

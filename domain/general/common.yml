@@ -1,0 +1,142 @@
+version: '3.1'
+slots:
+  brand:
+    type: text
+    mappings:
+    - type: custom
+  context_memory:
+    type: text
+    mappings:
+    - type: custom
+    initial_value: null
+  user_name:
+    type: text
+    mappings:
+    - type: from_llm
+  user_phone:
+    type: text
+    mappings:
+    - type: from_llm
+  user_email:
+    type: text
+    mappings:
+    - type: from_llm
+  user_message:
+    type: text
+    mappings:
+    - type: from_llm
+  client_name:
+    type: text
+    mappings:
+    - type: from_llm
+  client_phone:
+    type: text
+    mappings:
+    - type: from_llm
+  requested_slot:
+    type: text
+    mappings:
+    - type: custom
+  location:
+    type: text
+    mappings:
+    - type: from_llm
+  area_size:
+    type: text
+    mappings:
+    - type: from_llm
+  order_id:
+    type: text
+    mappings:
+    - type: from_llm
+  problem_type:
+    type: text
+    mappings:
+    - type: from_llm
+  subscription_type:
+    type: text
+    mappings:
+    - type: from_llm
+  branch_name:
+    type: text
+    mappings:
+    - type: from_llm
+  service_item:
+    type: text
+    mappings:
+    - type: from_llm
+  service_type:
+    type: text
+    mappings:
+    - type: from_llm
+  description:
+    type: text
+    mappings:
+    - type: from_llm
+  priority:
+    type: text
+    mappings:
+    - type: from_llm
+  request_number:
+    type: text
+    mappings:
+    - type: from_llm
+  continue_conversation:
+    type: bool
+    mappings:
+    - type: custom
+responses:
+  utter_ask_client_name:
+  - text: ما اسم العميل أو الفرع؟
+  utter_ask_client_phone:
+  - text: ما رقم الهاتف للتواصل؟
+  utter_ask_service_type:
+  - text: ما نوع الخدمة المطلوبة؟
+  utter_ask_description:
+  - text: يرجى وصف المشكلة أو الطلب.
+  utter_ask_location:
+  - text: ما المنطقة أو المحافظة؟ 📍
+  utter_ask_area_size:
+  - text: ما المساحة التقريبية بالمتر؟ 📐
+  utter_bot_challenge:
+  - text: أنا عزبوت، مساعد مجموعة العزب الذكي. 🤖
+  utter_what_can_you_do:
+  - text: 'يمكنني مساعدتك في:
+
+      🔧 صيانة وتشغيل — UberFix
+
+      ✨ تشطيبات فاخرة
+
+      🏗️ مقاولات وتنفيذ
+
+      🎨 هوية تجارية
+
+      🪵 توريدات وخامات
+
+      '
+    metadata:
+      rephrase: true
+  utter_out_of_scope:
+  - text: عذراً، هذا خارج نطاق خدماتنا. اكتب «مساعدة» لعرض الخيارات.
+  utter_default_fallback:
+  - text: عذراً، لم أفهم طلبك. جرّب إعادة الصياغة أو اكتب «مساعدة».
+  utter_ask_rephrase:
+  - text: ممكن تعيد صياغة طلبك بشكل مختلف؟ 🙏
+  utter_placeholder:
+  - text: هذه الخاصية قيد التطوير. أخبرني بما تحتاجه وسأساعدك.
+  utter_thanks:
+  - text: شكراً! 🙏
+  utter_request_created:
+  - text: 'تم تقديم طلبك بنجاح! رقم الطلب: {request_number}
+
+      يمكنك المتابعة عبر: https://uberfix.shop/track/{request_number}
+
+      '
+  utter_status:
+  - text: 'حالة طلبك: {maintenance_status}
+
+      رابط المتابعة: https://uberfix.shop/track/{request_number}
+
+      '
+actions:
+- action_check_customer_query

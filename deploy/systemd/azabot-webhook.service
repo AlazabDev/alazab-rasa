@@ -1,0 +1,30 @@
+[Unit]
+Description=AzaBot — FastAPI Webhook Server
+After=network.target azabot-rasa.service
+Wants=azabot-rasa.service
+
+[Service]
+Type=simple
+User=azureuser
+WorkingDirectory=/mnt/apps/alazab-rasa
+EnvironmentFile=/mnt/apps/alazab-rasa/.env
+ExecStart=/mnt/apps/alazab-rasa/.venv/bin/uvicorn webhook.server:app \
+    --host 127.0.0.1 \
+    --port 8000 \
+    --workers 2 \
+    --log-level info \
+    --no-server-header
+Restart=always
+RestartSec=5
+StartLimitInterval=120
+StartLimitBurst=5
+StandardOutput=append:/mnt/apps/alazab-rasa/logs/webhook.out.log
+StandardError=append:/mnt/apps/alazab-rasa/logs/webhook.err.log
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ReadWritePaths=/mnt/apps/alazab-rasa/logs /mnt/apps/alazab-rasa/.runtime /mnt/apps/alazab-rasa/webhook/static/uploads
+ProtectHome=true
+
+[Install]
+WantedBy=multi-user.target

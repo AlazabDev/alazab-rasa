@@ -1,0 +1,107 @@
+version: "3.1"
+
+slots:
+  rating:
+    type: float
+    mappings:
+      - type: from_llm
+
+  feedback_service:
+    type: text
+    mappings:
+      - type: from_llm
+
+  feedback_text:
+    type: text
+    mappings:
+      - type: from_llm
+
+  suggestion_text:
+    type: text
+    mappings:
+      - type: from_llm
+
+  feedback_rating:
+    type: categorical
+    values: [thumbs_up, thumbs_down]
+    mappings:
+      - type: from_llm
+
+responses:
+  utter_ask_feedback:
+    - text: "كيف تقيّم تجربتك معنا؟ ⭐"
+      buttons:
+        - title: "⭐⭐⭐⭐⭐ ممتاز"
+          payload: '/provide_rating{"rating": 5}'
+        - title: "⭐⭐⭐⭐ جيد جداً"
+          payload: '/provide_rating{"rating": 4}'
+        - title: "⭐⭐⭐ جيد"
+          payload: '/provide_rating{"rating": 3}'
+        - title: "⭐⭐ مقبول"
+          payload: '/provide_rating{"rating": 2}'
+        - title: "⭐ ضعيف"
+          payload: '/provide_rating{"rating": 1}'
+
+  utter_ask_feedback_rating:
+    - text: "كيف كانت تجربتك معنا؟"
+      buttons:
+        - title: "👍 ممتاز"
+          payload: "/SetSlots(feedback_rating=thumbs_up)"
+        - title: "👎 يمكن أفضل"
+          payload: "/SetSlots(feedback_rating=thumbs_down)"
+
+  utter_ask_which_service:
+    - text: "عن أي خدمة تريد إعطاء تقييم؟"
+      buttons:
+        - title: "🔧 UberFix"
+          payload: '/provide_rating{"feedback_service": "uberfix"}'
+        - title: "✨ التشطيبات"
+          payload: '/provide_rating{"feedback_service": "luxury_finishing"}'
+        - title: "🏗️ المقاولات"
+          payload: '/provide_rating{"feedback_service": "alazab_construction"}'
+        - title: "🎨 الهوية البصرية"
+          payload: '/provide_rating{"feedback_service": "brand_identity"}'
+        - title: "🪵 Laban"
+          payload: '/provide_rating{"feedback_service": "laban_alasfour"}'
+
+  utter_ask_rating:
+    - text: "أعطنا تقييمك من 1 إلى 5 نجوم."
+
+  utter_ask_feedback_details:
+    - text: "هل تريد مشاركة تفاصيل إضافية عن تجربتك؟"
+
+  utter_ask_suggestion_details:
+    - text: "شاركنا اقتراحاتك لتحسين خدمتنا 💡"
+
+  utter_ask_follow_up_contact:
+    - text: "هل تريد أن يتواصل معك أحد من فريقنا للمتابعة؟"
+
+  utter_positive_feedback:
+    - text: "شكراً جزيلاً على تقييمك الإيجابي! 🌟 نسعى دائماً لتقديم أفضل خدمة."
+
+  utter_thankyou_positive:
+    - text: "يسعدنا سماع ذلك! شكراً لوقتك. 🌟"
+
+  utter_negative_apology:
+    - text: "نأسف لعدم رضاك. سيتواصل معك فريقنا لمعالجة موقفك."
+
+  utter_thankyou_negative:
+    - text: "شكراً على صراحتك. سنعمل على التحسين."
+
+  utter_neutral_feedback:
+    - text: "شكراً على تقييمك. نسعى للتحسين المستمر."
+
+  utter_thanks_for_feedback:
+    - text: "شكراً لك على وقتك وآرائك القيّمة! 🙏"
+
+  utter_thanks_for_suggestion:
+    - text: "شكراً لاقتراحك! سنأخذه بعين الاعتبار. 💡"
+
+actions:
+  - action_receive_rating
+  - action_receive_feedback_service
+  - action_receive_feedback_text
+  - action_receive_suggestion
+  - action_save_feedback
+  - action_save_suggestion
+  - action_collect_follow_up_contact

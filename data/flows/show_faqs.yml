@@ -1,0 +1,80 @@
+version: '3.1'
+flows:
+  show_faqs:
+    description: يعرض للمستخدم أمثلة على الأسئلة الشائعة التي يمكن طرحها على المساعد
+    name: show_faqs
+    steps:
+    - id: show_top_faqs
+      action: utter_top_faqs
+      next: ask_user_selection
+    - id: ask_user_selection
+      action: utter_ask_faq_topic
+      next:
+      - if: context.intent = "ask_faq_prices"
+        then: show_prices
+      - if: context.intent = "ask_faq_timing"
+        then: show_timing
+      - if: context.intent = "ask_faq_warranty"
+        then: show_warranty
+      - if: context.intent = "ask_faq_payment"
+        then: show_payment
+      - if: context.intent = "ask_faq_location"
+        then: show_location
+      - else: show_faqs_menu
+    - id: show_prices
+      action: utter_faq_prices
+      next: ask_if_more_faqs
+    - id: show_timing
+      action: utter_faq_timing
+      next: ask_if_more_faqs
+    - id: show_warranty
+      action: utter_faq_warranty
+      next: ask_if_more_faqs
+    - id: show_payment
+      action: utter_faq_payment
+      next: ask_if_more_faqs
+    - id: show_location
+      action: utter_faq_location
+      next: ask_if_more_faqs
+    - id: show_faqs_menu
+      action: utter_faqs_menu
+      next: ask_user_selection
+    - id: ask_if_more_faqs
+      action: utter_ask_more_faqs
+      next:
+      - if: context.intent = "affirm"
+        then: show_faqs_menu
+      - else: end
+    - id: end
+      action: utter_thanks_for_faq
+      next: END
+  search_faq_by_keyword:
+    description: يبحث في الأسئلة الشائعة بناءً على كلمة مفتاحية
+    name: search_faq_by_keyword
+    steps:
+    - id: ask_keyword
+      action: utter_ask_faq_keyword
+      next: process_keyword
+    - id: process_keyword
+      action: action_search_faq_by_keyword
+      next:
+      - if: slots.search_found = true
+        then: show_search_results
+      - else: no_results_found
+    - id: show_search_results
+      action: utter_search_results
+      next: ask_if_more_faqs
+    - id: no_results_found
+      action: utter_no_faq_results
+      next: ask_if_more_faqs
+    - id: ask_if_more_faqs
+      action: utter_ask_more_faqs
+      next:
+      - if: context.intent = "affirm"
+        then: ask_keyword
+      - else: end
+    - id: end
+      action: utter_thanks_for_faq
+      next: END
+    nlu_trigger:
+    - intent: faq_search

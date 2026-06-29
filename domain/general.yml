@@ -1,0 +1,91 @@
+version: '3.1'
+intents:
+- ask_alazab_group_services
+- abo_auf_branch_coffee_mode
+- start_maintenance_request
+- request_human_handoff
+- ask_alazab_services
+- ask_alazab_projects
+- ask_alazab_contact
+- ask_alazab_quote
+- ask_alazab_technical_specs
+- ask_brand_services
+- ask_brand_process
+- ask_brand_portfolio
+- ask_brand_quote
+- ask_brand_industries
+- ask_brand_shop_fitting
+- ask_brand_complete_identity
+- ask_uberfix_services
+- ask_uberfix_about
+- ask_uberfix_pricing
+- ask_uberfix_warranty
+- ask_uberfix_packages
+- ask_uberfix_supplies
+- ask_uberfix_fire_safety
+- ask_uberfix_masonry_painting
+- uberfix_specific_repair
+- ask_help
+- out_of_scope
+- bot_challenge
+- faq_search
+- give_feedback
+- request_quote
+- ask_luxury_services
+- ask_laban_products
+slots:
+  keyword:
+    type: text
+    mappings:
+    - type: custom
+  results:
+    type: text
+    mappings:
+    - type: custom
+responses:
+  utter_alazab_master_welcome:
+  - text: '👋 أهلاً بك في مساعد مجموعة العزب الذكي.
+
+      أنا هنا لتوجيهك بسرعة بين خدماتنا:
+
+
+      1️⃣ العزب لخدمات الإنشاءات والتشطيبات والمشروعات المعمارية
+
+      2️⃣ Brand Identity — تجهيز فروع وهوية تجارية
+
+      3️⃣ Luxury Finishing — تشطيب راقٍ
+
+      4️⃣ اوبرفيكس لخدمات الصيانات وإدارة المرافق
+
+      5️⃣ Laban Alasfour — توريدات وخامات
+
+
+      اكتب الخدمة المطلوبة، وسأحوّل طلبك للمسار الصحيح.
+
+      '
+  utter_route_to_human_with_summary:
+  - text: 'تم استلام طلبك ومراجعته. 📝
+
+      الموضوع يحتاج تدخل بشري لضمان الجودة، لذلك بجهز ملخصًا واضحًا للفريق يشمل التفاصيل.
+
+      اكتب آخر تفصيلة حابب تضيفها وسأكمل التحويل للمسئول.
+
+      '
+  utter_clarification_no_options_rasa:
+  - text: 'محتاج تفاصيل أكتر عشان أوجّهك صح. 🤔
+
+      اكتب هل تقصد: خدمات، عرض سعر، مراحل التنفيذ، أو أعمال سابقة؟
+
+      '
+  utter_clarification_options_rasa:
+  - text: 'أقدر أساعدك، لكن محتاج تحدد المقصود بالظبط.
+
+      اختر الأقرب لطلبك: {{context.clarification_options}}
+
+      '
+  utter_no_knowledge_base:
+  - text: 'عذراً، لا توجد لدي معلومة دقيقة عن النقطة دي حالياً. 😅
+
+      أقدر أساعدك في خدمات المجموعة المتاحة أو أوصّل طلبك لخدمة العملاء.
+
+      '

@@ -1,0 +1,91 @@
+version: '3.1'
+stories:
+
+# ----------------------------------------------------
+# 1. مسارات الترحيب والمساعدة (Welcome & Help Flows)
+# ----------------------------------------------------
+- story: مسار الترحيب الكامل وتقديم المساعدة
+  steps:
+  - intent: greet
+  - action: utter_greet
+  - intent: ask_help
+  - action: utter_ask_help
+  - intent: thanks
+  - action: utter_thanks
+  - intent: goodbye
+  - action: utter_goodbye
+
+- story: مسار الترحيب المباشر ثم الخروج
+  steps:
+  - intent: greet
+  - action: utter_greet
+  - intent: goodbye
+  - action: utter_goodbye
+
+- story: الترحيب والاعتذار عن عدم الفهم
+  steps:
+  - intent: greet
+  - action: utter_greet
+  - intent: nlu_fallback
+  - action: utter_default_fallback
+  - intent: ask_help
+  - action: utter_ask_help
+
+# ----------------------------------------------------
+# 2. مسارات الشكر والوداع (Gratitude & Goodbye Flows)
+# ----------------------------------------------------
+- story: المستخدم يشكر البوت ويغادر
+  steps:
+  - intent: thanks
+  - action: utter_thanks
+  - intent: goodbye
+  - action: utter_goodbye
+
+- story: سؤال عن الخدمات ثم شكر ووداع
+  steps:
+  - intent: ask_help
+  - action: utter_ask_help
+  - intent: thanks
+  - action: utter_thanks
+  - intent: goodbye
+  - action: utter_goodbye
+
+# ----------------------------------------------------
+# 3. مسارات الحالات الخاصة والتحويل البشري
+# ----------------------------------------------------
+- story: المستخدم يسأل البوت عن هويته ثم يشكره
+  steps:
+  - intent: bot_challenge
+  - action: utter_bot_challenge
+  - intent: thanks
+  - action: utter_thanks
+
+- story: مسار سؤال خارج النطاق وتوجيه المستخدم للخدمات
+  steps:
+  - intent: out_of_scope
+  - action: utter_out_of_scope
+  - intent: ask_help
+  - action: utter_ask_help
+
+- story: المستخدم يطلب تحويلا لموظف بشري فوراً
+  steps:
+  - intent: request_human_handoff
+  - action: utter_human_handoff_immediate
+  - action: action_human_handoff
+
+- story: سؤال خارج النطاق متبوع بطلب تحويل بشري
+  steps:
+  - intent: out_of_scope
+  - action: utter_out_of_scope
+  - intent: request_human_handoff
+  - action: utter_human_handoff_immediate
+  - action: action_human_handoff
+
+
+- story: سؤال عن التقييم والاقتراحات
+  steps:
+  - intent: provide_rating
+  - action: utter_ask_feedback
+  - intent: give_feedback
+  - action: action_save_feedback
+  - action: utter_thanks

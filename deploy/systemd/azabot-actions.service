@@ -1,0 +1,24 @@
+[Unit]
+Description=AzaBot — Rasa Actions Server
+After=network.target
+
+[Service]
+Type=simple
+User=azureuser
+WorkingDirectory=/mnt/apps/alazab-rasa
+EnvironmentFile=/mnt/apps/alazab-rasa/.env
+ExecStart=/mnt/apps/alazab-rasa/.venv/bin/python -m rasa_sdk \
+    --actions actions \
+    --port 5055
+Restart=always
+RestartSec=10
+StartLimitInterval=300
+StartLimitBurst=5
+StandardOutput=append:/mnt/apps/alazab-rasa/logs/actions.out.log
+StandardError=append:/mnt/apps/alazab-rasa/logs/actions.err.log
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+
+[Install]
+WantedBy=multi-user.target

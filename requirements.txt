@@ -1,0 +1,14 @@
+# ══════════════════════════════════════════════════════════════
+# AzaBot v4 — Production Requirements
+# ⚠️ لا تُثبَّت هذه دفعة واحدة عبر `pip install -r requirements.txt`
+#    لأن ذلك يسبب "resolution-too-deep" مع rasa-pro.
+#
+# التثبيت الصحيح (مرحلتين):
+#   pip install -r requirements/01-rasa.txt  --break-system-packages
+#   pip install -r requirements/02-extra.txt --break-system-packages
+#
+# أو الأسهل:
+#   bash az.sh setup
+# ══════════════════════════════════════════════════════════════
+-r requirements/01-rasa.txt
+-r requirements/02-extra.txt

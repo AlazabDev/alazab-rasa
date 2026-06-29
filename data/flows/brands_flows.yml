@@ -1,0 +1,37 @@
+version: "3.1"
+# ══════════════════════════════════════════════════════════════
+# data/flows/brands_flows.yml
+# تدفق التوجيه الذكي بين براندات مجموعة العزب
+# يُشغَّل عندما يذكر المستخدم أكثر من براند أو يسأل عن المجموعة
+# ══════════════════════════════════════════════════════════════
+flows:
+
+  # ── التوجيه للبراند المناسب ─────────────────────────────────
+  brand_navigator:
+    description: >
+      يُوجّه المستخدم للبراند المناسب من مجموعة العزب بناءً على طلبه.
+      يُشغَّل عند السؤال عن خدمات المجموعة بشكل عام.
+    name: "brand navigator"
+    steps:
+      - action: action_brand_navigator
+        next: END
+
+  # ── عرض مواقع المجموعة ─────────────────────────────────────
+  show_brand_sites:
+    description: >
+      يعرض روابط جميع مواقع مجموعة العزب (alazab.com, uberfix.alazab.com, إلخ).
+    name: "show brand sites"
+    steps:
+      - action: utter_brand_sites
+        next: END
+
+  # ── طلب الحصول على عرض سعر عام ─────────────────────────────
+  request_general_quote:
+    description: >
+      يستقبل طلب عرض سعر غير محدد البراند،
+      يجمع السياق ثم يوجّه لـ collect_lead.
+    name: "request general quote"
+    steps:
+      - action: action_accumulate_context
+      - action: action_brand_navigator
+      - link: collect_lead

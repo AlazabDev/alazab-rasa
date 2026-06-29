@@ -1,0 +1,64 @@
+# ══════════════════════════════════════════════════════════════
+# endpoints.nodocker.yml — Rasa Pro CALM (بدون Docker)
+# Tracker/Lock: Redis محلي
+# Model Groups: متطابقة مع config.yml
+# ══════════════════════════════════════════════════════════════
+
+action_endpoint:
+  url: "http://127.0.0.1:5055/webhook"
+
+tracker_store:
+  type: redis
+  url: "${REDIS_HOST}"
+  port: ${REDIS_PORT}
+  db: 0
+  password: "${REDIS_PASSWORD}"
+  key_prefix: "alazab"
+  use_ssl: false
+
+lock_store:
+  type: redis
+  url: "${REDIS_HOST}"
+  port: ${REDIS_PORT}
+  db: 1
+  password: "${REDIS_PASSWORD}"
+  use_ssl: false
+
+# ── Model Groups — يجب أن تتطابق أسماؤها مع config.yml ───────
+model_groups:
+  # مطلوب من SingleStepLLMCommandGenerator في config.yml
+  - id: command_generator_llm
+    models:
+      - provider: openai
+        model: gpt-4o-mini
+        timeout: 25
+
+  # مطلوب من EnterpriseSearchPolicy في config.yml
+  - id: enterprise_search_generation
+    models:
+      - provider: openai
+        model: gpt-4o-mini
+        timeout: 20
+
+  # مطلوب من EnterpriseSearchPolicy في config.yml
+  - id: enterprise_search_embeddings
+    models:
+      - provider: openai
+        model: text-embedding-3-large
+        timeout: 15
+
+  # استخدام عام
+  - id: openai-gpt-4o
+    models:
+      - provider: openai
+        model: gpt-4o
+        timeout: 30
+
+  - id: openai-gpt-4o-mini
+    models:
+      - provider: openai
+        model: gpt-4o-mini
+        timeout: 20
+
+nlg:
+  type: rephrase

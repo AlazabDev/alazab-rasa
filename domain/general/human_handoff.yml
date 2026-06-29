@@ -1,0 +1,110 @@
+version: "3.1"
+
+slots:
+  confirm_human_handoff:
+    type: categorical
+    values:
+      - "Yes"
+      - "No"
+    mappings:
+      - type: from_llm
+
+  handoff_reason:
+    type: text
+    mappings:
+      - type: from_llm
+
+  is_available:
+    type: bool
+    mappings:
+      - type: custom
+
+  queue_position:
+    type: float
+    mappings:
+      - type: custom
+
+  escalation_details:
+    type: text
+    mappings:
+      - type: from_llm
+
+responses:
+  utter_ask_confirm_human_handoff:
+    - text: "تحب أوصلك بأحد أفراد فريقنا مباشرة؟ 😊"
+      buttons:
+        - title: "✅ أيوه، وصّلني"
+          payload: "/SetSlots(confirm_human_handoff=Yes)"
+        - title: "❌ لا، هكمّل مع عزبوت"
+          payload: "/SetSlots(confirm_human_handoff=No)"
+
+  utter_transferring_to_human:
+    - text: "سيتم تحويلك الآن إلى أحد أفراد فريقنا خلال لحظات."
+
+  utter_human_handoff_cancelled:
+    - text: "تم إلغاء التحويل. هل ترغب في المساعدة في شيء آخر؟"
+      metadata:
+        rephrase: True
+
+  utter_transfer_to_manager:
+    - text: |
+        👤 جاري تحويلك لأحد ممثلي الفريق دلوقتي!
+        ملخص المحادثة: {summary}
+        الفريق هيكون معاك قريباً جداً! ⏳
+
+  utter_ask_reason_for_handoff:
+    - text: "حسناً، سأحوّلك لأحد زملائي. هل يمكنك إخباري بسبب طلبك؟"
+
+  utter_offer_human_handoff:
+    - text: "هل تريد التحدث مع أحد ممثلي خدمة العملاء؟"
+      buttons:
+        - title: "نعم، أريد التحدث مع أحد"
+          payload: /affirm
+        - title: "لا، يكفيني المساعد الآلي"
+          payload: /deny
+
+  utter_human_handoff_immediate:
+    - text: "سيتم تحويلك الآن لأحد ممثلينا. الرجاء الانتظار لحظة. ⏳"
+
+  utter_human_handoff_queue:
+    - text: "جميع الممثلين مشغولون الآن. أنت في قائمة الانتظار، سيتواصل معك أحدنا قريباً."
+
+  utter_agent_connected:
+    - text: "تم التحويل بنجاح. مرحباً بك مع أحد ممثلينا! 👋"
+
+  utter_human_handoff_offline:
+    - text: |
+        نحن خارج ساعات العمل حالياً (9ص — 10م).
+        سيتواصل معك أحد فريقنا في أقرب وقت ممكن.
+
+  utter_offer_alternative_contact:
+    - text: |
+        يمكنك التواصل معنا مباشرة:
+        📞 واتساب: https://wa.me/201004006620
+        📧 info@alazab.com
+
+  utter_provide_whatsapp:
+    - text: |
+        تواصل معنا عبر واتساب:
+        📱 https://wa.me/201004006620
+
+  utter_handoff_cancelled:
+    - text: "حسناً، ألغينا التحويل. هل يمكنني مساعدتك في شيء آخر؟"
+
+  utter_receive_escalation:
+    - text: "تم استلام طلبك وسيتم التواصل معك من قِبَل المدير المختص قريباً."
+
+  utter_escalate_to_manager:
+    - text: "سيتم تصعيد طلبك للمدير المختص. نعتذر عن أي إزعاج."
+
+actions:
+  - action_human_handoff
+  - action_check_human_availability
+  - action_check_queue_position
+  - action_receive_handoff_reason
+  - action_initiate_human_handoff
+  - action_transfer_to_agent
+  - action_wait_for_agent
+  - action_collect_follow_up_contact
+  - action_collect_escalation_details
+  - action_create_escalation_ticket

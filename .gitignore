@@ -1,0 +1,89 @@
+# ══════════════════════════════════════════════════════════════
+#  .gitignore — AzaBot v4.1
+#  إذا ملفات محظورة مُتتبَّعة بالفعل في git، استخدم:
+#    git rm --cached -r <path>
+# ══════════════════════════════════════════════════════════════
+
+# ⛔ أسرار البيئة
+.env
+.env.*
+!.env.example
+azabot/.env
+azabot/.env.*
+!azabot/.env.example
+
+# ⛔ شهادات SSL والمفاتيح الخاصة
+ssl/
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+
+# ⛔ تراخيص Rasa
+RASA_LICENSE1
+RASA_LICENSE2
+RASA_LICENSE3
+RASA_LICENSE*
+
+# ⛔ Google / Cloud Credentials
+gcp-*.json
+service-account*.json
+credentials.json
+
+# ⛔ بيانات Runtime
+.runtime/
+*.pid
+
+# 🗑️ ملفات تطوير داخلية
+scratch/
+reports/
+tools/dev.txt
+
+# 🗑️ نماذج Rasa (حجم ضخم)
+models/
+*.tar.gz
+
+# 🗑️ ملفات المستخدمين المرفوعة
+webhook/static/uploads/
+
+# 🗑️ Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+*.egg-info/
+dist/
+build/
+.venv/
+venv/
+.mypy_cache/
+.ruff_cache/
+
+# 🗑️ Node / Frontend
+node_modules/
+azabot/node_modules/
+azabot/dist/
+azabot/.pnpm-store/
+*.tsbuildinfo
+
+# 🗑️ Logs
+logs/
+*.log
+
+# 🗑️ OS / IDE
+.DS_Store
+.idea/
+.vscode/
+*.swp
+*Zone.Identifier
+
+# Rasa local cache
+.rasa/
+
+# Local DB / temp
+*.db
+*.sqlite
+*.sqlite3
+tmp/
+temp/
+.cache/

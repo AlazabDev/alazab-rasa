@@ -1,0 +1,24 @@
+version: "3.1"
+
+responses:
+  utter_hello:
+    - text: "أهلاً بك! يسعدني جداً تقديم المساعدة والإجابة على كافة استفساراتك. 😊"
+      metadata:
+        rephrase: True
+  utter_greet:
+    - text: "مرحباً بك في مجموعة العزب للمقاولات العامة والخدمات المتكاملة! 🌟"
+  utter_session_start:
+    - text: "مرحباً بك في عالمنا! نحن هنا لخدمتك."
+  utter_ask_help:
+    - text: "كيف يمكنني مساعدتك اليوم؟ يسعدني تقديم استشارات وخدمات مخصصة لك:"
+      buttons:
+        - title: "🔧 صيانة وتشغيل (UberFix)"
+          payload: /ask_uberfix_services
+        - title: "✨ تشطيبات فاخرة (Luxury)"
+          payload: /ask_luxury_services
+        - title: "🏗️ مقاولات عامة (Alazab)"
+          payload: /ask_alazab_services
+        - title: "🎨 هوية تجارية (Brand Identity)"
+          payload: /ask_brand_services
+        - title: "🪵 توريدات خشبية (Laban)"
+          payload: /ask_laban_products
